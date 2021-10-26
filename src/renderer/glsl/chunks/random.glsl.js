@@ -49,4 +49,4 @@ MaterialSamples getRandomMaterialSamples() {
 
   return samples;
 }
-`;
+`

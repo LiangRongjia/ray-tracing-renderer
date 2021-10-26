@@ -1,43 +1,43 @@
-import { bvhAccel, flattenBvh } from './bvhAccel.js';
-import { generateEnvMapFromSceneComponents, generateBackgroundMapFromSceneBackground } from './envMapCreation.js';
-import { envMapDistribution } from './envMapDistribution.js';
-import fragment from './glsl/rayTrace.frag.js';
-import { makeRenderPass } from './RenderPass.js';
-import { makeStratifiedSamplerCombined } from './StratifiedSamplerCombined.js';
-import { makeTexture } from './Texture.js';
-import { clamp } from './util.js';
+import { bvhAccel, flattenBvh } from './bvhAccel.js'
+import { generateEnvMapFromSceneComponents, generateBackgroundMapFromSceneBackground } from './envMapCreation.js'
+import { envMapDistribution } from './envMapDistribution.js'
+import fragment from './glsl/rayTrace.frag.js'
+import { makeRenderPass } from './RenderPass.js'
+import { makeStratifiedSamplerCombined } from './StratifiedSamplerCombined.js'
+import { makeTexture } from './Texture.js'
+import { clamp } from './util.js'
 
 export function makeRayTracePass(gl, {
-    bounces, // number of global illumination bounces
-    decomposedScene,
-    fullscreenQuad,
-    materialBuffer,
-    mergedMesh,
-    optionalExtensions,
-  }) {
+  bounces, // number of global illumination bounces
+  decomposedScene,
+  fullscreenQuad,
+  materialBuffer,
+  mergedMesh,
+  optionalExtensions,
+}) {
 
-  bounces = clamp(bounces, 1, 6);
+  bounces = clamp(bounces, 1, 6)
 
-  const samplingDimensions = [];
+  const samplingDimensions = []
 
   for (let i = 1; i <= bounces; i++) {
     // specular or diffuse reflection, light importance sampling, next path direction
-    samplingDimensions.push(2, 2, 2);
+    samplingDimensions.push(2, 2, 2)
     if (i >= 2) {
       // russian roulette sampling
       // this step is skipped on the first bounce
-      samplingDimensions.push(1);
+      samplingDimensions.push(1)
     }
   }
 
-  let samples;
+  let samples
 
   const renderPass = makeRenderPassFromScene({
     bounces, decomposedScene, fullscreenQuad, gl, materialBuffer, mergedMesh, optionalExtensions, samplingDimensions,
-  });
+  })
 
   function setSize(width, height) {
-    renderPass.setUniform('pixelSize', 1 / width, 1 / height);
+    renderPass.setUniform('pixelSize', 1 / width, 1 / height)
   }
 
   // noiseImage is a 32-bit PNG image
@@ -47,29 +47,29 @@ export function makeRayTracePass(gl, {
       wrapS: gl.REPEAT,
       wrapT: gl.REPEAT,
       storage: 'halfFloat',
-    }));
+    }))
   }
 
   function setCamera(camera) {
-    renderPass.setUniform('camera.transform', camera.matrixWorld.elements);
-    renderPass.setUniform('camera.aspect', camera.aspect);
-    renderPass.setUniform('camera.fov', 0.5 / Math.tan(0.5 * Math.PI * camera.fov / 180));
+    renderPass.setUniform('camera.transform', camera.matrixWorld.elements)
+    renderPass.setUniform('camera.aspect', camera.aspect)
+    renderPass.setUniform('camera.fov', 0.5 / Math.tan(0.5 * Math.PI * camera.fov / 180))
   }
 
   function setJitter(x, y) {
-    renderPass.setUniform('jitter', x, y);
+    renderPass.setUniform('jitter', x, y)
   }
 
   function setGBuffers({ position, normal, faceNormal, color, matProps }) {
-    renderPass.setTexture('gPosition', position);
-    renderPass.setTexture('gNormal', normal);
-    renderPass.setTexture('gFaceNormal', faceNormal);
-    renderPass.setTexture('gColor', color);
-    renderPass.setTexture('gMatProps', matProps);
+    renderPass.setTexture('gPosition', position)
+    renderPass.setTexture('gNormal', normal)
+    renderPass.setTexture('gFaceNormal', faceNormal)
+    renderPass.setTexture('gColor', color)
+    renderPass.setTexture('gMatProps', matProps)
   }
 
   function nextSeed() {
-    renderPass.setUniform('stratifiedSamples[0]', samples.next());
+    renderPass.setUniform('stratifiedSamples[0]', samples.next())
   }
 
   function setStrataCount(strataCount) {
@@ -77,25 +77,25 @@ export function makeRayTracePass(gl, {
       // reinitailizing random has a performance cost. we can skip it if
       // * strataCount is 1, since a strataCount of 1 works with any sized StratifiedRandomCombined
       // * random already has the same strata count as desired
-      samples = makeStratifiedSamplerCombined(strataCount, samplingDimensions);
+      samples = makeStratifiedSamplerCombined(strataCount, samplingDimensions)
     } else {
-      samples.restart();
+      samples.restart()
     }
 
-    renderPass.setUniform('strataSize', 1.0 / strataCount);
-    nextSeed();
+    renderPass.setUniform('strataSize', 1.0 / strataCount)
+    nextSeed()
   }
 
   function bindTextures() {
-    renderPass.bindTextures();
+    renderPass.bindTextures()
   }
 
   function draw() {
-    renderPass.useProgram(false);
-    fullscreenQuad.draw();
+    renderPass.useProgram(false)
+    fullscreenQuad.draw()
   }
 
-  samples = makeStratifiedSamplerCombined(1, samplingDimensions);
+  samples = makeStratifiedSamplerCombined(1, samplingDimensions)
 
   return {
     bindTextures,
@@ -108,28 +108,28 @@ export function makeRayTracePass(gl, {
     setNoise,
     setSize,
     setStrataCount,
-  };
+  }
 }
 function makeRenderPassFromScene({
-    bounces,
-    decomposedScene,
-    fullscreenQuad,
-    gl,
-    materialBuffer,
-    mergedMesh,
-    optionalExtensions,
-    samplingDimensions,
-  }) {
-  const { OES_texture_float_linear } = optionalExtensions;
+  bounces,
+  decomposedScene,
+  fullscreenQuad,
+  gl,
+  materialBuffer,
+  mergedMesh,
+  optionalExtensions,
+  samplingDimensions,
+}) {
+  const { OES_texture_float_linear } = optionalExtensions
 
-  const { background, directionalLights, ambientLights, environmentLights } = decomposedScene;
+  const { background, directionalLights, ambientLights, environmentLights } = decomposedScene
 
-  const { geometry, materials, materialIndices } = mergedMesh;
+  const { geometry, materials, materialIndices } = mergedMesh
 
   // create bounding volume hierarchy from a static scene
-  const bvh = bvhAccel(geometry, materialIndices);
-  const flattenedBvh = flattenBvh(bvh);
-  const numTris = geometry.index.count / 3;
+  const bvh = bvhAccel(geometry, materialIndices)
+  const flattenedBvh = flattenBvh(bvh)
+  const numTris = geometry.index.count / 3
 
   const renderPass = makeRenderPass(gl, {
     defines: {
@@ -146,21 +146,21 @@ function makeRenderPassFromScene({
     },
     fragment,
     vertex: fullscreenQuad.vertexShader
-  });
+  })
 
-  renderPass.setTexture('diffuseMap', materialBuffer.textures.diffuseMap);
-  renderPass.setTexture('normalMap', materialBuffer.textures.normalMap);
-  renderPass.setTexture('pbrMap', materialBuffer.textures.pbrMap);
+  renderPass.setTexture('diffuseMap', materialBuffer.textures.diffuseMap)
+  renderPass.setTexture('normalMap', materialBuffer.textures.normalMap)
+  renderPass.setTexture('pbrMap', materialBuffer.textures.pbrMap)
 
-  renderPass.setTexture('positionBuffer', makeDataTexture(gl, geometry.getAttribute('position').array, 3));
+  renderPass.setTexture('positionBuffer', makeDataTexture(gl, geometry.getAttribute('position').array, 3))
 
-  renderPass.setTexture('normalBuffer', makeDataTexture(gl, geometry.getAttribute('normal').array, 3));
+  renderPass.setTexture('normalBuffer', makeDataTexture(gl, geometry.getAttribute('normal').array, 3))
 
-  renderPass.setTexture('uvBuffer', makeDataTexture(gl, geometry.getAttribute('uv').array, 2));
+  renderPass.setTexture('uvBuffer', makeDataTexture(gl, geometry.getAttribute('uv').array, 2))
 
-  renderPass.setTexture('bvhBuffer', makeDataTexture(gl, flattenedBvh.buffer, 4));
+  renderPass.setTexture('bvhBuffer', makeDataTexture(gl, flattenedBvh.buffer, 4))
 
-  const envImage = generateEnvMapFromSceneComponents(directionalLights, ambientLights, environmentLights);
+  const envImage = generateEnvMapFromSceneComponents(directionalLights, ambientLights, environmentLights)
   const envImageTextureObject = makeTexture(gl, {
     data: envImage.data,
     storage: 'halfFloat',
@@ -168,13 +168,13 @@ function makeRenderPassFromScene({
     magFilter: OES_texture_float_linear ? gl.LINEAR : gl.NEAREST,
     width: envImage.width,
     height: envImage.height,
-  });
+  })
 
-  renderPass.setTexture('envMap', envImageTextureObject);
+  renderPass.setTexture('envMap', envImageTextureObject)
 
-  let backgroundImageTextureObject;
+  let backgroundImageTextureObject
   if (background) {
-    const backgroundImage = generateBackgroundMapFromSceneBackground(background);
+    const backgroundImage = generateBackgroundMapFromSceneBackground(background)
     backgroundImageTextureObject = makeTexture(gl, {
       data: backgroundImage.data,
       storage: 'halfFloat',
@@ -182,49 +182,49 @@ function makeRenderPassFromScene({
       magFilter: OES_texture_float_linear ? gl.LINEAR : gl.NEAREST,
       width: backgroundImage.width,
       height: backgroundImage.height,
-    });
+    })
   } else {
-    backgroundImageTextureObject = envImageTextureObject;
+    backgroundImageTextureObject = envImageTextureObject
   }
 
-  renderPass.setTexture('backgroundMap', backgroundImageTextureObject);
+  renderPass.setTexture('backgroundMap', backgroundImageTextureObject)
 
-  const distribution = envMapDistribution(envImage);
+  const distribution = envMapDistribution(envImage)
 
   renderPass.setTexture('envMapDistribution', makeTexture(gl, {
     data: distribution.data,
     storage: 'halfFloat',
     width: distribution.width,
     height: distribution.height,
-  }));
+  }))
 
-  return renderPass;
+  return renderPass
 }
 
 function textureDimensionsFromArray(count) {
-  const columnsLog = Math.round(Math.log2(Math.sqrt(count)));
-  const columns = 2 ** columnsLog;
-  const rows = Math.ceil(count / columns);
+  const columnsLog = Math.round(Math.log2(Math.sqrt(count)))
+  const columns = 2 ** columnsLog
+  const rows = Math.ceil(count / columns)
   return {
     columnsLog,
     columns,
     rows,
     size: rows * columns,
-  };
+  }
 }
 
 function makeDataTexture(gl, dataArray, channels) {
-  const textureDim = textureDimensionsFromArray(dataArray.length / channels);
+  const textureDim = textureDimensionsFromArray(dataArray.length / channels)
   return makeTexture(gl, {
     data: padArray(dataArray, channels * textureDim.size),
     width: textureDim.columns,
     height: textureDim.rows,
-  });
+  })
 }
 
 // expand array to the given length
 function padArray(typedArray, length) {
-  const newArray = new typedArray.constructor(length);
-  newArray.set(typedArray);
-  return newArray;
+  const newArray = new typedArray.constructor(length)
+  newArray.set(typedArray)
+  return newArray
 }

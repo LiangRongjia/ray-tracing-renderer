@@ -1,14 +1,14 @@
-import { Light }  from '../lib/three.module.js';
+import { Light } from '../lib/three.module.js'
 
 export class EnvironmentLight extends Light {
   constructor(map, ...args) {
-    super(...args);
-    this.map = map;
-    this.isEnvironmentLight = true;
+    super(...args)
+    this.map = map
+    this.isEnvironmentLight = true
   }
 
   copy(source) {
-    super.copy(source);
-    this.map = source.map;
+    super.copy(source)
+    this.map = source.map
   }
 }

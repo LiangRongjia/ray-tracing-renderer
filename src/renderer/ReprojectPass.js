@@ -1,31 +1,31 @@
-import fragment from './glsl/reproject.frag.js';
-import { makeRenderPass } from './RenderPass.js';
-import * as THREE from '../../lib/three.module.js';
+import fragment from './glsl/reproject.frag.js'
+import { makeRenderPass } from './RenderPass.js'
+import * as THREE from '../../lib/three.module.js'
 
 export function makeReprojectPass(gl, params) {
   const {
     fullscreenQuad,
     maxReprojectedSamples,
-  } = params;
+  } = params
 
   const renderPass = makeRenderPass(gl, {
-      defines: {
-        MAX_SAMPLES: maxReprojectedSamples.toFixed(1)
-      },
-      vertex: fullscreenQuad.vertexShader,
-      fragment
-    });
+    defines: {
+      MAX_SAMPLES: maxReprojectedSamples.toFixed(1)
+    },
+    vertex: fullscreenQuad.vertexShader,
+    fragment
+  })
 
-  const historyCamera = new THREE.Matrix4();
+  const historyCamera = new THREE.Matrix4()
 
   function setPreviousCamera(camera) {
-    historyCamera.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    historyCamera.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
 
-    renderPass.setUniform('historyCamera', historyCamera.elements);
+    renderPass.setUniform('historyCamera', historyCamera.elements)
   }
 
   function setJitter(x, y) {
-    renderPass.setUniform('jitter', x, y);
+    renderPass.setUniform('jitter', x, y)
   }
 
   function draw(params) {
@@ -37,24 +37,24 @@ export function makeReprojectPass(gl, params) {
       previousLight,
       previousLightScale,
       previousPosition,
-    } = params;
+    } = params
 
-    renderPass.setUniform('blendAmount', blendAmount);
-    renderPass.setUniform('lightScale', lightScale.x, lightScale.y);
-    renderPass.setUniform('previousLightScale', previousLightScale.x, previousLightScale.y);
+    renderPass.setUniform('blendAmount', blendAmount)
+    renderPass.setUniform('lightScale', lightScale.x, lightScale.y)
+    renderPass.setUniform('previousLightScale', previousLightScale.x, previousLightScale.y)
 
-    renderPass.setTexture('lightTex', light);
-    renderPass.setTexture('positionTex', position);
-    renderPass.setTexture('previousLightTex', previousLight);
-    renderPass.setTexture('previousPositionTex', previousPosition);
+    renderPass.setTexture('lightTex', light)
+    renderPass.setTexture('positionTex', position)
+    renderPass.setTexture('previousLightTex', previousLight)
+    renderPass.setTexture('previousPositionTex', previousPosition)
 
-    renderPass.useProgram();
-    fullscreenQuad.draw();
+    renderPass.useProgram()
+    fullscreenQuad.draw()
   }
 
   return {
     draw,
     setJitter,
     setPreviousCamera,
-  };
+  }
 }

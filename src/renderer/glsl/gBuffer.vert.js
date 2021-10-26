@@ -1,6 +1,5 @@
 export default {
-
-source: `
+  source: `
   in vec3 aPosition;
   in vec3 aNormal;
   in vec2 aUv;
@@ -21,4 +20,4 @@ source: `
     gl_Position = projView * vec4(aPosition, 1);
   }
 `
-};
+}

@@ -1,6 +1,6 @@
-import fragment from './glsl/toneMap.frag.js';
-import { makeRenderPass } from './RenderPass.js';
-import * as THREE from '../../lib/three.module.js';
+import fragment from './glsl/toneMap.frag.js'
+import { makeRenderPass } from './RenderPass.js'
+import * as THREE from '../../lib/three.module.js'
 
 const toneMapFunctions = {
   [THREE.LinearToneMapping]: 'linear',
@@ -8,13 +8,13 @@ const toneMapFunctions = {
   [THREE.Uncharted2ToneMapping]: 'uncharted2',
   [THREE.CineonToneMapping]: 'cineon',
   [THREE.ACESFilmicToneMapping]: 'acesFilmic'
-};
+}
 
 export function makeToneMapPass(gl, params) {
   const {
     fullscreenQuad,
     toneMappingParams
-  } = params;
+  } = params
 
   const renderPassConfig = {
     gl,
@@ -25,35 +25,35 @@ export function makeToneMapPass(gl, params) {
     },
     vertex: fullscreenQuad.vertexShader,
     fragment,
-  };
+  }
 
-  renderPassConfig.defines.EDGE_PRESERVING_UPSCALE = true;
-  const renderPassUpscale = makeRenderPass(gl, renderPassConfig);
+  renderPassConfig.defines.EDGE_PRESERVING_UPSCALE = true
+  const renderPassUpscale = makeRenderPass(gl, renderPassConfig)
 
-  renderPassConfig.defines.EDGE_PRESERVING_UPSCALE = false;
-  const renderPassNative = makeRenderPass(gl, renderPassConfig);
+  renderPassConfig.defines.EDGE_PRESERVING_UPSCALE = false
+  const renderPassNative = makeRenderPass(gl, renderPassConfig)
 
   function draw(params) {
     const {
       light,
       lightScale,
       position
-    } = params;
+    } = params
 
     const renderPass =
       lightScale.x !== 1 && lightScale.y !== 1 ?
-      renderPassUpscale :
-      renderPassNative;
+        renderPassUpscale :
+        renderPassNative
 
-    renderPass.setUniform('lightScale', lightScale.x, lightScale.y);
-    renderPass.setTexture('lightTex', light);
-    renderPass.setTexture('positionTex', position);
+    renderPass.setUniform('lightScale', lightScale.x, lightScale.y)
+    renderPass.setTexture('lightTex', light)
+    renderPass.setTexture('positionTex', position)
 
-    renderPass.useProgram();
-    fullscreenQuad.draw();
+    renderPass.useProgram()
+    fullscreenQuad.draw()
   }
 
   return {
     draw
-  };
+  }
 }

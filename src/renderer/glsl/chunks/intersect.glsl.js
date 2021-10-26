@@ -272,4 +272,4 @@ bool intersectSceneShadow(inout Ray ray) {
   return false;
 }
 
-`;
+`

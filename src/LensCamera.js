@@ -1,13 +1,13 @@
-import { PerspectiveCamera }  from '../lib/three.module.js';
+import { PerspectiveCamera } from '../lib/three.module.js'
 
 export class LensCamera extends PerspectiveCamera {
   constructor(...args) {
-    super(...args);
-    this.aperture = 0.01;
+    super(...args)
+    this.aperture = 0.01
   }
 
   copy(source, recursive) {
-    super.copy(source, recursive);
-    this.aperture = source.aperture;
+    super.copy(source, recursive)
+    this.aperture = source.aperture
   }
 }

@@ -1,14 +1,13 @@
-import constants from './chunks/constants.glsl.js';
-import materialBuffer from './chunks/materialBuffer.glsl.js';
+import constants from './chunks/constants.glsl.js'
+import materialBuffer from './chunks/materialBuffer.glsl.js'
 
 export default {
-
-outputs: ['position', 'normal', 'faceNormal', 'color', 'matProps'],
-includes: [
-  constants,
-  materialBuffer,
-],
-source: `
+  outputs: ['position', 'normal', 'faceNormal', 'color', 'matProps'],
+  includes: [
+    constants,
+    materialBuffer,
+  ],
+  source: `
   in vec3 vPosition;
   in vec3 vNormal;
   in vec2 vUv;
@@ -54,4 +53,4 @@ source: `
   }
 `
 
-};
+}

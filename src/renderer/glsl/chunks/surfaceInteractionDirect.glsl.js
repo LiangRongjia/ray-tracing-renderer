@@ -28,4 +28,4 @@ export default `
 
     si.hit = meshIndex > 0.0 ? true : false;
   }
-`;
+`

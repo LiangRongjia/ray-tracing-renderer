@@ -91,4 +91,4 @@ vec3 materialBrdf(SurfaceInteraction si, vec3 viewDir, vec3 lightDir, float cosT
   return mix(si.color * diffuse + specular, si.color * specular, si.metalness);
 }
 
-`;
+`

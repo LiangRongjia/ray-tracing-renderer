@@ -1,13 +1,13 @@
-import { DirectionalLight }  from '../lib/three.module.js';
+import { DirectionalLight } from '../lib/three.module.js'
 
 export class SoftDirectionalLight extends DirectionalLight {
   constructor(color, intensity, softness = 0) {
-    super(color, intensity);
-    this.softness = softness;
+    super(color, intensity)
+    this.softness = softness
   }
 
   copy(source) {
-    super.copy(source);
-    this.softness = source.softness;
+    super.copy(source)
+    this.softness = source.softness
   }
 }

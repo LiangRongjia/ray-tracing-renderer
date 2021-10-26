@@ -37,4 +37,4 @@ void sampleGlassSpecular(SurfaceInteraction si, int bounce, inout Path path) {
 
 #endif
 
-`;
+`

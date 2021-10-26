@@ -53,4 +53,4 @@ float powerHeuristic(float f, float g) {
   return (f * f) / (f * f + g * g);
 }
 
-`;
+`

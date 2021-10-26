@@ -1,36 +1,36 @@
-import { unrollLoop } from '../glslUtil.js';
-import constants from './chunks/constants.glsl.js';
-import rayTraceCore from './chunks/rayTraceCore.glsl.js';
-import textureLinear from './chunks/textureLinear.glsl.js';
-import materialBuffer from './chunks/materialBuffer.glsl.js';
-import intersect from './chunks/intersect.glsl.js';
-import surfaceInteractionDirect from './chunks/surfaceInteractionDirect.glsl.js';
-import random from './chunks/random.glsl.js';
-import envMap from './chunks/envMap.glsl.js';
-import bsdf from './chunks/bsdf.glsl.js';
-import sample from './chunks/sample.glsl.js';
-import sampleMaterial from './chunks/sampleMaterial.glsl.js';
-import sampleShadowCatcher from './chunks/sampleShadowCatcher.glsl.js';
-import sampleGlass from './chunks/sampleGlassSpecular.glsl.js';
+import { unrollLoop } from '../glslUtil.js'
+import constants from './chunks/constants.glsl.js'
+import rayTraceCore from './chunks/rayTraceCore.glsl.js'
+import textureLinear from './chunks/textureLinear.glsl.js'
+import materialBuffer from './chunks/materialBuffer.glsl.js'
+import intersect from './chunks/intersect.glsl.js'
+import surfaceInteractionDirect from './chunks/surfaceInteractionDirect.glsl.js'
+import random from './chunks/random.glsl.js'
+import envMap from './chunks/envMap.glsl.js'
+import bsdf from './chunks/bsdf.glsl.js'
+import sample from './chunks/sample.glsl.js'
+import sampleMaterial from './chunks/sampleMaterial.glsl.js'
+import sampleShadowCatcher from './chunks/sampleShadowCatcher.glsl.js'
+import sampleGlass from './chunks/sampleGlassSpecular.glsl.js'
 
 export default {
-includes: [
-  constants,
-  rayTraceCore,
-  textureLinear,
-  materialBuffer,
-  intersect,
-  surfaceInteractionDirect,
-  random,
-  envMap,
-  bsdf,
-  sample,
-  sampleMaterial,
-  sampleGlass,
-  sampleShadowCatcher,
-],
-outputs: ['light'],
-source: (defines) => `
+  includes: [
+    constants,
+    rayTraceCore,
+    textureLinear,
+    materialBuffer,
+    intersect,
+    surfaceInteractionDirect,
+    random,
+    envMap,
+    bsdf,
+    sample,
+    sampleMaterial,
+    sampleGlass,
+    sampleShadowCatcher,
+  ],
+  outputs: ['light'],
+  source: (defines) => `
   void bounce(inout Path path, int i, inout SurfaceInteraction si) {
 
     if (!si.hit) {
@@ -158,4 +158,4 @@ source: (defines) => `
     // }
 }
 `
-};
+}

@@ -97,4 +97,4 @@ vec3 getMatNormal(int materialIndex, vec2 uv, vec3 normal, vec3 dp1, vec3 dp2, v
   }
 }
 #endif
-`;
+`

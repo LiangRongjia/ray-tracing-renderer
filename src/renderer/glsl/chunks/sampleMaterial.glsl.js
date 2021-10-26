@@ -105,4 +105,4 @@ void sampleMaterial(SurfaceInteraction si, int bounce, inout Path path) {
 
   initRay(path.ray, si.position + EPS * lightDir, lightDir);
 }
-`;
+`

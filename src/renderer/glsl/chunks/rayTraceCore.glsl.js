@@ -81,4 +81,4 @@ export default `
   uniform vec2 jitter;
 
   in vec2 vCoord;
-`;
+`

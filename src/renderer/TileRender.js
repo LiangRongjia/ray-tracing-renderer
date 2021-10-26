@@ -1,4 +1,4 @@
-import { clamp } from './util.js';
+import { clamp } from './util.js'
 
 // TileRender is based on the concept of a compute shader's work group.
 
@@ -12,82 +12,82 @@ import { clamp } from './util.js';
 // the time it takes to render an arbitrarily-set tile size and adjusting the size according to the benchmark.
 
 export function makeTileRender(gl) {
-  const desiredMsPerTile = 21;
+  const desiredMsPerTile = 21
 
-  let currentTile = -1;
-  let numTiles = 1;
+  let currentTile = -1
+  let numTiles = 1
 
-  let tileWidth;
-  let tileHeight;
+  let tileWidth
+  let tileHeight
 
-  let columns;
-  let rows;
+  let columns
+  let rows
 
-  let width = 0;
-  let height = 0;
+  let width = 0
+  let height = 0
 
-  let totalElapsedMs;
+  let totalElapsedMs
 
   // initial number of pixels per rendered tile
   // based on correlation between system performance and max supported render buffer size
   // adjusted dynamically according to system performance
-  let pixelsPerTile = pixelsPerTileEstimate(gl);
+  let pixelsPerTile = pixelsPerTileEstimate(gl)
 
   function reset() {
-    currentTile = -1;
-    totalElapsedMs = NaN;
+    currentTile = -1
+    totalElapsedMs = NaN
   }
 
   function setSize(w, h) {
-    width = w;
-    height = h;
-    reset();
-    calcTileDimensions();
+    width = w
+    height = h
+    reset()
+    calcTileDimensions()
   }
 
   function calcTileDimensions() {
-    const aspectRatio = width / height;
+    const aspectRatio = width / height
 
     // quantize the width of the tile so that it evenly divides the entire window
-    tileWidth = Math.ceil(width / Math.round(width / Math.sqrt(pixelsPerTile * aspectRatio)));
-    tileHeight = Math.ceil(tileWidth / aspectRatio);
+    tileWidth = Math.ceil(width / Math.round(width / Math.sqrt(pixelsPerTile * aspectRatio)))
+    tileHeight = Math.ceil(tileWidth / aspectRatio)
 
-    columns = Math.ceil(width / tileWidth);
-    rows = Math.ceil(height / tileHeight);
-    numTiles = columns * rows;
+    columns = Math.ceil(width / tileWidth)
+    rows = Math.ceil(height / tileHeight)
+    numTiles = columns * rows
   }
 
   function updatePixelsPerTile() {
-    const msPerTile = totalElapsedMs / numTiles;
+    const msPerTile = totalElapsedMs / numTiles
 
-    const error = desiredMsPerTile - msPerTile;
+    const error = desiredMsPerTile - msPerTile
 
-     // tweak to find balance. higher = faster convergence, lower = less fluctuations to microstutters
-    const strength = 5000;
+    // tweak to find balance. higher = faster convergence, lower = less fluctuations to microstutters
+    const strength = 5000
 
     // sqrt prevents massive fluctuations in pixelsPerTile for the occasional stutter
-    pixelsPerTile += strength * Math.sign(error) * Math.sqrt(Math.abs(error));
-    pixelsPerTile = clamp(pixelsPerTile, 8192, width * height);
+    pixelsPerTile += strength * Math.sign(error) * Math.sqrt(Math.abs(error))
+    pixelsPerTile = clamp(pixelsPerTile, 8192, width * height)
   }
 
   function nextTile(elapsedFrameMs) {
-    currentTile++;
-    totalElapsedMs += elapsedFrameMs;
+    currentTile++
+    totalElapsedMs += elapsedFrameMs
 
     if (currentTile % numTiles === 0) {
       if (totalElapsedMs) {
-        updatePixelsPerTile();
-        calcTileDimensions();
+        updatePixelsPerTile()
+        calcTileDimensions()
       }
 
-      totalElapsedMs = 0;
-      currentTile = 0;
+      totalElapsedMs = 0
+      currentTile = 0
     }
 
-    const isLastTile = currentTile === numTiles - 1;
+    const isLastTile = currentTile === numTiles - 1
 
-    const x = currentTile % columns;
-    const y = Math.floor(currentTile / columns) % rows;
+    const x = currentTile % columns
+    const y = Math.floor(currentTile / columns) % rows
 
     return {
       x: x * tileWidth,
@@ -96,24 +96,24 @@ export function makeTileRender(gl) {
       tileHeight,
       isFirstTile: currentTile === 0,
       isLastTile,
-    };
+    }
   }
 
   return {
     nextTile,
     reset,
     setSize,
-  };
+  }
 }
 
 function pixelsPerTileEstimate(gl) {
-  const maxRenderbufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
+  const maxRenderbufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE)
 
   if (maxRenderbufferSize <= 8192) {
-    return 200000;
+    return 200000
   } else if (maxRenderbufferSize === 16384) {
-    return 400000;
+    return 400000
   } else if (maxRenderbufferSize >= 32768) {
-    return 600000;
+    return 600000
   }
 }

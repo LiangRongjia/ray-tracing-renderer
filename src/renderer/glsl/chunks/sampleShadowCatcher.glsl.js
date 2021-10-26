@@ -97,4 +97,4 @@ void sampleShadowCatcher(SurfaceInteraction si, int bounce, inout Path path) {
 
 #endif
 
-`;
+`

@@ -20,4 +20,4 @@ vec4 textureLinear(sampler2D map, vec2 uv) {
     return mix(mix(s1, s2, f.x), mix(s3, s4, f.x), f.y);
   #endif
 }
-`;
+`

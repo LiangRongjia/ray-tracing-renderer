@@ -1,9 +1,9 @@
-import textureLinear from './chunks/textureLinear.glsl.js';
+import textureLinear from './chunks/textureLinear.glsl.js'
 
 export default {
-outputs: ['light'],
-includes: [textureLinear],
-source: `
+  outputs: ['light'],
+  includes: [textureLinear],
+  source: `
   in vec2 vCoord;
 
   uniform mediump sampler2D lightTex;
@@ -110,4 +110,4 @@ source: `
     out_light = blendAmount * history + currentLight;
   }
 `
-};
+}

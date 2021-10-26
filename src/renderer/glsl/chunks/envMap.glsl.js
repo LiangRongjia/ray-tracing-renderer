@@ -110,4 +110,4 @@ vec3 sampleBackgroundFromDirection(vec3 d) {
   return textureLinear(backgroundMap, uv).rgb;
 }
 
-`;
+`
