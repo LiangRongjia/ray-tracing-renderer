@@ -1,6 +1,6 @@
-import { loadExtensions } from './renderer/glUtil';
-import { makeRenderingPipeline } from './renderer/RenderingPipeline';
-import * as THREE from 'three';
+import { loadExtensions } from './renderer/glUtil.js';
+import { makeRenderingPipeline } from './renderer/RenderingPipeline.js';
+import * as THREE from '../lib/three.module.js';
 
 const glRequiredExtensions = [
   'EXT_color_buffer_float', // enables rendering to float buffers

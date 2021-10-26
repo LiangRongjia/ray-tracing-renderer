@@ -9,4 +9,4 @@ source: `
     gl_Position = vec4(2. * a_position - 1., 0, 1);
   }
 `
-}
+};

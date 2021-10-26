@@ -1,6 +1,6 @@
-import fragment from './glsl/reproject.frag';
-import { makeRenderPass } from './RenderPass';
-import * as THREE from 'three';
+import fragment from './glsl/reproject.frag.js';
+import { makeRenderPass } from './RenderPass.js';
+import * as THREE from '../../lib/three.module.js';
 
 export function makeReprojectPass(gl, params) {
   const {

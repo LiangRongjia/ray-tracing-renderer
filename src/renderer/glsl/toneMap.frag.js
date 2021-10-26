@@ -1,4 +1,4 @@
-import textureLinear from './chunks/textureLinear.glsl';
+import textureLinear from './chunks/textureLinear.glsl.js';
 
 export default {
 includes: [textureLinear],
@@ -109,4 +109,4 @@ source: `
     out_color = vec4(light, 1.0);
   }
 `
-}
+};

@@ -1,26 +1,15 @@
-import * as constants from './constants';
-import { LensCamera } from './LensCamera';
-import { SoftDirectionalLight } from './SoftDirectionalLight';
-import { EnvironmentLight } from './EnvironmentLight';
-import { RayTracingMaterial } from './RayTracingMaterial';
-import { RayTracingRenderer } from './RayTracingRenderer';
-
-if (window.THREE) {
-  /* global THREE */
-  THREE.LensCamera = LensCamera;
-  THREE.SoftDirectionalLight = SoftDirectionalLight;
-  THREE.EnvironmentLight = EnvironmentLight;
-  THREE.RayTracingMaterial = RayTracingMaterial;
-  THREE.RayTracingRenderer = RayTracingRenderer;
-  THREE.ThickMaterial = constants.ThickMaterial;
-  THREE.ThinMaterial = constants.ThinMaterial;
-}
+import * as constants from './constants.js'
+import { LensCamera } from './LensCamera.js'
+import { SoftDirectionalLight } from './SoftDirectionalLight.js'
+import { EnvironmentLight } from './EnvironmentLight.js'
+import { RayTracingMaterial } from './RayTracingMaterial.js'
+import { RayTracingRenderer } from './RayTracingRenderer.js'
 
 export {
   constants,
   LensCamera,
-  SoftDirectionalLight,
   EnvironmentLight,
   RayTracingMaterial,
+  SoftDirectionalLight,
   RayTracingRenderer,
-};
+}

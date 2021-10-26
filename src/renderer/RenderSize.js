@@ -1,5 +1,5 @@
-import { clamp } from './util';
-import { Vector2 } from 'three';
+import { clamp } from './util.js';
+import { Vector2 } from '../../lib/three.module.js';
 
 export function makeRenderSize(gl) {
   const desiredMsPerFrame = 20;

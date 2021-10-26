@@ -1,18 +1,18 @@
-import { decomposeScene } from './decomposeScene';
-import { makeFramebuffer } from './Framebuffer';
-import { makeFullscreenQuad } from './FullscreenQuad';
-import { makeGBufferPass } from './GBufferPass';
-import { makeMaterialBuffer } from './MaterialBuffer';
-import { mergeMeshesToGeometry } from './mergeMeshesToGeometry';
-import { makeRayTracePass } from './RayTracePass';
-import { makeRenderSize } from './RenderSize';
-import { makeReprojectPass } from './ReprojectPass';
-import { makeToneMapPass } from './ToneMapPass';
-import { clamp, numberArraysEqual } from './util';
-import { makeTileRender } from './TileRender';
-import { makeDepthTarget, makeTexture } from './Texture';
-import noiseBase64 from './texture/noise';
-import { PerspectiveCamera, Vector2 } from 'three';
+import { decomposeScene } from './decomposeScene.js';
+import { makeFramebuffer } from './Framebuffer.js';
+import { makeFullscreenQuad } from './FullscreenQuad.js';
+import { makeGBufferPass } from './GBufferPass.js';
+import { makeMaterialBuffer } from './MaterialBuffer.js';
+import { mergeMeshesToGeometry } from './mergeMeshesToGeometry.js';
+import { makeRayTracePass } from './RayTracePass.js';
+import { makeRenderSize } from './RenderSize.js';
+import { makeReprojectPass } from './ReprojectPass.js';
+import { makeToneMapPass } from './ToneMapPass.js';
+import { clamp, numberArraysEqual } from './util.js';
+import { makeTileRender } from './TileRender.js';
+import { makeDepthTarget, makeTexture } from './Texture.js';
+import noiseBase64 from './texture/noise.js';
+import { PerspectiveCamera, Vector2 } from '../../lib/three.module.js';
 
 export function makeRenderingPipeline({
     gl,

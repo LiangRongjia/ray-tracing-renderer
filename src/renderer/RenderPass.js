@@ -1,5 +1,5 @@
-import { compileShader, createProgram, getAttributes } from './glUtil';
-import { makeUniformSetter } from './UniformSetter';
+import { compileShader, createProgram, getAttributes } from './glUtil.js';
+import { makeUniformSetter } from './UniformSetter.js';
 
 export function makeRenderPass(gl, params) {
   const {

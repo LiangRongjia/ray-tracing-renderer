@@ -1,4 +1,4 @@
-import { getUniforms } from './glUtil';
+import { getUniforms } from './glUtil.js';
 
 let typeMap;
 

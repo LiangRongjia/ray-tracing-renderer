@@ -1,17 +1,17 @@
-import { unrollLoop } from '../glslUtil';
-import constants from './chunks/constants.glsl';
-import rayTraceCore from './chunks/rayTraceCore.glsl';
-import textureLinear from './chunks/textureLinear.glsl';
-import materialBuffer from './chunks/materialBuffer.glsl';
-import intersect from './chunks/intersect.glsl';
-import surfaceInteractionDirect from './chunks/surfaceInteractionDirect.glsl';
-import random from './chunks/random.glsl';
-import envMap from './chunks/envMap.glsl';
-import bsdf from './chunks/bsdf.glsl';
-import sample from './chunks/sample.glsl';
-import sampleMaterial from './chunks/sampleMaterial.glsl';
-import sampleShadowCatcher from './chunks/sampleShadowCatcher.glsl';
-import sampleGlass from './chunks/sampleGlassSpecular.glsl';
+import { unrollLoop } from '../glslUtil.js';
+import constants from './chunks/constants.glsl.js';
+import rayTraceCore from './chunks/rayTraceCore.glsl.js';
+import textureLinear from './chunks/textureLinear.glsl.js';
+import materialBuffer from './chunks/materialBuffer.glsl.js';
+import intersect from './chunks/intersect.glsl.js';
+import surfaceInteractionDirect from './chunks/surfaceInteractionDirect.glsl.js';
+import random from './chunks/random.glsl.js';
+import envMap from './chunks/envMap.glsl.js';
+import bsdf from './chunks/bsdf.glsl.js';
+import sample from './chunks/sample.glsl.js';
+import sampleMaterial from './chunks/sampleMaterial.glsl.js';
+import sampleShadowCatcher from './chunks/sampleShadowCatcher.glsl.js';
+import sampleGlass from './chunks/sampleGlassSpecular.glsl.js';
 
 export default {
 includes: [
@@ -158,4 +158,4 @@ source: (defines) => `
     // }
 }
 `
-}
+};

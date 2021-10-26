@@ -21,4 +21,4 @@ source: `
     gl_Position = projView * vec4(aPosition, 1);
   }
 `
-}
+};

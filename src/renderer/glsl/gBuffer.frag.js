@@ -1,5 +1,5 @@
-import constants from './chunks/constants.glsl';
-import materialBuffer from './chunks/materialBuffer.glsl';
+import constants from './chunks/constants.glsl.js';
+import materialBuffer from './chunks/materialBuffer.glsl.js';
 
 export default {
 
@@ -54,4 +54,4 @@ source: `
   }
 `
 
-}
+};

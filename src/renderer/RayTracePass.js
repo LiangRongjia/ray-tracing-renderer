@@ -1,11 +1,11 @@
-import { bvhAccel, flattenBvh } from './bvhAccel';
-import { generateEnvMapFromSceneComponents, generateBackgroundMapFromSceneBackground } from './envMapCreation';
-import { envMapDistribution } from './envMapDistribution';
-import fragment from './glsl/rayTrace.frag';
-import { makeRenderPass } from './RenderPass';
-import { makeStratifiedSamplerCombined } from './StratifiedSamplerCombined';
-import { makeTexture } from './Texture';
-import { clamp } from './util';
+import { bvhAccel, flattenBvh } from './bvhAccel.js';
+import { generateEnvMapFromSceneComponents, generateBackgroundMapFromSceneBackground } from './envMapCreation.js';
+import { envMapDistribution } from './envMapDistribution.js';
+import fragment from './glsl/rayTrace.frag.js';
+import { makeRenderPass } from './RenderPass.js';
+import { makeStratifiedSamplerCombined } from './StratifiedSamplerCombined.js';
+import { makeTexture } from './Texture.js';
+import { clamp } from './util.js';
 
 export function makeRayTracePass(gl, {
     bounces, // number of global illumination bounces

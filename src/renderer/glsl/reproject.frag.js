@@ -1,4 +1,4 @@
-import textureLinear from './chunks/textureLinear.glsl';
+import textureLinear from './chunks/textureLinear.glsl.js';
 
 export default {
 outputs: ['light'],
@@ -110,4 +110,4 @@ source: `
     out_light = blendAmount * history + currentLight;
   }
 `
-}
+};
