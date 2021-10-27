@@ -1,66 +1,69 @@
-import * as _THREE from '../../lib/three.module.js'
-import { GLTFLoader } from './lib/GLTFLoader.module.js'
-import { OrbitControls } from './lib/OrbitControls.module.js'
 import { Stats } from './lib/stats.module.js'
-import { RGBELoader } from './lib/RGBELoader.module.js'
-import * as RayTracingRenderer from '../../src/main.js'
-import { EquirectangularToCubeGenerator } from './lib/EquirectangularToCubeGenerator.module.js'
+import * as _THREE from '../../lib/three.module.js'
+import * as _RayTracingRenderer from '../../src/main.js'
+import { RGBELoader as _RGBELoader } from './lib/RGBELoader.module.js'
+import { GLTFLoader as _GLTFLoader } from './lib/GLTFLoader.module.js'
+import { OrbitControls as _OrbitControls } from './lib/OrbitControls.module.js'
+import { EquirectangularToCubeGenerator as _EquirectangularToCubeGenerator } from './lib/EquirectangularToCubeGenerator.module.js'
 
 const THREE = {
   ..._THREE,
-  GLTFLoader,
-  OrbitControls,
-  RGBELoader,
-  EquirectangularToCubeGenerator,
-  ...RayTracingRenderer
+  ..._RayTracingRenderer,
+  GLTFLoader: _GLTFLoader,
+  RGBELoader: _RGBELoader,
+  OrbitControls: _OrbitControls,
+  EquirectangularToCubeGenerator: _EquirectangularToCubeGenerator
 }
 
-init()
+main()
 
-async function init() {
-  const camera = createCamera()
-  const stats = createStats()
-  const state = {
+async function getChangeRenderModeTo(store) {
+  const [webGlContext, rayTracingContext] = await Promise.all([
+    getWebGlContext(store.camera),
+    getRayTracingContext(store.camera)
+  ])
+  const changeRenderModeTo = {
+    WebGL: () => { mountContextOnStore(store, webGlContext) },
+    RayTracing: () => { mountContextOnStore(store, rayTracingContext) }
+  }
+  return changeRenderModeTo
+}
+
+async function main() {
+  const store = {
+    camera: createCamera(),
+    stats: createStats(),
     renderer: null,
     controls: null,
     scene: null,
-    setRenderer: (r) => state.renderer = r,
-    setControls: (c) => state.controls = c,
-    setScene: (s) => state.scene = s,
+    setRenderer: (r) => store.renderer = r,
+    setControls: (c) => store.controls = c,
+    setScene: (s) => store.scene = s,
   }
 
-  await initGui({ state, camera })
-  mountStats(stats)
-  addListeners({ state, camera })
+  const changeRenderModeTo = await getChangeRenderModeTo(store)
 
-  const tick = getTickFunc({ state, camera, stats })
+  initGui({ store, changeRenderModeTo })
+
+  const tick = getTickFunc(store)
 
   tick(performance.now())
 }
 
-function getTickFunc({ state, camera, stats }) {
+function getTickFunc(store) {
   const tick = (now = 0) => {
-    state.controls.update()
+    store.controls.update()
 
-    camera.focus = state.controls.target.distanceTo(camera.position)
+    store.camera.focus = store.controls.target.distanceTo(store.camera.position)
 
-    stats.begin()
-    if (state.renderer.sync) state.renderer.sync(now)
-    state.renderer.render(state.scene, camera)
-    stats.end()
+    store.stats.begin()
+    store.renderer.sync && store.renderer.sync(now)
+    store.renderer.render(store.scene, store.camera)
+    store.stats.end()
 
     requestAnimationFrame(tick)
   }
   return tick
-}
-
-function mountStats(stats) {
-  document.body.appendChild(stats.domElement)
-  document.querySelector('#loading').remove()
-}
-
-function addListeners({ state, camera }) {
-  window.addEventListener('resize', () => resize(state.renderer, camera))
 }
 
 function createCamera() {
@@ -96,40 +99,40 @@ function createModel(gltf) {
   return model
 }
 
-async function initGui({ state, camera }) {
-  const [envMap, envMapLDR, gltf] = await Promise.all([
-    load(RGBELoader, '../envmaps/street-by-water.hdr'),
-    load(THREE.TextureLoader, './envmap.jpg'),
-    load(GLTFLoader, './scene.gltf'),
-  ])
+function mountContextOnStore(store, context) {
+  const { scene, controls, renderer } = context
+  store.renderer?.domElement.remove()
+  store.setRenderer(renderer)
+  store.setControls(controls)
+  store.setScene(scene)
+  document.body.appendChild(store.renderer.domElement)
+  resize(store.renderer, store.camera)
+}
 
-  const model = createModel(gltf)
+function mountStats(store) {
+  document.body.appendChild(store.stats.domElement)
+}
 
-  const toRenderMode = {
-    WebGL: () => {
-      unloadRenderer(state.renderer, state.controls)
-      const { scene, renderer, controls } = initWebGL({ envMapLDR, model, camera })
-      state.setRenderer(renderer)
-      state.setControls(controls)
-      state.setScene(scene)
-      resize(renderer, camera)
-    },
-    RayTracing: () => {
-      unloadRenderer(state.renderer, state.controls)
-      const { scene, renderer, controls } = initRayTracing({ envMap, model, camera })
-      state.setRenderer(renderer)
-      state.setControls(controls)
-      state.setScene(scene)
-      resize(renderer, camera)
-    }
-  }
+function unmountLoading() {
+  document.querySelector('#loading').remove()
+}
 
+function addListeners({ store, changeRenderModeTo }) {
+  window.addEventListener('resize', () => resize(store.renderer, store.camera))
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'r') toRenderMode.RayTracing()
-    else if (e.key === 'w') toRenderMode.WebGL()
+    if (e.key === 'r') {
+      changeRenderModeTo.RayTracing()
+    } else if (e.key === 'w') {
+      changeRenderModeTo.WebGL()
+    }
   })
+}
 
-  toRenderMode.RayTracing()
+function initGui({ store, changeRenderModeTo }) {
+  changeRenderModeTo.RayTracing()
+  mountStats(store)
+  unmountLoading()
+  addListeners({ store, changeRenderModeTo })
 }
 
 function resize(renderer, camera) {
@@ -142,9 +145,15 @@ function resize(renderer, camera) {
   camera.updateProjectionMatrix()
 }
 
-function initWebGL({ envMapLDR, model, camera }) {
-  const renderer = new THREE.WebGLRenderer({ antialias: true })
-  initRenderer(renderer)
+async function getWebGlContext(camera) {
+  const [envMapLDR, gltf] = await Promise.all([
+    load(THREE.TextureLoader, './envmap.jpg'),
+    load(THREE.GLTFLoader, './scene.gltf')
+  ])
+
+  const model = createModel(gltf)
+
+  const renderer = initRenderer(new THREE.WebGLRenderer({ antialias: true }))
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
@@ -160,7 +169,7 @@ function initWebGL({ envMapLDR, model, camera }) {
   dirLight.shadow.camera.bottom = -50
 
   const ambLight = new THREE.AmbientLight(0xffffff, 0.2)
-  const equiToCube = new EquirectangularToCubeGenerator(envMapLDR)
+  const equiToCube = new THREE.EquirectangularToCubeGenerator(envMapLDR)
   const cubeMap = equiToCube.renderTarget
   const cubeMapTexture = equiToCube.update(renderer)
 
@@ -179,15 +188,21 @@ function initWebGL({ envMapLDR, model, camera }) {
   return { scene, renderer, controls }
 }
 
-function initRayTracing({ envMap, model, camera }) {
-  const envLight = new RayTracingRenderer.EnvironmentLight(envMap)
+async function getRayTracingContext(camera) {
+  const [envMap, gltf] = await Promise.all([
+    load(THREE.RGBELoader, '../envmaps/street-by-water.hdr'),
+    load(THREE.GLTFLoader, './scene.gltf'),
+  ])
+
+  const model = createModel(gltf)
+
+  const envLight = new THREE.EnvironmentLight(envMap)
 
   const scene = new THREE.Scene()
   scene.add(model)
   scene.add(envLight)
 
-  const renderer = new RayTracingRenderer.RayTracingRenderer()
-  initRenderer(renderer)
+  const renderer = initRenderer(new THREE.RayTracingRenderer())
 
   const controls = createControls({ renderer, camera })
 
@@ -195,15 +210,13 @@ function initRayTracing({ envMap, model, camera }) {
 }
 
 function createControls({ renderer, camera }) {
-  const controls = new OrbitControls(camera, renderer.domElement)
+  const controls = new THREE.OrbitControls(camera, renderer.domElement)
   controls.screenSpacePanning = true
   controls.target.set(0, 20, 0)
   return controls
 }
 
 function initRenderer(renderer) {
-  document.body.appendChild(renderer.domElement)
-
   renderer.gammaOutput = true
   renderer.gammaFactor = 2.2
   renderer.setPixelRatio(1.0)
@@ -211,16 +224,7 @@ function initRenderer(renderer) {
   renderer.toneMappingExposure = 1.5
   renderer.renderWhenOffFocus = false
   renderer.bounces = 3
-}
-
-function unloadRenderer(renderer, controls) {
-  if (renderer) {
-    renderer.dispose()
-    renderer.domElement.remove()
-  }
-  if (controls) {
-    controls.dispose()
-  }
+  return renderer
 }
 
 function load(loader, url) {
