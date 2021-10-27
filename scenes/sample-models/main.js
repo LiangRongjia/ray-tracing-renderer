@@ -4,7 +4,7 @@ import { OrbitControls } from './lib/OrbitControls.module.js'
 import { Stats } from './lib/stats.module.js'
 import dat from './lib/dat.gui.module.js'
 import { RGBELoader } from './lib/RGBELoader.module.js'
-import * as RayTracingRenderer from '../../src/main.js'
+import * as RayTracingRenderer from '../../build/RayTracingRenderer.module.js'
 
 const THREE = {
   ..._THREE,

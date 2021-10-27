@@ -1,6 +1,6 @@
 import { Stats } from './lib/stats.module.js'
 import * as _THREE from '../../lib/three.module.js'
-import * as _RayTracingRenderer from '../../src/main.js'
+import * as _RayTracingRenderer from '../../build/RayTracingRenderer.module.js'
 import { RGBELoader as _RGBELoader } from './lib/RGBELoader.module.js'
 import { GLTFLoader as _GLTFLoader } from './lib/GLTFLoader.module.js'
 import { OrbitControls as _OrbitControls } from './lib/OrbitControls.module.js'
