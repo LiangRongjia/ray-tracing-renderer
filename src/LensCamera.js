@@ -1,4 +1,4 @@
-import { PerspectiveCamera } from '../lib/three.module.js'
+import { PerspectiveCamera } from 'three'
 
 export class LensCamera extends PerspectiveCamera {
   constructor(...args) {

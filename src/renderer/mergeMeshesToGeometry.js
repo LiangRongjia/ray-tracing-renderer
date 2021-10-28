@@ -1,4 +1,4 @@
-import { BufferGeometry, BufferAttribute } from '../../lib/three.module.js'
+import { BufferGeometry, BufferAttribute } from 'three'
 
 export function mergeMeshesToGeometry(meshes) {
 

@@ -1,4 +1,4 @@
-import { MeshStandardMaterial } from '../lib/three.module.js'
+import { MeshStandardMaterial } from 'three'
 
 export class RayTracingMaterial extends MeshStandardMaterial {
   constructor(...args) {

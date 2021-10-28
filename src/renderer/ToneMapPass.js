@@ -1,6 +1,6 @@
 import fragment from './glsl/toneMap.frag.js'
 import { makeRenderPass } from './RenderPass.js'
-import * as THREE from '../../lib/three.module.js'
+import * as THREE from 'three'
 
 const toneMapFunctions = {
   [THREE.LinearToneMapping]: 'linear',

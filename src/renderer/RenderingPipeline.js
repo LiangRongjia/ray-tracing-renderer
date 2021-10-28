@@ -12,7 +12,7 @@ import { clamp, numberArraysEqual } from './util.js'
 import { makeTileRender } from './TileRender.js'
 import { makeDepthTarget, makeTexture } from './Texture.js'
 import noiseBase64 from './texture/noise.js'
-import { PerspectiveCamera, Vector2 } from '../../lib/three.module.js'
+import { PerspectiveCamera, Vector2 } from 'three'
 
 export function makeRenderingPipeline({
   gl,

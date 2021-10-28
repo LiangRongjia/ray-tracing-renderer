@@ -3,7 +3,7 @@
 
 import { rgbeToFloat } from './rgbeToFloat.js'
 import { clamp } from './util.js'
-import * as THREE from '../../lib/three.module.js'
+import * as THREE from 'three'
 
 const DEFAULT_MAP_RESOLUTION = {
   width: 2048,

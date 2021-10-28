@@ -48563,7 +48563,7 @@ function loadExtensions(gl, extensions) {
   for (const name of extensions) {
     supported[name] = gl.getExtension(name);
   }
-  return supported;
+  return supported
 }
 
 function compileShader(gl, type, source) {
@@ -48573,13 +48573,13 @@ function compileShader(gl, type, source) {
   const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
 
   if (success) {
-    return shader;
+    return shader
   }
 
   const output = source.split('\n').map((x, i) => `${i + 1}: ${x}`).join('\n');
   console.log(output);
 
-  throw gl.getShaderInfoLog(shader);
+  throw gl.getShaderInfoLog(shader)
 }
 
 function createProgram(gl, vertexShader, fragmentShader, transformVaryings, transformBufferMode) {
@@ -48599,10 +48599,10 @@ function createProgram(gl, vertexShader, fragmentShader, transformVaryings, tran
   const success = gl.getProgramParameter(program, gl.LINK_STATUS);
 
   if (success) {
-    return program;
+    return program
   }
 
-  throw gl.getProgramInfoLog(program);
+  throw gl.getProgramInfoLog(program)
 }
 
 function getUniforms(gl, program) {
@@ -48619,7 +48619,7 @@ function getUniforms(gl, program) {
     }
   }
 
-  return uniforms;
+  return uniforms
 }
 
 function getAttributes(gl, program) {
@@ -48633,7 +48633,7 @@ function getAttributes(gl, program) {
     }
   }
 
-  return attributes;
+  return attributes
 }
 
 function decomposeScene(scene) {
@@ -48676,13 +48676,13 @@ function decomposeScene(scene) {
 
   return {
     background, meshes, directionalLights, ambientLights, environmentLights
-  };
+  }
 }
 
 function isHDRTexture(texture) {
   return texture.map
     && texture.map.image
-    && (texture.map.encoding === RGBEEncoding || texture.map.encoding === LinearEncoding);
+    && (texture.map.encoding === RGBEEncoding || texture.map.encoding === LinearEncoding)
 }
 
 function makeFramebuffer(gl, { color, depth }) {
@@ -48729,11 +48729,11 @@ function makeFramebuffer(gl, { color, depth }) {
     color,
     bind,
     unbind
-  };
+  }
 }
 
 var vertex = {
-source: `
+  source: `
   layout(location = 0) in vec2 a_position;
 
   out vec2 vCoord;
@@ -48780,7 +48780,7 @@ function makeUniformSetter(gl, program) {
         failedUnis.add(name);
       }
 
-      return;
+      return
     }
 
     uni.v0 = v0;
@@ -48815,7 +48815,7 @@ function makeUniformSetter(gl, program) {
   return {
     setUniform,
     upload,
-  };
+  }
 }
 
 function initTypeMap(gl) {
@@ -48833,14 +48833,14 @@ function initTypeMap(gl) {
     [gl.FLOAT_MAT2]: glNameMatrix(2, 2),
     [gl.FLOAT_MAT3]: glNameMatrix(3, 3),
     [gl.FLOAT_MAT4]: glNameMatrix(4, 4)
-  };
+  }
 }
 
 function glName(numComponents, type) {
   return {
     values: `uniform${numComponents}${type}`,
     array: `uniform${numComponents}${type}v`
-  };
+  }
 }
 
 function glNameMatrix(rows, columns) {
@@ -48848,7 +48848,7 @@ function glNameMatrix(rows, columns) {
     matrix: rows === columns ?
       `uniformMatrix${rows}fv` :
       `uniformMatrix${rows}x${columns}fv`
-  };
+  }
 }
 
 function makeRenderPass(gl, params) {
@@ -48866,15 +48866,15 @@ function makeRenderPass(gl, params) {
   return {
     ...makeRenderPassFromProgram(gl, program),
     outputLocs: fragment.outputs ? getOutputLocations(fragment.outputs) : {}
-  };
+  }
 }
 
 function makeVertexShader(gl, { defines, vertex }) {
-  return makeShaderStage(gl, gl.VERTEX_SHADER, vertex, defines);
+  return makeShaderStage(gl, gl.VERTEX_SHADER, vertex, defines)
 }
 
 function makeFragmentShader(gl, { defines, fragment }) {
-  return makeShaderStage(gl, gl.FRAGMENT_SHADER, fragment, defines);
+  return makeShaderStage(gl, gl.FRAGMENT_SHADER, fragment, defines)
 }
 
 function makeRenderPassFromProgram(gl, program) {
@@ -48887,7 +48887,7 @@ function makeRenderPassFromProgram(gl, program) {
 
   function setTexture(name, texture) {
     if (!texture) {
-      return;
+      return
     }
 
     if (!textures[name]) {
@@ -48928,7 +48928,7 @@ function makeRenderPassFromProgram(gl, program) {
     setUniform: uniformSetter.setUniform,
     textures,
     useProgram,
-  };
+  }
 }
 
 function makeShaderStage(gl, type, shader, defines) {
@@ -48952,7 +48952,7 @@ function makeShaderStage(gl, type, shader, defines) {
     str += shader.source;
   }
 
-  return compileShader(gl, type, str);
+  return compileShader(gl, type, str)
 }
 
 function addDefines(defines) {
@@ -48968,7 +48968,7 @@ function addDefines(defines) {
     }
   }
 
-  return str;
+  return str
 }
 
 function addOutputs(outputs) {
@@ -48981,7 +48981,7 @@ function addOutputs(outputs) {
     str += `layout(location = ${location}) out vec4 out_${name};\n`;
   }
 
-  return str;
+  return str
 }
 
 function addIncludes(includes, defines) {
@@ -48995,7 +48995,7 @@ function addIncludes(includes, defines) {
     }
   }
 
-  return str;
+  return str
 }
 
 function getOutputLocations(outputs) {
@@ -49005,7 +49005,7 @@ function getOutputLocations(outputs) {
     locations[outputs[i]] = i;
   }
 
-  return locations;
+  return locations
 }
 
 function makeFullscreenQuad(gl) {
@@ -49034,12 +49034,11 @@ function makeFullscreenQuad(gl) {
   return {
     draw,
     vertexShader
-  };
+  }
 }
 
 var vertex$1 = {
-
-source: `
+  source: `
   in vec3 aPosition;
   in vec3 aNormal;
   in vec2 aUv;
@@ -49175,13 +49174,12 @@ vec3 getMatNormal(int materialIndex, vec2 uv, vec3 normal, vec3 dp1, vec3 dp2, v
 `;
 
 var fragment = {
-
-outputs: ['position', 'normal', 'faceNormal', 'color', 'matProps'],
-includes: [
-  constants$1,
-  materialBuffer,
-],
-source: `
+  outputs: ['position', 'normal', 'faceNormal', 'color', 'matProps'],
+  includes: [
+    constants$1,
+    materialBuffer,
+  ],
+  source: `
   in vec3 vPosition;
   in vec3 vNormal;
   in vec2 vUv;
@@ -49288,7 +49286,7 @@ function makeGBufferPass(gl, { materialBuffer, mergedMesh }) {
     outputLocs: renderPass.outputLocs,
     setCamera,
     setJitter
-  };
+  }
 }
 
 function uploadAttributes(gl, renderPass, geometry) {
@@ -49303,7 +49301,7 @@ function uploadAttributes(gl, renderPass, geometry) {
 
 function setAttribute(gl, location, bufferAttribute) {
   if (location === undefined) {
-    return;
+    return
   }
 
   const { itemSize, array } = bufferAttribute;
@@ -49317,7 +49315,7 @@ function setAttribute(gl, location, bufferAttribute) {
   } else if (array instanceof Int32Array) {
     gl.vertexAttribIPointer(location, itemSize, gl.INT, 0, 0);
   } else {
-    throw 'Unsupported buffer type';
+    throw 'Unsupported buffer type'
   }
 }
 
@@ -49336,39 +49334,39 @@ function makeUniformBuffer(gl, program, blockName) {
   function set(name, value) {
     if (!uniforms[name]) {
       // console.warn('No uniform property with name ', name);
-      return;
+      return
     }
 
     const { type, size, offset, stride } = uniforms[name];
 
-    switch(type) {
+    switch (type) {
       case gl.FLOAT:
         setData(data, 'setFloat32', size, offset, stride, 1, value);
-        break;
+        break
       case gl.FLOAT_VEC2:
         setData(data, 'setFloat32', size, offset, stride, 2, value);
-        break;
+        break
       case gl.FLOAT_VEC3:
         setData(data, 'setFloat32', size, offset, stride, 3, value);
-        break;
+        break
       case gl.FLOAT_VEC4:
         setData(data, 'setFloat32', size, offset, stride, 4, value);
-        break;
+        break
       case gl.INT:
         setData(data, 'setInt32', size, offset, stride, 1, value);
-        break;
+        break
       case gl.INT_VEC2:
         setData(data, 'setInt32', size, offset, stride, 2, value);
-        break;
+        break
       case gl.INT_VEC3:
         setData(data, 'setInt32', size, offset, stride, 3, value);
-        break;
+        break
       case gl.INT_VEC4:
         setData(data, 'setInt32', size, offset, stride, 4, value);
-        break;
+        break
       case gl.BOOL:
         setData(data, 'setUint32', size, offset, stride, 1, value);
-        break;
+        break
       default:
         console.warn('UniformBuffer: Unsupported type');
     }
@@ -49383,7 +49381,7 @@ function makeUniformBuffer(gl, program, blockName) {
   return {
     set,
     bind
-  };
+  }
 }
 
 function getUniformBlockInfo(gl, program, blockIndex) {
@@ -49402,7 +49400,7 @@ function getUniformBlockInfo(gl, program, blockIndex) {
     };
   }
 
-  return uniforms;
+  return uniforms
 }
 
 function setData(dataView, setter, size, offset, stride, components, value) {
@@ -49415,7 +49413,7 @@ function setData(dataView, setter, size, offset, stride, components, value) {
 }
 
 function clamp(x, min, max) {
-  return Math.min(Math.max(x, min), max);
+  return Math.min(Math.max(x, min), max)
 }
 
 function shuffle(arr) {
@@ -49425,17 +49423,17 @@ function shuffle(arr) {
     arr[i] = arr[j];
     arr[j] = x;
   }
-  return arr;
+  return arr
 }
 
 function numberArraysEqual(a, b, eps = 1e-4) {
   for (let i = 0; i < a.length; i++) {
     if (Math.abs(a[i] - b[i]) > eps) {
-      return false;
+      return false
     }
   }
 
-  return true;
+  return true
 }
 
 function makeTexture(gl, params) {
@@ -49533,7 +49531,7 @@ function makeTexture(gl, params) {
   return {
     target,
     texture
-  };
+  }
 }
 
 function makeDepthTarget(gl, width, height) {
@@ -49547,7 +49545,7 @@ function makeDepthTarget(gl, width, height) {
   return {
     target,
     texture
-  };
+  }
 }
 
 function getFormat(gl, channels) {
@@ -49557,7 +49555,7 @@ function getFormat(gl, channels) {
     3: gl.RGB,
     4: gl.RGBA
   };
-  return map[channels];
+  return map[channels]
 }
 
 function getTextureFormat(gl, channels, storage, data, gammaCorrection) {
@@ -49616,7 +49614,7 @@ function getTextureFormat(gl, channels, storage, data, gammaCorrection) {
     format,
     internalFormat,
     type
-  };
+  }
 }
 
 // retrieve textures used by meshes, grouping textures from meshes shared by *the same* mesh property
@@ -49631,7 +49629,7 @@ function getTexturesFromMaterials(meshes, textureNames) {
     };
   }
 
-  return textureMap;
+  return textureMap
 }
 
 // retrieve textures used by meshes, grouping textures from meshes shared *across all* mesh properties
@@ -49645,7 +49643,7 @@ function mergeTexturesFromMaterials(meshes, textureNames) {
     textureMap.indices[name] = texturesFromMaterials(meshes, name, textureMap.textures);
   }
 
-  return textureMap;
+  return textureMap
 }
 
 function texturesFromMaterials(materials, textureName, textures) {
@@ -49662,7 +49660,7 @@ function texturesFromMaterials(materials, textureName, textures) {
         if (textures[i] === material[textureName]) {
           // Reuse existing duplicate texture.
           index = i;
-          break;
+          break
         }
       }
       if (index === textures.length) {
@@ -49673,7 +49671,7 @@ function texturesFromMaterials(materials, textureName, textures) {
     }
   }
 
-  return indices;
+  return indices
 }
 
 function makeMaterialBuffer(gl, materials) {
@@ -49691,10 +49689,10 @@ function makeMaterialBuffer(gl, materials) {
 
   bufferData.type = materials.map(m => {
     if (m.shadowCatcher) {
-      return ShadowCatcherMaterial;
+      return ShadowCatcherMaterial
     }
     if (m.transparent) {
-      return m.solid ? ThickMaterial : ThinMaterial;
+      return m.solid ? ThickMaterial : ThinMaterial
     }
   });
 
@@ -49735,7 +49733,7 @@ function makeMaterialBuffer(gl, materials) {
       source: `void main() {}`
     },
     fragment: {
-      includes: [ materialBuffer ],
+      includes: [materialBuffer],
       source: `void main() {}`
     },
     defines
@@ -49743,7 +49741,7 @@ function makeMaterialBuffer(gl, materials) {
 
   uploadToUniformBuffer(gl, renderPass.program, bufferData);
 
-  return { defines, textures };
+  return { defines, textures }
 }
 
 function makeTextureArray(gl, textures, gammaCorrection = false) {
@@ -49764,9 +49762,9 @@ function makeTextureArray(gl, textures, gammaCorrection = false) {
   });
 
   return {
-   texture,
-   relativeSizes
-  };
+    texture,
+    relativeSizes
+  }
 }
 
 function maxImageSize(images) {
@@ -49786,7 +49784,7 @@ function maxImageSize(images) {
     relativeSizes.push(image.height / maxSize.height);
   }
 
-  return { maxSize, relativeSizes };
+  return { maxSize, relativeSizes }
 }
 
 
@@ -49798,7 +49796,7 @@ function uploadToUniformBuffer(gl, program, bufferData) {
 
   materialBuffer.set('Materials.colorAndMaterialType[0]', interleave(
     { data: [].concat(...bufferData.color.map(d => d.toArray())), channels: 3 },
-    { data: bufferData.type, channels: 1}
+    { data: bufferData.type, channels: 1 }
   ));
 
   materialBuffer.set('Materials.roughnessMetalnessNormalScale[0]', interleave(
@@ -49842,7 +49840,7 @@ function interleave(...arrays) {
     }
   }
 
-  return interleaved;
+  return interleaved
 }
 
 function mergeMeshesToGeometry(meshes) {
@@ -49855,7 +49853,7 @@ function mergeMeshesToGeometry(meshes) {
 
   for (const mesh of meshes) {
     if (!mesh.visible) {
-      continue;
+      continue
     }
 
     const geometry = mesh.geometry.isBufferGeometry ?
@@ -49896,7 +49894,7 @@ function mergeMeshesToGeometry(meshes) {
   return {
     geometry,
     materials: Array.from(materialIndexMap.keys())
-  };
+  }
 }
 
 function mergeGeometry(geometryAndMaterialIndex, vertexCount, indexCount) {
@@ -49935,7 +49933,7 @@ function mergeGeometry(geometryAndMaterialIndex, vertexCount, indexCount) {
     currentMesh++;
   }
 
-  return mergedGeometry;
+  return mergedGeometry
 }
 
 // Similar to buffergeometry.clone(), except we only copy
@@ -49955,7 +49953,7 @@ function cloneBufferGeometry(bufferGeometry, attributes) {
     newGeometry.setIndex(index);
   }
 
-  return newGeometry;
+  return newGeometry
 }
 
 function addFlatGeometryIndices(geometry) {
@@ -49963,7 +49961,7 @@ function addFlatGeometryIndices(geometry) {
 
   if (!position) {
     console.warn('No position attribute');
-    return;
+    return
   }
 
   const index = new Uint32Array(position.count);
@@ -49974,7 +49972,7 @@ function addFlatGeometryIndices(geometry) {
 
   geometry.setIndex(new BufferAttribute(index, 1, false));
 
-  return geometry;
+  return geometry
 }
 
 // Reorders the elements in the range [first, last) in such a way that
@@ -49985,21 +49983,21 @@ function partition(array, compare, left = 0, right = array.length) {
     while (compare(array[left])) {
       left++;
       if (left === right) {
-        return left;
+        return left
       }
     }
     do {
       right--;
       if (left === right) {
-        return left;
+        return left
       }
-    } while (!compare(array[right]));
+    } while (!compare(array[right]))
 
     swap(array, left, right);
     left++;
   }
 
-  return left;
+  return left
 }
 
 // nth_element is a partial sorting algorithm that rearranges elements in [first, last) such that:
@@ -50033,7 +50031,7 @@ function bvhAccel(geometry) {
   const primitiveInfo = makePrimitiveInfo(geometry);
   const node = recursiveBuild(primitiveInfo, 0, primitiveInfo.length);
 
-  return node;
+  return node
 }
 
 function flattenBvh(bvh) {
@@ -50108,7 +50106,7 @@ function flattenBvh(bvh) {
     maxDepth,
     count: flat.length / 4,
     buffer: floatView
-  };
+  }
 }
 
 function makePrimitiveInfo(geometry) {
@@ -50151,7 +50149,7 @@ function makePrimitiveInfo(geometry) {
     primitiveInfo.push(info);
   }
 
-  return primitiveInfo;
+  return primitiveInfo
 }
 
 function recursiveBuild(primitiveInfo, start, end) {
@@ -50163,7 +50161,7 @@ function recursiveBuild(primitiveInfo, start, end) {
   const nPrimitives = end - start;
 
   if (nPrimitives === 1) {
-    return makeLeafNode(primitiveInfo.slice(start, end), bounds);
+    return makeLeafNode(primitiveInfo.slice(start, end), bounds)
   } else {
     const centroidBounds = new Box3();
     for (let i = start; i < end; i++) {
@@ -50188,7 +50186,7 @@ function recursiveBuild(primitiveInfo, start, end) {
       nthElement(primitiveInfo, (a, b) => a.center[dim] < b.center[dim], start, end, mid);
     } else if (centroidBounds.max[dim] === centroidBounds.min[dim]) {
       // can't split primitives based on centroid bounds. terminate.
-      return makeLeafNode(primitiveInfo.slice(start, end), bounds);
+      return makeLeafNode(primitiveInfo.slice(start, end), bounds)
     } else {
 
       const buckets = [];
@@ -50240,7 +50238,7 @@ function recursiveBuild(primitiveInfo, start, end) {
         if (b === buckets.length) {
           b = buckets.length - 1;
         }
-        return b <= minCostSplitBucket;
+        return b <= minCostSplitBucket
       }, start, end);
     }
 
@@ -50248,7 +50246,7 @@ function recursiveBuild(primitiveInfo, start, end) {
       dim,
       recursiveBuild(primitiveInfo, start, mid),
       recursiveBuild(primitiveInfo, mid, end),
-    );
+    )
   }
 }
 
@@ -50256,7 +50254,7 @@ function makeLeafNode(primitives, bounds) {
   return {
     primitives,
     bounds
-  };
+  }
 }
 
 function makeInteriorNode(splitAxis, child0, child1) {
@@ -50265,31 +50263,31 @@ function makeInteriorNode(splitAxis, child0, child1) {
     child1,
     bounds: new Box3().union(child0.bounds).union(child1.bounds),
     splitAxis,
-  };
+  }
 }
 
 function maximumExtent(box3) {
   box3.getSize(size);
   if (size.x > size.z) {
-    return size.x > size.y ? 'x' : 'y';
+    return size.x > size.y ? 'x' : 'y'
   } else {
-    return size.z > size.y ? 'z' : 'y';
+    return size.z > size.y ? 'z' : 'y'
   }
 }
 
 function boxOffset(box3, dim, v) {
   let offset = v[dim] - box3.min[dim];
 
-  if (box3.max[dim] > box3.min[dim]){
+  if (box3.max[dim] > box3.min[dim]) {
     offset /= box3.max[dim] - box3.min[dim];
   }
 
-  return offset;
+  return offset
 }
 
 function surfaceArea(box3) {
   box3.getSize(size);
-  return 2 * (size.x * size.z + size.x * size.y + size.z * size.y);
+  return 2 * (size.x * size.z + size.x * size.y + size.z * size.y)
 }
 
 // Convert image data from the RGBE format to a 32-bit floating point format
@@ -50317,7 +50315,7 @@ function rgbeToFloat(buffer, intensity = 1) {
     floatBuffer[3 * i + 2] = b * e;
   }
 
-  return floatBuffer;
+  return floatBuffer
 }
 
 // Convert image data from the RGBE format to a 32-bit floating point format
@@ -50335,22 +50333,22 @@ function generateBackgroundMapFromSceneBackground(background) {
   if (background.isColor) {
     backgroundImage = generateSolidMap(1, 1, background);
   } else if (background.encoding === RGBEEncoding) {
-      backgroundImage = {
-        width: background.image.width,
-        height: background.image.height,
-        data: background.image.data,
-      };
-      backgroundImage.data = rgbeToFloat(backgroundImage.data);
+    backgroundImage = {
+      width: background.image.width,
+      height: background.image.height,
+      data: background.image.data,
+    };
+    backgroundImage.data = rgbeToFloat(backgroundImage.data);
   }
-  return backgroundImage;
+  return backgroundImage
 }
 
 function generateEnvMapFromSceneComponents(directionalLights, ambientLights, environmentLights) {
   let envImage = initializeEnvMap(environmentLights);
-  ambientLights.forEach( light => { addAmbientLightToEnvMap(light, envImage); });
-  directionalLights.forEach( light => { envImage.data = addDirectionalLightToEnvMap(light, envImage); });
+  ambientLights.forEach(light => { addAmbientLightToEnvMap(light, envImage); });
+  directionalLights.forEach(light => { envImage.data = addDirectionalLightToEnvMap(light, envImage); });
 
-  return envImage;
+  return envImage
 }
 
 function initializeEnvMap(environmentLights) {
@@ -50371,7 +50369,7 @@ function initializeEnvMap(environmentLights) {
     envImage = generateSolidMap(DEFAULT_MAP_RESOLUTION.width, DEFAULT_MAP_RESOLUTION.height);
   }
 
-  return envImage;
+  return envImage
 }
 
 function generateSolidMap(width, height, color, intensity) {
@@ -50384,11 +50382,11 @@ function generateSolidMap(width, height, color, intensity) {
     width: width,
     height: height,
     data: floatBuffer,
-  };
+  }
 }
 
 function setBufferToColor(buffer, color, intensity = 1) {
-  buffer.forEach(function(part, index) {
+  buffer.forEach(function (part, index) {
     const component = index % 3;
     if (component === 0) {
       buffer[index] = color.r * intensity;
@@ -50400,12 +50398,12 @@ function setBufferToColor(buffer, color, intensity = 1) {
       buffer[index] = color.b * intensity;
     }
   });
-  return buffer;
+  return buffer
 }
 
 function addAmbientLightToEnvMap(light, image) {
   const color = light.color;
-  image.data.forEach(function(part, index) {
+  image.data.forEach(function (part, index) {
     const component = index % 3;
     if (component === 0) {
       image.data[index] += color.r * light.intensity;
@@ -50427,7 +50425,7 @@ function addDirectionalLightToEnvMap(light, image) {
   sphericalCoords.theta = (Math.PI * 3 / 2) - sphericalCoords.theta;
   sphericalCoords.makeSafe();
 
-  return addLightAtCoordinates(light, image, sphericalCoords);
+  return addLightAtCoordinates(light, image, sphericalCoords)
 }
 
 // Perform modifications on env map to match input scene
@@ -50464,7 +50462,7 @@ function addLightAtCoordinates(light, image, originCoords) {
       currentCoords = equirectangularToSpherical(i, j, width, height, currentCoords);
       const falloff = intensityFromAngleFunction(originCoords, currentCoords, softness, threshold);
 
-      if(falloff > 0) {
+      if (falloff > 0) {
         encounteredInThisRow = true;
         begunAddingContributions = true;
       }
@@ -50478,12 +50476,12 @@ function addLightAtCoordinates(light, image, originCoords) {
 
     // First row to not add a contribution since adding began
     // This means the entire light has been added and we can exit early
-    if(!encounteredInThisRow && begunAddingContributions) {
-      return floatBuffer;
+    if (!encounteredInThisRow && begunAddingContributions) {
+      return floatBuffer
     }
   }
 
-  return floatBuffer;
+  return floatBuffer
 }
 
 function findThreshold(softness) {
@@ -50494,62 +50492,62 @@ function findThreshold(softness) {
     const angle = i * step;
     const falloff = getFalloffAtAngle(angle, softness);
     if (falloff <= 0.0001) {
-      return angle;
+      return angle
     }
   }
 }
 
 function getIntensityFromAngleDifferentialThresholded(originCoords, currentCoords, softness, threshold) {
   const deltaPhi = getAngleDelta(originCoords.phi, currentCoords.phi);
-  const deltaTheta =  getAngleDelta(originCoords.theta, currentCoords.theta);
+  const deltaTheta = getAngleDelta(originCoords.theta, currentCoords.theta);
 
-  if(deltaTheta > threshold && deltaPhi > threshold) {
-    return 0;
+  if (deltaTheta > threshold && deltaPhi > threshold) {
+    return 0
   }
 
   const angle = angleBetweenSphericals(originCoords, currentCoords);
-  return getFalloffAtAngle(angle, softness);
+  return getFalloffAtAngle(angle, softness)
 }
 
 function getIntensityFromAngleDifferential(originCoords, currentCoords, softness) {
   const angle = angleBetweenSphericals(originCoords, currentCoords);
-  return getFalloffAtAngle(angle, softness);
+  return getFalloffAtAngle(angle, softness)
 }
 
 function getAngleDelta(angleA, angleB) {
   const diff = Math.abs(angleA - angleB) % (2 * Math.PI);
-  return diff > Math.PI ? (2 * Math.PI - diff) : diff;
+  return diff > Math.PI ? (2 * Math.PI - diff) : diff
 }
 
-const angleBetweenSphericals = function() {
+const angleBetweenSphericals = function () {
   const originVector = new Vector3();
   const currentVector = new Vector3();
 
   return (originCoords, currentCoords) => {
     originVector.setFromSpherical(originCoords);
     currentVector.setFromSpherical(currentCoords);
-    return originVector.angleTo(currentVector);
-  };
+    return originVector.angleTo(currentVector)
+  }
 }();
 
-  // TODO: possibly clean this up and optimize it
-  //
-  // This function was arrived at through experimentation, it provides good
-  // looking results with percieved softness that scale relatively linearly with
-  //  the softness value in the 0 - 1 range
-  //
-  // For now it doesn't incur too much of a performance penalty because for most of our use cases (lights without too much softness)
-  // the threshold cutoff in getIntensityFromAngleDifferential stops us from running it too many times
+// TODO: possibly clean this up and optimize it
+//
+// This function was arrived at through experimentation, it provides good
+// looking results with percieved softness that scale relatively linearly with
+//  the softness value in the 0 - 1 range
+//
+// For now it doesn't incur too much of a performance penalty because for most of our use cases (lights without too much softness)
+// the threshold cutoff in getIntensityFromAngleDifferential stops us from running it too many times
 function getFalloffAtAngle(angle, softness) {
   const softnessCoefficient = Math.pow(2, 14.5 * Math.max(0.001, 1.0 - clamp(softness, 0.0, 1.0)));
   const falloff = Math.pow(softnessCoefficient, 1.1) * Math.pow(8, -softnessCoefficient * Math.pow(angle, 1.8));
-  return falloff;
+  return falloff
 }
 
 function equirectangularToSpherical(x, y, width, height, target) {
   target.phi = (Math.PI * y) / height;
   target.theta = (2.0 * Math.PI * x) / width;
-  return target;
+  return target
 }
 
 // Create a piecewise 2D cumulative distribution function of light intensity from an env map
@@ -50597,7 +50595,7 @@ function envMapDistribution(image) {
   }
   cdfImage.data = cdf.array;
 
-  return cdfImage;
+  return cdfImage
 }
 
 
@@ -50609,13 +50607,13 @@ function makeTextureArray$1(width, height, channels) {
       array[channels * (y * width + x) + channel] = val;
     },
     get(x, y, channel) {
-      return array[channels * (y * width + x) + channel];
+      return array[channels * (y * width + x) + channel]
     },
     width,
     height,
     channels,
     array
-  };
+  }
 }
 
 function unrollLoop(indexName, start, limit, step, code) {
@@ -50626,7 +50624,7 @@ function unrollLoop(indexName, start, limit, step, code) {
     unrolled += code;
   }
 
-  return unrolled;
+  return unrolled
 }
 
 var rayTraceCore = `
@@ -51617,23 +51615,23 @@ void sampleGlassSpecular(SurfaceInteraction si, int bounce, inout Path path) {
 `;
 
 var fragment$1 = {
-includes: [
-  constants$1,
-  rayTraceCore,
-  textureLinear,
-  materialBuffer,
-  intersect,
-  surfaceInteractionDirect,
-  random,
-  envMap,
-  bsdf,
-  sample,
-  sampleMaterial,
-  sampleGlass,
-  sampleShadowCatcher,
-],
-outputs: ['light'],
-source: (defines) => `
+  includes: [
+    constants$1,
+    rayTraceCore,
+    textureLinear,
+    materialBuffer,
+    intersect,
+    surfaceInteractionDirect,
+    random,
+    envMap,
+    bsdf,
+    sample,
+    sampleMaterial,
+    sampleGlass,
+    sampleShadowCatcher,
+  ],
+  outputs: ['light'],
+  source: (defines) => `
   void bounce(inout Path path, int i, inout SurfaceInteraction si) {
 
     if (!si.hit) {
@@ -51810,14 +51808,14 @@ function makeStratifiedSampler(strataCount, dimensions) {
       stratum = Math.floor(stratum / strataCount);
     }
 
-    return sample;
+    return sample
   }
 
   return {
     next,
     restart,
     strataCount
-  };
+  }
 }
 
 /*
@@ -51850,7 +51848,7 @@ function makeStratifiedSamplerCombined(strataCount, listOfDimensions) {
       }
     }
 
-    return combined;
+    return combined
   }
 
   function restart() {
@@ -51863,17 +51861,17 @@ function makeStratifiedSamplerCombined(strataCount, listOfDimensions) {
     next,
     restart,
     strataCount
-  };
+  }
 }
 
 function makeRayTracePass(gl, {
-    bounces, // number of global illumination bounces
-    decomposedScene,
-    fullscreenQuad,
-    materialBuffer,
-    mergedMesh,
-    optionalExtensions,
-  }) {
+  bounces, // number of global illumination bounces
+  decomposedScene,
+  fullscreenQuad,
+  materialBuffer,
+  mergedMesh,
+  optionalExtensions,
+}) {
 
   bounces = clamp(bounces, 1, 6);
 
@@ -51967,18 +51965,18 @@ function makeRayTracePass(gl, {
     setNoise,
     setSize,
     setStrataCount,
-  };
+  }
 }
 function makeRenderPassFromScene({
-    bounces,
-    decomposedScene,
-    fullscreenQuad,
-    gl,
-    materialBuffer,
-    mergedMesh,
-    optionalExtensions,
-    samplingDimensions,
-  }) {
+  bounces,
+  decomposedScene,
+  fullscreenQuad,
+  gl,
+  materialBuffer,
+  mergedMesh,
+  optionalExtensions,
+  samplingDimensions,
+}) {
   const { OES_texture_float_linear } = optionalExtensions;
 
   const { background, directionalLights, ambientLights, environmentLights } = decomposedScene;
@@ -52057,7 +52055,7 @@ function makeRenderPassFromScene({
     height: distribution.height,
   }));
 
-  return renderPass;
+  return renderPass
 }
 
 function textureDimensionsFromArray(count) {
@@ -52069,7 +52067,7 @@ function textureDimensionsFromArray(count) {
     columns,
     rows,
     size: rows * columns,
-  };
+  }
 }
 
 function makeDataTexture(gl, dataArray, channels) {
@@ -52078,14 +52076,14 @@ function makeDataTexture(gl, dataArray, channels) {
     data: padArray(dataArray, channels * textureDim.size),
     width: textureDim.columns,
     height: textureDim.rows,
-  });
+  })
 }
 
 // expand array to the given length
 function padArray(typedArray, length) {
   const newArray = new typedArray.constructor(length);
   newArray.set(typedArray);
-  return newArray;
+  return newArray
 }
 
 function makeRenderSize(gl) {
@@ -52115,10 +52113,10 @@ function makeRenderSize(gl) {
 
   function adjustSize(elapsedFrameMs) {
     if (!elapsedFrameMs) {
-      return;
+      return
     }
 
-     // tweak to find balance. higher = faster convergence, lower = less fluctuations to microstutters
+    // tweak to find balance. higher = faster convergence, lower = less fluctuations to microstutters
     const strength = 600;
 
     const error = desiredMsPerFrame - elapsedFrameMs;
@@ -52133,30 +52131,30 @@ function makeRenderSize(gl) {
     setSize,
     scale,
     get width() {
-      return renderWidth;
+      return renderWidth
     },
     get height() {
-      return renderHeight;
+      return renderHeight
     }
-  };
+  }
 }
 
 function pixelsPerFrameEstimate(gl) {
   const maxRenderbufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
 
   if (maxRenderbufferSize <= 8192) {
-    return 80000;
+    return 80000
   } else if (maxRenderbufferSize === 16384) {
-    return 150000;
+    return 150000
   } else if (maxRenderbufferSize >= 32768) {
-    return 400000;
+    return 400000
   }
 }
 
 var fragment$2 = {
-outputs: ['light'],
-includes: [textureLinear],
-source: `
+  outputs: ['light'],
+  includes: [textureLinear],
+  source: `
   in vec2 vCoord;
 
   uniform mediump sampler2D lightTex;
@@ -52272,12 +52270,12 @@ function makeReprojectPass(gl, params) {
   } = params;
 
   const renderPass = makeRenderPass(gl, {
-      defines: {
-        MAX_SAMPLES: maxReprojectedSamples.toFixed(1)
-      },
-      vertex: fullscreenQuad.vertexShader,
-      fragment: fragment$2
-    });
+    defines: {
+      MAX_SAMPLES: maxReprojectedSamples.toFixed(1)
+    },
+    vertex: fullscreenQuad.vertexShader,
+    fragment: fragment$2
+  });
 
   const historyCamera = new Matrix4();
 
@@ -52319,13 +52317,13 @@ function makeReprojectPass(gl, params) {
     draw,
     setJitter,
     setPreviousCamera,
-  };
+  }
 }
 
 var fragment$3 = {
-includes: [textureLinear],
-outputs: ['color'],
-source: `
+  includes: [textureLinear],
+  outputs: ['color'],
+  source: `
   in vec2 vCoord;
 
   uniform sampler2D lightTex;
@@ -52473,8 +52471,8 @@ function makeToneMapPass(gl, params) {
 
     const renderPass =
       lightScale.x !== 1 && lightScale.y !== 1 ?
-      renderPassUpscale :
-      renderPassNative;
+        renderPassUpscale :
+        renderPassNative;
 
     renderPass.setUniform('lightScale', lightScale.x, lightScale.y);
     renderPass.setTexture('lightTex', light);
@@ -52486,7 +52484,7 @@ function makeToneMapPass(gl, params) {
 
   return {
     draw
-  };
+  }
 }
 
 // TileRender is based on the concept of a compute shader's work group.
@@ -52551,7 +52549,7 @@ function makeTileRender(gl) {
 
     const error = desiredMsPerTile - msPerTile;
 
-     // tweak to find balance. higher = faster convergence, lower = less fluctuations to microstutters
+    // tweak to find balance. higher = faster convergence, lower = less fluctuations to microstutters
     const strength = 5000;
 
     // sqrt prevents massive fluctuations in pixelsPerTile for the occasional stutter
@@ -52585,37 +52583,37 @@ function makeTileRender(gl) {
       tileHeight,
       isFirstTile: currentTile === 0,
       isLastTile,
-    };
+    }
   }
 
   return {
     nextTile,
     reset,
     setSize,
-  };
+  }
 }
 
 function pixelsPerTileEstimate(gl) {
   const maxRenderbufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
 
   if (maxRenderbufferSize <= 8192) {
-    return 200000;
+    return 200000
   } else if (maxRenderbufferSize === 16384) {
-    return 400000;
+    return 400000
   } else if (maxRenderbufferSize >= 32768) {
-    return 600000;
+    return 600000
   }
 }
 
 var noiseBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABAEAAAAADfkvJBAAAbsklEQVR4nA3UhQIIvBoA0E830810M91MN9PNdDPd/ulmupluppvpZrqZbqabe89DHCiDv5GzaossZGYBp2PFIFqKdmMXIKW85edCB/RT11SD3JMQidRlL7n2ufRH1jVkFUNVc3NaZ7DP0T7/112kM1Qc3RDG0K/4uN7CPC7OmtFRZK3Jy3fhSSySKIZXopTsnIhN69JjLHJYYnfpZu44hnV+UkhG/lPd/D+fIVwWtdhhupVPJmtsLFIhjHA7UUqY4fPIQ2qdKxviqH2sugJ2nC+1ZdV0vEF3RGNcMd4KdvIXaJnujdPrKj4ifkeX2f04avjEbqO0ogI/rD7zhmy6GKG/2w32IetIX5vE9DbrS+CNy4sbmgXoiaug48lV4bVKZgluwPujd+Ioa+KjuntypepEEvl/YYCYTq6w4aaReGMShwLkC4nvq7jFKJmLpoepHJTag/h2aMklShou+tyip5wm67P2/CnvH7K6zuq+KGvy2rkkrR4mc4dpUNTEFHDId9TXQiST3RxHO0lHNgNFIA/Ub1kC0pOlNBf77EtyZ0ejxvikzySL8C8hNWyyc1GvcBCusv/otvBO3YSj+KvvRlKgoNaF/GEB64prsx8qFRwVJcRmMk8l5E5swfHMPuhlr9DmtrLeqs7KOrCMQSpeGW/zH5F2dc0AXZhcp9IthLZyuxpHrkNnp0JfnsY+55XkAtgSOvsWzps8uoJ5GtpAXRWZ5TK9cEM1WVRWC81ZUstPZHHkC7GDjZfl7BJ+VcXkI8RfVIMW0Jq95oxE0R+MDQnMX97DPhYjEXzHM0LvUNyODhdDCvJdNmXlfFp0RsbBNclTj8hpXofsCgVYsAnwPRTNTiTLxZkQW43BmK6wHk7Y0iSdXIfyK8/aQULdx1/hJc0JkRE/UgNDc/dGZWanTCs2WQ0W6Xh7PZGuDMXEaLtIRMZcZAM4ieOwO661Qf4xVyhLOOA2mLe0JyvIDrBhUA42ioUiMmrHJ9te6jwtbQ6xWrKf/ED3qKJ0qvzO2of57KkcyMBvNZndbLTX/iWNaWTezm9E8cleKOSEXK1B3LDfeGk4yx/b7L5+uAvp6UVC/UYAhvPLvSwTWm+qqO5saYjh79LadBJaAR90ct9S/GGZ7Q1zhKyTOUJ9MzT85IldVjLLduUOqovEaASJbXeZ37oFv0w/sOGhvMzpVrL/2MeQx8+ldfQU/QBXIqn8NtHAHjCzaTJk+CDS0e6Wk8N7GEDgoR4rG5M/Zig/LD6hEr6VHmxzmijoKu/oZ+p84oEeiwegquE7pBZPYXEoyLeQ66wRicLXmOzWoib6mq6KUoWxuriq62OQh647TUmn0RuuIjtPfuEkcMQtwJ/IaJabRRe9fRX2Q8Z1L2UNlMclpfMFdKYr+XkVEeb6vChZuOBfhNl+l/hly9L0/mzYIxPhBq4oimlnB273mkgwnr+S7Vnp8Fff8/3VC7IJCtqZ9AxZRnujo3wjmQ9n7WtayxwgvUhUNtJ0UjlEU9vPFhePxDLfkl6z43hhdQSW+xbyKooJEEwqTOkL1VHWc1vReFaVxbcnTGM2Uq1XNXRPos0bdtI8VBKXcZdCV1dNpLcL3DE7Cqfmi2w5JGhGFqATTUhzy7sG2+a0II4ZtupikC488mt9abdTvpYXVALXBU6wNzYLXUTPQwTxH/nNttjKDA7pQT47mopOQmxzW/f3GVhXWoguEUl5EHcUoKm8LdpiMoZV9JONpzZa7wa7hG4XzxvquHj2s5lsIrFbtrbew3+SKbiK6Ry+whAyXrTBC0kgDfwZHNOMNRnwOjHVVICdOGVo6LuFsn6GTKN6u4IeZqtN7B6vzlegD7ioW8i/u430kbtO2pABrgTPwb+xchSZ7jK/V6KxPEWK+K+oBXFmeuikt+HzrIU66KQsI9bRaGqQfKqSkMNumbnN4/ljkFsPxqnDElSF32L17D8UhxbUI8xnuwk/0znwXXcGGmD4QpPo5n6kTod70Zb2oI8Y6pFJKiuLoab7bXBEj+CXFTOH4A4kV/1JNjNRLrexaEX5Ht0xQ1RRskzmhCd+rmnFi9hLeqHe7svy7Lq+/+Mq6am+A/X8e+iptvqcbIjzqCOfbW6SpKQ22gPt8HgTFUMPd9kWgKd2O45Pr0EuOlK8waXFfriga7sXrLlKZZbrgeaPnmsrurd+n2H8hugjc+i1OCpJj2vYPyQ27+lT6/f4JM0c6sJIHwm/8AJS4tXuuo6g9qOCjvOZIrI9ZpaaauQAjwb9eTG0RMYPr2y5AHv8YhZLHvZl+DdQqrI5Z1L4QawT/FOLoQCOLR+EyTIrjcqb6YtiA4mg0/L27reYYg7JpvSVOM7G+p2uIb1iJ0hE+/DvvLW+qqfL034nLU5GQh02j8aHi/aDLS2b4ncYk/OcE+V+hhNqmF2rs1j4a1qziXYgaaDWQRetSbOwC60J8VhFSIf62k2osy7FXqpdrDAdZbuQxf5ZOCGLy6Reago9xBydmN9HBdUqX9VtUYdIKZOGbGAFxEDXjLxDmeVXsd5WIOmlhN0kqe2r84o1upy+z9KLRjY/ui5qGkhNiqoL5iXN6hPbeyGa+ckKwRM6l51Ao+EG/yKruXNsrWvHkuDPKKctS4bYRnq7eIQX+at4s8lD2ovy+D/xlXUWuf2jsNiNQx9xDRwjLAgJUSd5AvfTD80U0Qk91fP8DTkBfaXx1Qhv7FMXifZRMw0MlxtxVFVNzoOTrnjoK9ObCZy5HOwjbWgTib1kFo3BJa9t7oojdJK5RpGcifO66LQ2xuIHBvxcnMcLdEoUWc0QjVhs0k3f4dnoXvREODRB5KWJ2UFTX60WcXERxFQ7uo9mDz1YVbzQddDBHQ3QxD0MPfBnsdX+p9+xg+Sybmtum4hKoJW+CG0NGSQxP/TC0AulZ1tozfATr9Ld/QfURp1kg2FqaOQ2QBZ9JNyCoeQfO0eS+SOCa0lLshW6hnulWqHi/qrMTj6Z03gzB/LMzuaXmZXJSUm7nSKACjQDVzafbiNTqUayYpjDNpqhqIzf4SfRU/KF6S+vo0MhAS/v36BoolU4JbKQO3S3nmAL88puH0GoN6tF3vg2rCzscLVcUbmKzHS/dFroBdGk8bP4Hx8DRotKtJdMa4YZKhvR2OgbnULv+lzYUfjhFusD6KaLR8aHFSSPjYmT2MP6tU1L76u4uqJYrqawEqqpW+Onm4G6KIw2CU0Z29/EIc9gKVwjH3wxNV5v8fmxVunIGB94PxYBV+I3RRM4IO8x7Ab6ZXi3aoEeoUXmtzqHVrGCsrUYpOvIFXSMgX4YQp1Qmp6xf/Ae8gR1U19NUzEdSOjApK9nPuoItqt5HE7TXPIm3sff2fm+SbioN9GcPLltyTLKeeGBjGr668sYsfuymdjM8uHjYqL5BLn4SFqRdjbnZJKgyFHIA51lEjEebtEMfqN7LlORlgreiM3B26G2g82iqssbZBQq6k+rGn5J+MMvsVRus95vMpFR9K9K4errLmJFSMO/iepoBu6CfptR4QzqxpOYH6ERP4xmqS4uKzz3V2RS0SnMNwnYKvdW5Bd16FdS0kWlDeQ2VIMEJtgeVJ7GZIdDYQldWQ6UVK2mM1l000/MRyn5GpGZDkRbQ1RUCs/HLcMDV4hV1/OkEZFpRX+f5zfSHGQR7W2obdeiMnK3qQarTK7wEiq5vTqWXayqhyF4By5l6+HDPKK4AZtVRnoHjVBv8Syd1VocyY2UP9g8c15PpXBNVIET8MnVd8/oNlaGcnZJBZoQ7uAe4SjJAWNdX3AkNrQTQ+ClmMxO23i4nXseStC+4agkPDYeChdcOzLRJ2f/2S+ukJqsW/tvKoN4bP5/sOpHxuN5qC3p5VbaizIefWBKkKWkCc+DO5paPAHAP7wQj+VFRVp/zhPy3Ufw+8I4VsE1QVPtS1ZLf6eJ5Qr3Se3GxfURld71EhvEHJXVbLdJzUL/2nk6nX1mGcxdXUpvIg2gt7rADrkoYq0ogKbYXyK1pOwljuEO0rykAh5k2pMp6hR7rVO7h3IY2Y6gOYpsBqhWfp/sQcbbZa6m7uge0dx8pUgjd9GY5CyUldNEXX3L5JRLaHP2G5UhDtfnn8Qk3sak8Y1dUR5BatyTnyTR2PWwnCVCZe09NdwLG8tpvl3nJCd8dfzPNFMp1Wb4YuuihKIPWkP2k5I0o4OVJB96wDby2Oy2TAwv9VAxh8dFJ9EvU1S390Pdekx8d0jrxgik35GaLDoeZR7ZhH4IqyzO+/WiNzkkGNrOm8MvN4dmom9kbtuCzgy14K097SrhJuoeDEMJ7CI5Tjwn+3AmfjkUQpXUTR+DzdDPKVRgh23w1c0MUoI1EYchky6st4hefmS4bhZhr5vJ9/QYfUpbywukv9iib4S8msMqOE6iqH86px6L3oubJike6fJBB1ODDTZb6V+fAvapLL6DTGQ+2hm2k1svL8litoeKxZaRIXq2/U3HsDb6ghQBJqP4OB29iP4Lv/FaVZlctV9QM5tC1UGRbCWRBSfQs/UOFAGtlhX8VJJMLTD7VQY6HRU23ehdXAYlJHN5FlkRvXQHdDzx2I8Lx1A3sxTd8MXdOjVKH4BCOp2pIx6zrHwar6qO6uYB3FaXXdYNycNXCUNlY9TFLwq5SFuemg60UdhieVa8hml4v/2sHOsDNV1JGM5zmx/U2qKhk/lq+7jXaCuuYxaTPba1OuMHhY16GiuJVonzKBUtjEDVtwPxJP+cXUaRfD/1w5zS0Ulr9DXcQPnIK39Xdgkn+WJahGzGkI1cda/xFhfNn6KP1R7c2Y4JZSBnWK26kkJhs51E/tGk8m5oInvSjOI5risjuorqlI8X0oZh+JmKQeuhn7KLjKmvmd6iCVnIKtMH5KOM6zGu5nP5hmixMLo8Ge0P6jWyD0ukR7F0lqIPEMc/gv0OIsqZvCSug8eZ964gnYXr+LsqPmojHrG0apiIzg6TtkyHc7BHIDzTXuL/yQ38Dhsnm5OPfCorYK/LFTKPOU4xr+m/6WzydVCmPWwM5+UuN9e1Ce/8TRbfdJVzbCrWQJTUO+R8V5Ouh6m6T2jpqllYDfew5Ylcb1teraRxUFb8xxp6zFWH+eqtbIhzomc+DRunqvv3doVoKfOEJGoRKilzmAt4B69k+0FyN0m2ED5ss6NkNLTbn1LDAmHU/QDBj5oU8j9cxLxi2dUd+z5E8RfNT9NUHvApzRU/Bv1R0MEPlER9Nzuhpb/lhmsLxUJfP8EkYWdUCbyW3QzlbTco4AfhKEDNUfeY7pLt8U/a063mUaGD+4wtofwtmo0L2WWqlSxHErH0aDltYsbwqHqNq2CnuJ3qdKjJh/hlYYrsKLKwwTy2eOnzyrIMB1A0rmhiNc3Iz9tkvJt44ZqhJQ70F+jhW8CIgNQuO49/Q8bcJ5NxWlaVj6Yx/VVIZWeY2uK+zuw3hSEhIu2hE5NLfiC9p//I7vq6i6+fioJwF2Uyf2lzHoGt521FPlUJrH+AioQzvJtcJnaGEwHewSXxGFExyX7y81hVsQGng6shr9lG74TM5KdX/LyLIevpKyin6sz/Qj/0MjTQh2g594Yct6NVPL5QNUC3QlX/RR3hOXE9th5Nhf2hBswWfdVZVJsvMQNoGnOVfvNx6Qudgo9Ra/hMVJV8wdF1XQwFSYqwzgxjkVQ9kS+cZjHEhzAK6qMKYlZIjg+ZGqIvykCWBy4T0dlkBykCq33WsIAOAoJaQjH/V5w1uekes5plQOPRfBuTFmGvWRueVX9VW2V7GcccoE90CTSW7cXzaU+9hdflUeUTkk001/PDCAnbTRXb2h4jPeCZ2O0Gh1JuOu2M97PnZjBd6QrJDuqBL60+kuH4BK+Fo8uzLjmaoO4Z4DvsCpZM9DJtlWKvUEnVmTVVj/SOUFmOxBHCZV7CJJETIKA8rIuZKavxzKaxvQSlxD/exg9g130ifoH20pBJPKAz2F+bwyVUq2Qrd98mshdVNhVTtjJXSFx4wzegSfhAKECfcY1u4Wamu3pPqogO+Fu4bifDU1MZRfepxAh8EeLYn0i4Ey6NWwYD4Yhp6hfK8uiGimFPubcsYXiI/nO58QmN5V4+zm1kpdl3AtoeFLF0MT0Wbqk5KJ37rmqFTWYR+4vLsGN4BM3uGoYUJgLv5irINGiw+upKhA3qOIxkiQjVGfR+uo7dRAv4B1WLbqApcD472903Hz2T6/0jmR6G0xWmEWz2g3U7uYZF1FNgKX7PK5p85lXoGMBAMzzA17Kb+EnZmFfk/eghNI4W9r1pGjGZ14YvbIHcHQbYy/Cbb0FTcW61x83ySGRGjc0SOC/qqKE+p28MfV0hfJhNV0P4VdGQdICcYrKPz/Lb306IfSKl+66z83LiKPokGeuq4pI5oqFMzY6FSQC50RXxgifnnckXEUfkZS9kFNJCn0b38Q4aWXRRt2Rl/pLMkll4fdwuPNaRXW11xT1lBdE2KfBblwAdDz/dNhIJtSZZzFtdWq+BqHZPKB8ukbZwCkf0Ne19X1hMFAvsLZIWFyPGnTe36TC9Ej8U5Tkk8J/0Ai9JpnCJ7iLz+VWzFqqEdyaXGqSWk8I4vYovWonifKW2Iok7p8boFaozGsinis86MpknWoeJoazD4OW5UEXvcxNoUvdDdDdP5Ag7V2xypbHy/eGcjY56yF2qGQwUz1xSaE2jit++h9mpYZpqYwuYyrAGT+QlXDsjVSrUXcwiiaCxfsYOm2lmszyrh4tY/LbrY9+GQqK8+SdSyYO2qsmqbvEi+old7nrCaL1Ed7Gx8B05gJ82C1FGFds3FM9tDvUJa9E4vNJVZTLzy89i2dg4sLQmFMGZ8TkH61lUf4Q94D1xRPTYMZst/IK9vjhskJdJeTdKfXNMdOfvVR5eDS3STUlGczIYHEvdhxZ2LR1ud/NYpqYIMqEs7P6yTbIpz8eru61QjH4mg1AybF17mgESqAN4PRnl8uvTsBpT9SlsJ4tgBKtjIZXua36TRmirSIo+iqX8FIol7pKx5CNEox1EdpGC3WWR5C4/Qf+wm3Rc9Z+fhdraPGi8KsWdT0Y7idMylzVwldSXGf1MeGZSiFGe+1tin67kr6ixag26TYYaSi771i5ueEjr+U4+neqPY6H37KaEFzBGFqfpuZIXUEsyIJST01xd2walDwvtGd0Xr7al/ALSXKbRNHSh1/xe9cHVDs+1hv7ul6xPX5ppZAjlZm446vuIsuiiW+rf8Yhmil+Bc0N3Ej3UxAXcTzWdZxEhaN3HRJaX5VMyyR3jLXxZDTnkbrsM3cA1eD52UGL2imx3xA7FB2wN+c9Opo3UG3rZDeIn9Wz2kCfTRVwEesH2oCn0MRHFzZWZcHm4y8GmVp/4BBzd7pXZbBd+3Kehjfw/N0duh2e4hTmuouCuvjrbo4uZaX5DqOyT+PxsJXTBMIOfstFd2/BF/8fnyximG1rFk/Bb6AWOywqHHSYhPhjy0zjuOWSndcUAMwVVtGtDZrFT1FCF+Bboxaz+wYujXVBNPSRt3TBel3xHhVk/9xASyFLqjEhr+/FFxMh7YiKktkftn5CDNDW7xTd7kcU1MJRWMm9Vb55YbVIl5D36BxqFk6osFmqjl8GTjLp7qCnHWMPa24NoufkdWuo7+j/zxUx0N+hbaBqQW6VGia52kcsnkb1p1/I5vgo26CIertrZgMfT8jqxrkeJfAMtwmAWX95Uo/g814vXll5BStHMzzG50EN8RE4g1WgWNNwtUpG10jl8S1zZvvfT7Urzi5eCKOEtweoMJWKejoFKoTY0TliqpCCU+WsqI7ywhpzipVFyeKKikfE+o63t11qguWAP/Wau6OEQE52l5dkq3BGeqwimFMnktyn4J4uoS3aNakAj8XbqStjpC/nXpL354q/zo3SxATjjuEtpr7H5uiodjVHoivbLhvoxnCDdMdZn/RMz0x/k0UIz3lv/EdN0K3pYdrO72VeeH24La2aqJ7wjWeFLhjlus/jC89FaKC05oN6biWqpgGjYshGQTpdTP8ggEQ9mkuTmgqglsFkrE4UBUNreIbnEMHcE9xRN8P2wlZTjr0xKv1HOEvn531ApJFLt1WdXRk/UKSyjmdxIkke903Ftc7EEC1PVDiaNfToRT/c2j0km6I6mKqcW44GqobuOOyp4goU26hWewpfxE/QZaoo2+L50vx5N8rmG/IefiDeJeuqDiAUFwjqeWX3VU11fdoFn04N9PVhNJoSdZoDMztbZ42YhfaMvueW4Irkmp+sS+hlJLmL5y6aI2KYvhGr6kG1kopid1vuiNlY4aXO5KhJmmTo8AWmF8/qUugcq5rLxb7gCiunu2jnQhZ2C2CGD6gw71CMzw13kQ0xEVogsZdVtHHjLD4j7LiIvxpxswLwYRguoCG6H7isSi/qwwQ0Rp8U4/IeuNq/oSDsDfto8dJx9ExJJyVqwX3S9Hi2TazjLCsNtu1984NXMdnbPLbaTdCv1Xpf02+UTqMZe8QWquBlDKoeEtp3e6+qTa7gV+SnG+VIhOeWop/0g56o0EFf+QC1wOdwRPyJH1U/AvgPJYffZMqEtzo4jhfoiKdOyrT7uqqA1NIvricqK3ei1gBW8DwE5zM8Jl3CCUC8MRpH0EbscEoihOptLBntDP+/CH5RWLkfvQhn1TCahR/w201XcYEvUGZbJbnajXRWyh/Xgt/TqkIBOcEXkPBsZHtiaaKlMbWbDSdGf7ab3aSl51fe3qf3nMM3e9vF5W5/BwQT/21ZQ611W2YGPtb8hHbuuiBP+nG6Op6HVqJUlEMUexs1YH5qbTBILRCY2nORVUeh0V1X/hwrwJuy5u2KWupx0Bj1NXtBsuKkezra58+Ez9NGN1R3x0VRindg7mRGZMA8XNOd4jXCIL+IfXYMAN3RSbVUT+oTFdmfMOl1R72SvPQtpwl95zZUxn+g9MtnVMOvDbXVcRnOd+Hr6iDcWH0g6/xRvD99FYtwJR/YlbD05AmFUneyl71x3W17k8xNRMrnJR1djaUGxlsThY6ARjgBPUSc7kkeH/GQIKilgG+8KRCv8mVLcW+Z300I7NBzNJ0XZZhSR1OPSLmHdMOJF8Wf5HzD9K5zFFXG/sFIewu1RPFSOrULH1JTwUR1UMdUvNQAv5jHwTb3KxuWt8StXkuz3mfklNIcc0z3DPyhn9opkrClsVI/xqRBbwytYQq7gQTYNXi4bmGPyjk+CYuiHfj8fp3vDMZ+QZSRvzW6Yq7OilGQHFMfx3GyZXBa2DMa7S2YeuWeHyMy6p3lo29LNtDR3rq5Ljf+RI2guPkcHy9rkF2mJEvvqNI+4jRUs50FfgWy+u5uDaynIAq15dF4tPIB9KIp8L7PDUv1NVoWWJht6iQrIdfgcLu05vsbHBkGc5mECeyC2spv8F4rG++C80ICkoNXwOlIwXEOJzSyX23UIU0h/mklVoY9lfNdVL/E36VD20u4QbVxm6GeKyfGkEvrFUqPR/H9s/XjiBWp1EAAAAABJRU5ErkJggg==';
 
 function makeRenderingPipeline({
-    gl,
-    optionalExtensions,
-    scene,
-    toneMappingParams,
-    bounces, // number of global illumination bounces
-  }) {
+  gl,
+  optionalExtensions,
+  scene,
+  toneMappingParams,
+  bounces, // number of global illumination bounces
+}) {
 
   const maxReprojectedSamples = 20;
 
@@ -52669,7 +52667,7 @@ function makeRenderingPipeline({
 
   let firstFrame = true;
 
-  let sampleRenderedCallback = () => {};
+  let sampleRenderedCallback = () => { };
 
   const lastCamera = new PerspectiveCamera();
   lastCamera.position.set(1, 1, 1);
@@ -52698,8 +52696,8 @@ function makeRenderingPipeline({
     });
 
     const makeReprojectBuffer = () => makeFramebuffer(gl, {
-        color: { 0: makeTexture(gl, { width, height, storage: 'float', magFilter: gl.LINEAR, minFilter: gl.LINEAR }) }
-      });
+      color: { 0: makeTexture(gl, { width, height, storage: 'float', magFilter: gl.LINEAR, minFilter: gl.LINEAR }) }
+    });
 
     hdrBuffer = makeHdrBuffer();
     hdrBackBuffer = makeHdrBuffer();
@@ -52775,7 +52773,7 @@ function makeRenderingPipeline({
   function areCamerasEqual(cam1, cam2) {
     return numberArraysEqual(cam1.matrixWorld.elements, cam2.matrixWorld.elements) &&
       cam1.aspect === cam2.aspect &&
-      cam1.fov === cam2.fov;
+      cam1.fov === cam2.fov
   }
 
   function updateSeed(width, height, useJitter = true) {
@@ -52948,7 +52946,7 @@ function makeRenderingPipeline({
 
   function draw(camera) {
     if (!ready) {
-      return;
+      return
     }
 
     if (!areCamerasEqual(camera, lastCamera)) {
@@ -52973,7 +52971,7 @@ function makeRenderingPipeline({
   // reproject every frame
   function drawFull(camera) {
     if (!ready) {
-      return;
+      return
     }
 
     swapGBuffer();
@@ -53017,15 +53015,15 @@ function makeRenderingPipeline({
     setSize,
     time,
     getTotalSamplesRendered() {
-      return sampleCount;
+      return sampleCount
     },
     set onSampleRendered(cb) {
       sampleRenderedCallback = cb;
     },
     get onSampleRendered() {
-      return sampleRenderedCallback;
+      return sampleRenderedCallback
     }
-  };
+  }
 }
 
 const glRequiredExtensions = [
@@ -53079,7 +53077,7 @@ function RayTracingRenderer(params = {}) {
 
     const bounces = module.bounces;
 
-    pipeline = makeRenderingPipeline({gl, optionalExtensions, scene, toneMappingParams, bounces});
+    pipeline = makeRenderingPipeline({ gl, optionalExtensions, scene, toneMappingParams, bounces });
 
     pipeline.onSampleRendered = (...args) => {
       if (module.onSampleRendered) {
@@ -53097,8 +53095,8 @@ function RayTracingRenderer(params = {}) {
     canvas.height = size.height * pixelRatio;
 
     if (updateStyle) {
-      canvas.style.width = `${ size.width }px`;
-      canvas.style.height = `${ size.height }px`;
+      canvas.style.width = `${size.width}px`;
+      canvas.style.height = `${size.height}px`;
     }
 
     if (pipeline) {
@@ -53111,12 +53109,12 @@ function RayTracingRenderer(params = {}) {
       target = new Vector2();
     }
 
-    return target.copy(size);
+    return target.copy(size)
   };
 
   module.setPixelRatio = (x) => {
     if (!x) {
-      return;
+      return
     }
     pixelRatio = x;
     module.setSize(size.width, size.height, false);
@@ -53126,7 +53124,7 @@ function RayTracingRenderer(params = {}) {
 
   module.getTotalSamplesRendered = () => {
     if (pipeline) {
-      return pipeline.getTotalSamplesRendered();
+      return pipeline.getTotalSamplesRendered()
     }
   };
 
@@ -53151,7 +53149,7 @@ function RayTracingRenderer(params = {}) {
       const hasFocus = document.hasFocus();
       if (!hasFocus) {
         lastFocus = hasFocus;
-        return;
+        return
       } else if (hasFocus && !lastFocus) {
         lastFocus = hasFocus;
         restartTimer();
@@ -53178,7 +53176,7 @@ function RayTracingRenderer(params = {}) {
 
     camera.updateMatrixWorld();
 
-    if(module.maxHardwareUsage) {
+    if (module.maxHardwareUsage) {
       // render new sample for the entire screen
       pipeline.drawFull(camera);
     } else {
@@ -53198,7 +53196,7 @@ function RayTracingRenderer(params = {}) {
     pipeline = null;
   };
 
-  return module;
+  return module
 }
 
 RayTracingRenderer.isSupported = () => {
@@ -53208,28 +53206,17 @@ RayTracingRenderer.isSupported = () => {
     });
 
   if (!gl) {
-    return false;
+    return false
   }
 
   const extensions = loadExtensions(gl, glRequiredExtensions);
   for (let e in extensions) {
     if (!extensions[e]) {
-      return false;
+      return false
     }
   }
 
-  return true;
+  return true
 };
-
-if (window.THREE) {
-  /* global THREE */
-  THREE.LensCamera = LensCamera;
-  THREE.SoftDirectionalLight = SoftDirectionalLight;
-  THREE.EnvironmentLight = EnvironmentLight;
-  THREE.RayTracingMaterial = RayTracingMaterial;
-  THREE.RayTracingRenderer = RayTracingRenderer;
-  THREE.ThickMaterial = ThickMaterial;
-  THREE.ThinMaterial = ThinMaterial;
-}
 
 export { EnvironmentLight, LensCamera, RayTracingMaterial, RayTracingRenderer, SoftDirectionalLight, constants };
