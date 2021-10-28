@@ -1,7 +1,7 @@
 import resolve from 'rollup-plugin-node-resolve'
 
 const buildEsm = {
-  input: 'src/main.js',
+  input: 'src/index.js',
   output: {
     file: 'build/RayTracingRenderer.module.js',
     format: 'esm',

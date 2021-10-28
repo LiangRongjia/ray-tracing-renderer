@@ -1,4 +1,4 @@
-import { unrollLoop } from '../glslUtil.js'
+import { unrollLoop } from './glslUtil.js'
 import constants from './chunks/constants.glsl.js'
 import rayTraceCore from './chunks/rayTraceCore.glsl.js'
 import textureLinear from './chunks/textureLinear.glsl.js'

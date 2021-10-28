@@ -1,5 +1,5 @@
 import fragment from './glsl/reproject.frag.js'
-import { makeRenderPass } from './RenderPass.js'
+import { makeRenderPass } from '../RenderPass.js'
 import * as THREE from 'three'
 
 export function makeReprojectPass(gl, params) {

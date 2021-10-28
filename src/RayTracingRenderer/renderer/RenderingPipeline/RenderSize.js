@@ -1,4 +1,4 @@
-import { clamp } from './util.js'
+import { clamp } from '../util.js'
 import { Vector2 } from 'three'
 
 export function makeRenderSize(gl) {

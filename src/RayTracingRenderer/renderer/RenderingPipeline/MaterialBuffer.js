@@ -1,9 +1,9 @@
-import { ThinMaterial, ThickMaterial, ShadowCatcherMaterial } from '../constants.js'
+import { ThinMaterial, ThickMaterial, ShadowCatcherMaterial } from '../../../constants.js'
 import materialBufferChunk from './glsl/chunks/materialBuffer.glsl.js'
-import { makeUniformBuffer } from './UniformBuffer.js'
-import { makeRenderPass } from "./RenderPass.js"
+import { makeUniformBuffer } from '../UniformBuffer.js'
+import { makeRenderPass } from "../RenderPass.js"
 import { makeTexture } from './Texture.js'
-import { getTexturesFromMaterials, mergeTexturesFromMaterials } from './texturesFromMaterials.js'
+import { getTexturesFromMaterials, mergeTexturesFromMaterials } from '../texturesFromMaterials.js'
 
 export function makeMaterialBuffer(gl, materials) {
   const maps = getTexturesFromMaterials(materials, ['map', 'normalMap'])

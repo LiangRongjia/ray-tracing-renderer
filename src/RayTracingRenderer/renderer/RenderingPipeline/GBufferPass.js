@@ -1,4 +1,4 @@
-import { makeRenderPass } from './RenderPass.js'
+import { makeRenderPass } from '../RenderPass.js'
 import vertex from './glsl/gBuffer.vert.js'
 import fragment from './glsl/gBuffer.frag.js'
 import { Matrix4 } from 'three'
