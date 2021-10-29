@@ -5,7 +5,7 @@ import { makeRenderPass } from "../RenderPass.js"
 import { makeTexture } from './Texture.js'
 import { getTexturesFromMaterials, mergeTexturesFromMaterials } from '../texturesFromMaterials.js'
 
-export function makeMaterialBuffer(gl, materials) {
+function makeMaterialBuffer(gl, materials) {
   const maps = getTexturesFromMaterials(materials, ['map', 'normalMap'])
   const pbrMap = mergeTexturesFromMaterials(materials, ['roughnessMap', 'metalnessMap'])
 
@@ -173,3 +173,5 @@ function interleave(...arrays) {
 
   return interleaved
 }
+
+export { makeMaterialBuffer }

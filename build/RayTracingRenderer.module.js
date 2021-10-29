@@ -3,10 +3,10 @@ const ThickMaterial = 2;
 const ShadowCatcherMaterial = 3;
 
 var constants = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	ThinMaterial: ThinMaterial,
-	ThickMaterial: ThickMaterial,
-	ShadowCatcherMaterial: ShadowCatcherMaterial
+  __proto__: null,
+  ThinMaterial: ThinMaterial,
+  ThickMaterial: ThickMaterial,
+  ShadowCatcherMaterial: ShadowCatcherMaterial
 });
 
 // Polyfills

@@ -1,4 +1,4 @@
-export function loadExtensions(gl, extensions) {
+function loadExtensions(gl, extensions) {
   const supported = {}
   for (const name of extensions) {
     supported[name] = gl.getExtension(name)
@@ -6,7 +6,7 @@ export function loadExtensions(gl, extensions) {
   return supported
 }
 
-export function compileShader(gl, type, source) {
+function compileShader(gl, type, source) {
   const shader = gl.createShader(type)
   gl.shaderSource(shader, source)
   gl.compileShader(shader)
@@ -22,7 +22,7 @@ export function compileShader(gl, type, source) {
   throw gl.getShaderInfoLog(shader)
 }
 
-export function createProgram(gl, vertexShader, fragmentShader, transformVaryings, transformBufferMode) {
+function createProgram(gl, vertexShader, fragmentShader, transformVaryings, transformBufferMode) {
   const program = gl.createProgram()
   gl.attachShader(program, vertexShader)
   gl.attachShader(program, fragmentShader)
@@ -45,7 +45,7 @@ export function createProgram(gl, vertexShader, fragmentShader, transformVarying
   throw gl.getProgramInfoLog(program)
 }
 
-export function getUniforms(gl, program) {
+function getUniforms(gl, program) {
   const uniforms = {}
 
   const count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS)
@@ -62,7 +62,7 @@ export function getUniforms(gl, program) {
   return uniforms
 }
 
-export function getAttributes(gl, program) {
+function getAttributes(gl, program) {
   const attributes = {}
 
   const count = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES)
@@ -74,4 +74,12 @@ export function getAttributes(gl, program) {
   }
 
   return attributes
+}
+
+export {
+  loadExtensions,
+  compileShader,
+  createProgram,
+  getUniforms,
+  getAttributes
 }

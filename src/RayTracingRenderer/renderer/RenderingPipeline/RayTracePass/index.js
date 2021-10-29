@@ -7,7 +7,7 @@ import { makeStratifiedSamplerCombined } from '../../StratifiedSamplerCombined.j
 import { makeTexture } from '../Texture.js'
 import { clamp } from '../../util.js'
 
-export function makeRayTracePass(gl, {
+function makeRayTracePass(gl, {
   bounces, // number of global illumination bounces
   decomposedScene,
   fullscreenQuad,
@@ -228,3 +228,5 @@ function padArray(typedArray, length) {
   newArray.set(typedArray)
   return newArray
 }
+
+export { makeRayTracePass }

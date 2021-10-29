@@ -1,6 +1,6 @@
 import { Light } from 'three'
 
-export class EnvironmentLight extends Light {
+class EnvironmentLight extends Light {
   constructor(map, ...args) {
     super(...args)
     this.map = map
@@ -12,3 +12,5 @@ export class EnvironmentLight extends Light {
     this.map = source.map
   }
 }
+
+export { EnvironmentLight }

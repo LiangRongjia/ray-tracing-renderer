@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 
-export function decomposeScene(scene) {
+function decomposeScene(scene) {
   const meshes = []
   const directionalLights = []
   const ambientLights = []
@@ -48,3 +48,5 @@ function isHDRTexture(texture) {
     && texture.map.image
     && (texture.map.encoding === THREE.RGBEEncoding || texture.map.encoding === THREE.LinearEncoding)
 }
+
+export { decomposeScene }

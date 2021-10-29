@@ -1,7 +1,7 @@
 import { clamp } from '../util.js'
 import { Vector2 } from 'three'
 
-export function makeRenderSize(gl) {
+function makeRenderSize(gl) {
   const desiredMsPerFrame = 20
 
   let fullWidth
@@ -65,3 +65,5 @@ function pixelsPerFrameEstimate(gl) {
     return 400000
   }
 }
+
+export { makeRenderSize }

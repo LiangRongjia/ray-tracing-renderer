@@ -10,7 +10,7 @@ const toneMapFunctions = {
   [THREE.ACESFilmicToneMapping]: 'acesFilmic'
 }
 
-export function makeToneMapPass(gl, params) {
+function makeToneMapPass(gl, params) {
   const {
     fullscreenQuad,
     toneMappingParams
@@ -57,3 +57,5 @@ export function makeToneMapPass(gl, params) {
     draw
   }
 }
+
+export { makeToneMapPass }

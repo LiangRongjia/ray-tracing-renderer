@@ -2,7 +2,7 @@ import { getUniforms } from './glUtil.js'
 
 let typeMap
 
-export function makeUniformSetter(gl, program) {
+function makeUniformSetter(gl, program) {
   const uniformInfo = getUniforms(gl, program)
   const uniforms = {}
   const needsUpload = []
@@ -105,3 +105,5 @@ function glNameMatrix(rows, columns) {
       `uniformMatrix${rows}x${columns}fv`
   }
 }
+
+export { makeUniformSetter }

@@ -1,6 +1,6 @@
 import { BufferGeometry, BufferAttribute } from 'three'
 
-export function mergeMeshesToGeometry(meshes) {
+function mergeMeshesToGeometry(meshes) {
 
   let vertexCount = 0
   let indexCount = 0
@@ -131,3 +131,5 @@ function addFlatGeometryIndices(geometry) {
 
   return geometry
 }
+
+export { mergeMeshesToGeometry }

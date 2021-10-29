@@ -1,4 +1,4 @@
-export function makeFramebuffer(gl, { color, depth }) {
+function makeFramebuffer(gl, { color, depth }) {
 
   const framebuffer = gl.createFramebuffer()
 
@@ -44,3 +44,5 @@ export function makeFramebuffer(gl, { color, depth }) {
     unbind
   }
 }
+
+export { makeFramebuffer }

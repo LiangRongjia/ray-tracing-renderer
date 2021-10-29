@@ -7,14 +7,14 @@ import { partition, nthElement } from './bvhUtil.js'
 
 const size = new Vector3()
 
-export function bvhAccel(geometry) {
+function bvhAccel(geometry) {
   const primitiveInfo = makePrimitiveInfo(geometry)
   const node = recursiveBuild(primitiveInfo, 0, primitiveInfo.length)
 
   return node
 }
 
-export function flattenBvh(bvh) {
+function flattenBvh(bvh) {
   const flat = []
   const isBounds = []
 
@@ -268,4 +268,9 @@ function boxOffset(box3, dim, v) {
 function surfaceArea(box3) {
   box3.getSize(size)
   return 2 * (size.x * size.z + size.x * size.y + size.z * size.y)
+}
+
+export {
+  bvhAccel,
+  flattenBvh
 }

@@ -1,3 +1,9 @@
-export const ThinMaterial = 1
-export const ThickMaterial = 2
-export const ShadowCatcherMaterial = 3
+const ThinMaterial = 1
+const ThickMaterial = 2
+const ShadowCatcherMaterial = 3
+
+export {
+  ThinMaterial,
+  ThickMaterial,
+  ShadowCatcherMaterial
+}

@@ -1,6 +1,6 @@
 import { PerspectiveCamera } from 'three'
 
-export class LensCamera extends PerspectiveCamera {
+class LensCamera extends PerspectiveCamera {
   constructor(...args) {
     super(...args)
     this.aperture = 0.01
@@ -11,3 +11,5 @@ export class LensCamera extends PerspectiveCamera {
     this.aperture = source.aperture
   }
 }
+
+export { LensCamera }

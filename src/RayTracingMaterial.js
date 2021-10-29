@@ -1,6 +1,6 @@
 import { MeshStandardMaterial } from 'three'
 
-export class RayTracingMaterial extends MeshStandardMaterial {
+class RayTracingMaterial extends MeshStandardMaterial {
   constructor(...args) {
     super(...args)
     this.solid = false
@@ -13,3 +13,5 @@ export class RayTracingMaterial extends MeshStandardMaterial {
     this.shadowCatcher = source.shadowCatcher
   }
 }
+
+export { RayTracingMaterial }

@@ -1,7 +1,7 @@
 import { compileShader, createProgram, getAttributes } from './glUtil.js'
 import { makeUniformSetter } from './UniformSetter.js'
 
-export function makeRenderPass(gl, params) {
+function makeRenderPass(gl, params) {
   const {
     fragment,
     vertex,
@@ -19,11 +19,11 @@ export function makeRenderPass(gl, params) {
   }
 }
 
-export function makeVertexShader(gl, { defines, vertex }) {
+function makeVertexShader(gl, { defines, vertex }) {
   return makeShaderStage(gl, gl.VERTEX_SHADER, vertex, defines)
 }
 
-export function makeFragmentShader(gl, { defines, fragment }) {
+function makeFragmentShader(gl, { defines, fragment }) {
   return makeShaderStage(gl, gl.FRAGMENT_SHADER, fragment, defines)
 }
 
@@ -156,4 +156,10 @@ function getOutputLocations(outputs) {
   }
 
   return locations
+}
+
+export {
+  makeRenderPass,
+  makeVertexShader,
+  makeFragmentShader
 }

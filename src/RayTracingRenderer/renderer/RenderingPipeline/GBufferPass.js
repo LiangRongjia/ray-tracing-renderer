@@ -3,7 +3,7 @@ import vertex from './glsl/gBuffer.vert.js'
 import fragment from './glsl/gBuffer.frag.js'
 import { Matrix4 } from 'three'
 
-export function makeGBufferPass(gl, { materialBuffer, mergedMesh }) {
+function makeGBufferPass(gl, { materialBuffer, mergedMesh }) {
   const renderPass = makeRenderPass(gl, {
     defines: materialBuffer.defines,
     vertex,
@@ -94,3 +94,5 @@ function setAttribute(gl, location, bufferAttribute) {
     throw 'Unsupported buffer type'
   }
 }
+
+export { makeGBufferPass }

@@ -14,7 +14,7 @@ import { makeDepthTarget, makeTexture } from './Texture.js'
 import noiseBase64 from './texture/noise.js'
 import { PerspectiveCamera, Vector2 } from 'three'
 
-export function makeRenderingPipeline({
+function makeRenderingPipeline({
   gl,
   optionalExtensions,
   scene,
@@ -432,3 +432,5 @@ export function makeRenderingPipeline({
     }
   }
 }
+
+export { makeRenderingPipeline }

@@ -1,5 +1,5 @@
 // retrieve textures used by meshes, grouping textures from meshes shared by *the same* mesh property
-export function getTexturesFromMaterials(meshes, textureNames) {
+function getTexturesFromMaterials(meshes, textureNames) {
   const textureMap = {}
 
   for (const name of textureNames) {
@@ -14,7 +14,7 @@ export function getTexturesFromMaterials(meshes, textureNames) {
 }
 
 // retrieve textures used by meshes, grouping textures from meshes shared *across all* mesh properties
-export function mergeTexturesFromMaterials(meshes, textureNames) {
+function mergeTexturesFromMaterials(meshes, textureNames) {
   const textureMap = {
     textures: [],
     indices: {}
@@ -53,4 +53,9 @@ function texturesFromMaterials(materials, textureName, textures) {
   }
 
   return indices
+}
+
+export {
+  getTexturesFromMaterials,
+  mergeTexturesFromMaterials
 }

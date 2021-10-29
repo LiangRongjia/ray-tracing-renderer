@@ -1,7 +1,7 @@
 // Convert image data from the RGBE format to a 32-bit floating point format
 // See https://www.cg.tuwien.ac.at/research/theses/matkovic/node84.html for a description of the RGBE format
 // Optional multiplier argument for performance optimization
-export function rgbeToFloat(buffer, intensity = 1) {
+function rgbeToFloat(buffer, intensity = 1) {
   const texels = buffer.length / 4
   const floatBuffer = new Float32Array(texels * 3)
 
@@ -25,3 +25,5 @@ export function rgbeToFloat(buffer, intensity = 1) {
 
   return floatBuffer
 }
+
+export { rgbeToFloat }

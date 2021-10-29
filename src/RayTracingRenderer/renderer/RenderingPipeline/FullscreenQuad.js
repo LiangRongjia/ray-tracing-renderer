@@ -1,7 +1,7 @@
 import vertex from './glsl/fullscreenQuad.vert.js'
 import { makeVertexShader } from '../RenderPass.js'
 
-export function makeFullscreenQuad(gl) {
+function makeFullscreenQuad(gl) {
   const vao = gl.createVertexArray()
 
   gl.bindVertexArray(vao)
@@ -29,3 +29,5 @@ export function makeFullscreenQuad(gl) {
     vertexShader
   }
 }
+
+export { makeFullscreenQuad }

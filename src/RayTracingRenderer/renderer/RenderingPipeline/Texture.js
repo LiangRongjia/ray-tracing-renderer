@@ -1,6 +1,6 @@
 import { clamp } from '../util.js'
 
-export function makeTexture(gl, params) {
+function makeTexture(gl, params) {
   let {
     width = null,
     height = null,
@@ -98,7 +98,7 @@ export function makeTexture(gl, params) {
   }
 }
 
-export function makeDepthTarget(gl, width, height) {
+function makeDepthTarget(gl, width, height) {
   const texture = gl.createRenderbuffer()
   const target = gl.RENDERBUFFER
 
@@ -179,4 +179,9 @@ function getTextureFormat(gl, channels, storage, data, gammaCorrection) {
     internalFormat,
     type
   }
+}
+
+export {
+  makeTexture,
+  makeDepthTarget
 }

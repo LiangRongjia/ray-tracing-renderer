@@ -11,7 +11,7 @@ const glOptionalExtensions = [
   'OES_texture_float_linear', // enables gl.LINEAR texture filtering for float textures,
 ]
 
-export function RayTracingRenderer(params = {}) {
+function RayTracingRenderer(params = {}) {
   const canvas = params.canvas || document.createElement('canvas')
 
   const gl = canvas.getContext('webgl2', {
@@ -194,3 +194,5 @@ RayTracingRenderer.isSupported = () => {
 
   return true
 }
+
+export { RayTracingRenderer }

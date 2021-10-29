@@ -20,7 +20,7 @@ To obtain the stratified sample between [0, 1), divide the returned sample by th
 
 import { shuffle } from "./util.js"
 
-export function makeStratifiedSampler(strataCount, dimensions) {
+function makeStratifiedSampler(strataCount, dimensions) {
   const strata = []
   const l = strataCount ** dimensions
   for (let i = 0; i < l; i++) {
@@ -56,3 +56,5 @@ export function makeStratifiedSampler(strataCount, dimensions) {
     strataCount
   }
 }
+
+export { makeStratifiedSampler }

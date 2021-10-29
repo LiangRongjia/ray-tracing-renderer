@@ -2,7 +2,7 @@ import fragment from './glsl/reproject.frag.js'
 import { makeRenderPass } from '../RenderPass.js'
 import * as THREE from 'three'
 
-export function makeReprojectPass(gl, params) {
+function makeReprojectPass(gl, params) {
   const {
     fullscreenQuad,
     maxReprojectedSamples,
@@ -58,3 +58,5 @@ export function makeReprojectPass(gl, params) {
     setPreviousCamera,
   }
 }
+
+export { makeReprojectPass }

@@ -12,7 +12,7 @@ const DEFAULT_MAP_RESOLUTION = {
 
 // Tools for generating and modify env maps for lighting from scene component data
 
-export function generateBackgroundMapFromSceneBackground(background) {
+function generateBackgroundMapFromSceneBackground(background) {
   let backgroundImage
 
   if (background.isColor) {
@@ -28,7 +28,7 @@ export function generateBackgroundMapFromSceneBackground(background) {
   return backgroundImage
 }
 
-export function generateEnvMapFromSceneComponents(directionalLights, ambientLights, environmentLights) {
+function generateEnvMapFromSceneComponents(directionalLights, ambientLights, environmentLights) {
   let envImage = initializeEnvMap(environmentLights)
   ambientLights.forEach(light => { addAmbientLightToEnvMap(light, envImage) })
   directionalLights.forEach(light => { envImage.data = addDirectionalLightToEnvMap(light, envImage) })
@@ -36,7 +36,7 @@ export function generateEnvMapFromSceneComponents(directionalLights, ambientLigh
   return envImage
 }
 
-export function initializeEnvMap(environmentLights) {
+function initializeEnvMap(environmentLights) {
   let envImage
 
   // Initialize map from environment light if present
@@ -57,7 +57,7 @@ export function initializeEnvMap(environmentLights) {
   return envImage
 }
 
-export function generateSolidMap(width, height, color, intensity) {
+function generateSolidMap(width, height, color, intensity) {
   const texels = width * height
   const floatBuffer = new Float32Array(texels * 3)
   if (color && color.isColor) {
@@ -86,7 +86,7 @@ function setBufferToColor(buffer, color, intensity = 1) {
   return buffer
 }
 
-export function addAmbientLightToEnvMap(light, image) {
+function addAmbientLightToEnvMap(light, image) {
   const color = light.color
   image.data.forEach(function (part, index) {
     const component = index % 3
@@ -102,7 +102,7 @@ export function addAmbientLightToEnvMap(light, image) {
   })
 }
 
-export function addDirectionalLightToEnvMap(light, image) {
+function addDirectionalLightToEnvMap(light, image) {
   const sphericalCoords = new THREE.Spherical()
   const lightDirection = light.position.clone().sub(light.target.position)
 
@@ -199,7 +199,7 @@ function getIntensityFromAngleDifferential(originCoords, currentCoords, softness
   return getFalloffAtAngle(angle, softness)
 }
 
-export function getAngleDelta(angleA, angleB) {
+function getAngleDelta(angleA, angleB) {
   const diff = Math.abs(angleA - angleB) % (2 * Math.PI)
   return diff > Math.PI ? (2 * Math.PI - diff) : diff
 }
@@ -229,8 +229,19 @@ function getFalloffAtAngle(angle, softness) {
   return falloff
 }
 
-export function equirectangularToSpherical(x, y, width, height, target) {
+function equirectangularToSpherical(x, y, width, height, target) {
   target.phi = (Math.PI * y) / height
   target.theta = (2.0 * Math.PI * x) / width
   return target
+}
+
+export {
+  generateBackgroundMapFromSceneBackground,
+  generateEnvMapFromSceneComponents,
+  initializeEnvMap,
+  generateSolidMap,
+  addAmbientLightToEnvMap,
+  addDirectionalLightToEnvMap,
+  getAngleDelta,
+  equirectangularToSpherical
 }

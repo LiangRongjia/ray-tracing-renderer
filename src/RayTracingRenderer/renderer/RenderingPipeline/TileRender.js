@@ -11,7 +11,7 @@ import { clamp } from '../util.js'
 // Since the render time of a tile is dependent on the device, we find the desired tile dimensions by measuring
 // the time it takes to render an arbitrarily-set tile size and adjusting the size according to the benchmark.
 
-export function makeTileRender(gl) {
+function makeTileRender(gl) {
   const desiredMsPerTile = 21
 
   let currentTile = -1
@@ -117,3 +117,5 @@ function pixelsPerTileEstimate(gl) {
     return 600000
   }
 }
+
+export { makeTileRender }

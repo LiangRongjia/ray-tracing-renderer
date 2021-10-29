@@ -1,4 +1,4 @@
-export function unrollLoop(indexName, start, limit, step, code) {
+function unrollLoop(indexName, start, limit, step, code) {
   let unrolled = `int ${indexName};\n`
 
   for (let i = start; (step > 0 && i < limit) || (step < 0 && i > limit); i += step) {
@@ -8,3 +8,5 @@ export function unrollLoop(indexName, start, limit, step, code) {
 
   return unrolled
 }
+
+export { unrollLoop }
