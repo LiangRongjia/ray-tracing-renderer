@@ -10,7 +10,6 @@
     "sourceType": "module"
   },
   "rules": {
-    "no-console": "warn",
     "no-extra-semi": "warn",
     "no-constant-condition": "off"
   }
