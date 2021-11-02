@@ -3,6 +3,17 @@ import { loadExtensions } from './glUtil.js'
 import { makeRenderingPipeline } from './RenderingPipeline/index.js'
 import * as THREE from 'three'
 
+/**
+ * @typedef {{
+ *  draw: (camera: any) => void;
+ *  drawFull: (camera: any) => void;
+ *  setSize: (w: any, h: any) => void;
+ *  time: (newTime: any) => void;
+ *  getTotalSamplesRendered(): number;
+ *  onSampleRendered: () => void;
+ *}} Pipeline
+ */
+
 const glRequiredExtensions = [
   'EXT_color_buffer_float', // enables rendering to float buffers
   'EXT_float_blend',
@@ -11,6 +22,27 @@ const glRequiredExtensions = [
 const glOptionalExtensions = [
   'OES_texture_float_linear', // enables gl.LINEAR texture filtering for float textures,
 ]
+
+/**
+ * 创建一个变量，获取其 `getter` 和 `setter`
+ * @template T
+ * @param { T } initValue 初始值
+ * @returns { [ () => T, (value: T) => void ] } 元组 `[ getter, setter ]`
+ */
+const createVar = (initValue) => {
+  const ref = {
+    value: initValue
+  }
+
+  const getter = () => ref.value
+
+  /**  @param { T } value  */
+  const setter = (value) => {
+    ref.value = value
+  }
+
+  return [getter, setter]
+}
 
 function RayTracingRenderer(params = {}) {
   const canvas = params.canvas || document.createElement('canvas')
@@ -27,16 +59,18 @@ function RayTracingRenderer(params = {}) {
   loadExtensions(gl, glRequiredExtensions)
   const optionalExtensions = loadExtensions(gl, glOptionalExtensions)
 
-  let pipeline = null
   const size = new THREE.Vector2()
-  let pixelRatio = 1
 
-  let isValidTime = 1
-  let currentTime = NaN
-  let syncWarning = false
+  /**@type { [ () => Pipeline | undefined, (value: Pipeline | null) => void ] } */
+  const [pipeline, setPipeline] = createVar(null)
+
+  const [getPixelRatio, setPixelRatio] = createVar(1)
+  const [isValidTime, setIsValidTime] = createVar(1)
+  const [currentTime, setCurrentTime] = createVar(NaN)
+  const [syncWarning, setSyncWarning] = createVar(false)
 
   const restartTimer = () => {
-    isValidTime = NaN
+    setIsValidTime(NaN)
   }
 
   let lastFocus = false
@@ -51,20 +85,29 @@ function RayTracingRenderer(params = {}) {
     toneMapping: THREE.LinearToneMapping,
     toneMappingExposure: 1,
     toneMappingWhitePoint: 1,
+    /**
+     * 设置 canvas 元素外观大小，自动根据渲染缩放比同步渲染分辨率
+     * @param { number } width 
+     * @param { number } height 
+     * @param { boolean } updateStyle 是否更新外观大小
+     */
     setSize: (width, height, updateStyle = true) => {
       size.set(width, height)
-      canvas.width = size.width * pixelRatio
-      canvas.height = size.height * pixelRatio
+      canvas.width = size.width * getPixelRatio()
+      canvas.height = size.height * getPixelRatio()
 
       if (updateStyle) {
         canvas.style.width = `${size.width}px`
         canvas.style.height = `${size.height}px`
       }
 
-      if (pipeline) {
-        pipeline.setSize(size.width * pixelRatio, size.height * pixelRatio)
+      if (pipeline()) {
+        pipeline().setSize(size.width * getPixelRatio(), size.height * getPixelRatio())
       }
     },
+    /**
+     * @param { THREE.Vector2 } target 
+     */
     getSize: (target) => {
       if (!target) {
         target = new THREE.Vector2()
@@ -72,24 +115,39 @@ function RayTracingRenderer(params = {}) {
 
       return target.copy(size)
     },
+    /**
+     * 设置渲染缩放比
+     * @param { number } x 
+     */
     setPixelRatio: (x) => {
       if (!x) {
         return
       }
-      pixelRatio = x
+      setPixelRatio(x)
       module.setSize(size.width, size.height, false)
     },
-    getPixelRatio: () => pixelRatio,
+    /**
+     * 获取渲染缩放比
+     */
+    getPixelRatio: () => getPixelRatio(),
     getTotalSamplesRendered: () => {
-      if (pipeline) {
-        return pipeline.getTotalSamplesRendered()
+      if (pipeline()) {
+        return pipeline().getTotalSamplesRendered()
       }
     },
+    /**
+     * @param { number } t 
+     */
     sync: (t) => {
       // the first call to the callback of requestAnimationFrame does not have a time parameter
       // use performance.now() in this case
-      currentTime = t || performance.now()
+      setCurrentTime(t || performance.now())
     },
+    /**
+     * 渲染
+     * @param { THREE.Scene } scene 
+     * @param { THREE.Camera } camera 
+     */
     render: (scene, camera) => {
       if (!module.renderWhenOffFocus) {
         const hasFocus = document.hasFocus()
@@ -106,33 +164,33 @@ function RayTracingRenderer(params = {}) {
         initScene(scene)
       }
 
-      if (isNaN(currentTime)) {
-        if (!syncWarning) {
+      if (isNaN(currentTime())) {
+        if (!syncWarning()) {
           console.warn('Ray Tracing Renderer warning: For improved performance, please call renderer.sync(time) before render.render(scene, camera), with the time parameter equalling the parameter passed to the callback of requestAnimationFrame')
-          syncWarning = true
+          setSyncWarning(true)
         }
 
-        currentTime = performance.now() // less accurate than requestAnimationFrame's time parameter
+        setCurrentTime(performance.now()) // less accurate than requestAnimationFrame's time parameter
       }
 
-      pipeline.time(isValidTime * currentTime)
+      pipeline().time(isValidTime() * currentTime())
 
-      isValidTime = 1
-      currentTime = NaN
+      setIsValidTime(1)
+      setCurrentTime(NaN)
 
       camera.updateMatrixWorld()
 
       if (module.maxHardwareUsage) {
         // render new sample for the entire screen
-        pipeline.drawFull(camera)
+        pipeline().drawFull(camera)
       } else {
         // render new sample for a tiled subset of the screen
-        pipeline.draw(camera)
+        pipeline().draw(camera)
       }
     },
     dispose: () => {
       document.removeEventListener('visibilitychange', restartTimer)
-      pipeline = null
+      setPipeline(null)
     }
   }
 
@@ -147,9 +205,9 @@ function RayTracingRenderer(params = {}) {
 
     const bounces = module.bounces
 
-    pipeline = makeRenderingPipeline({ gl, optionalExtensions, scene, toneMappingParams, bounces })
+    setPipeline(makeRenderingPipeline({ gl, optionalExtensions, scene, toneMappingParams, bounces }))
 
-    pipeline.onSampleRendered = (...args) => {
+    pipeline().onSampleRendered = (...args) => {
       if (module.onSampleRendered) {
         module.onSampleRendered(...args)
       }
