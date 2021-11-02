@@ -1,3 +1,4 @@
+// @ts-check
 export default `
 
 #ifdef USE_GLASS

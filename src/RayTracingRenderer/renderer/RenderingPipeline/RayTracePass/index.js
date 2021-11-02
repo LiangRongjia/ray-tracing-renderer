@@ -1,3 +1,4 @@
+// @ts-check
 import { bvhAccel, flattenBvh } from './bvhAccel.js'
 import { generateEnvMapFromSceneComponents, generateBackgroundMapFromSceneBackground } from '../../envMapCreation.js'
 import { envMapDistribution } from '../../envMapDistribution.js'
@@ -124,10 +125,10 @@ function makeRenderPassFromScene({
 
   const { background, directionalLights, ambientLights, environmentLights } = decomposedScene
 
-  const { geometry, materials, materialIndices } = mergedMesh
+  const { geometry, materials } = mergedMesh
 
   // create bounding volume hierarchy from a static scene
-  const bvh = bvhAccel(geometry, materialIndices)
+  const bvh = bvhAccel(geometry)
   const flattenedBvh = flattenBvh(bvh)
   const numTris = geometry.index.count / 3
 

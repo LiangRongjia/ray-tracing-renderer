@@ -1,3 +1,4 @@
+// @ts-check
 import { getUniforms } from './glUtil.js'
 
 let typeMap

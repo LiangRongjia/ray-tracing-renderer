@@ -1,3 +1,4 @@
+// @ts-check
 import constants from './chunks/constants.glsl.js'
 import materialBuffer from './chunks/materialBuffer.glsl.js'
 

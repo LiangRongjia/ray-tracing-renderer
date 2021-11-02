@@ -1,3 +1,4 @@
+// @ts-check
 function makeFramebuffer(gl, { color, depth }) {
 
   const framebuffer = gl.createFramebuffer()
@@ -15,8 +16,8 @@ function makeFramebuffer(gl, { color, depth }) {
 
     const drawBuffers = []
 
-    for (let location in color) {
-      location = Number(location)
+    for (const locationStr in color) {
+      const location = Number(locationStr)
 
       if (location === undefined) {
         console.error('invalid location')

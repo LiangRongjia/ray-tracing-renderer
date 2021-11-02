@@ -1,3 +1,4 @@
+// @ts-check
 import fragment from './glsl/toneMap.frag.js'
 import { makeRenderPass } from '../RenderPass.js'
 import * as THREE from 'three'
@@ -7,6 +8,7 @@ const toneMapFunctions = {
   [THREE.ReinhardToneMapping]: 'reinhard',
   [THREE.Uncharted2ToneMapping]: 'uncharted2',
   [THREE.CineonToneMapping]: 'cineon',
+  // @ts-ignore
   [THREE.ACESFilmicToneMapping]: 'acesFilmic'
 }
 

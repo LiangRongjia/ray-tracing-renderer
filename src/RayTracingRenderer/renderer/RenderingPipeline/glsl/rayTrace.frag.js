@@ -1,3 +1,4 @@
+// @ts-check
 import { unrollLoop } from './glslUtil.js'
 import constants from './chunks/constants.glsl.js'
 import rayTraceCore from './chunks/rayTraceCore.glsl.js'

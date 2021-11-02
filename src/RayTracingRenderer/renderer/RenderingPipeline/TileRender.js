@@ -1,3 +1,4 @@
+// @ts-check
 import { clamp } from '../util.js'
 
 // TileRender is based on the concept of a compute shader's work group.

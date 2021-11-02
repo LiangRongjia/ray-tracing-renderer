@@ -1,3 +1,4 @@
+// @ts-check
 export default `
 
 // Noise texture used to generate a different random number for each pixel.

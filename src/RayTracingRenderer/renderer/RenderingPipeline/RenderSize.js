@@ -1,3 +1,4 @@
+// @ts-check
 import { clamp } from '../util.js'
 import { Vector2 } from 'three'
 

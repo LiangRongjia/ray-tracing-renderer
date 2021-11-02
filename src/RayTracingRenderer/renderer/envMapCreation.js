@@ -1,3 +1,4 @@
+// @ts-check
 // Convert image data from the RGBE format to a 32-bit floating point format
 // See https://www.cg.tuwien.ac.at/research/theses/matkovic/node84.html for a description of the RGBE format
 

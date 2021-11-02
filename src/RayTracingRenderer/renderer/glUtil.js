@@ -1,3 +1,4 @@
+// @ts-check
 function loadExtensions(gl, extensions) {
   const supported = {}
   for (const name of extensions) {

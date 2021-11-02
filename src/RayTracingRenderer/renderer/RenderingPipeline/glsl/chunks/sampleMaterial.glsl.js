@@ -1,3 +1,4 @@
+// @ts-check
 // Estimate the direct lighting integral using multiple importance sampling
 // http://www.pbr-book.org/3ed-2018/Light_Transport_I_Surface_Reflection/Direct_Lighting.html#EstimatingtheDirectLightingIntegral
 

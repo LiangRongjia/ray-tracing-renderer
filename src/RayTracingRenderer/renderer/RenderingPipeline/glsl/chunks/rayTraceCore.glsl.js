@@ -1,3 +1,4 @@
+// @ts-check
 export default `
   #define STANDARD 0
   #define THIN_GLASS 1

@@ -1,3 +1,4 @@
+// @ts-check
 import { compileShader, createProgram, getAttributes } from './glUtil.js'
 import { makeUniformSetter } from './UniformSetter.js'
 

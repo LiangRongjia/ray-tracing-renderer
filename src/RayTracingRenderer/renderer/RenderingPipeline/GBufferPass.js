@@ -1,3 +1,4 @@
+// @ts-check
 import { makeRenderPass } from '../RenderPass.js'
 import vertex from './glsl/gBuffer.vert.js'
 import fragment from './glsl/gBuffer.frag.js'

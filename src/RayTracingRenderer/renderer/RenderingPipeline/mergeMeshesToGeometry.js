@@ -1,3 +1,4 @@
+// @ts-check
 import { BufferGeometry, BufferAttribute } from 'three'
 
 function mergeMeshesToGeometry(meshes) {

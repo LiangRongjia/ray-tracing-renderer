@@ -1,3 +1,4 @@
+// @ts-check
 import vertex from './glsl/fullscreenQuad.vert.js'
 import { makeVertexShader } from '../RenderPass.js'
 
@@ -17,7 +18,7 @@ function makeFullscreenQuad(gl) {
 
   gl.bindVertexArray(null)
 
-  const vertexShader = makeVertexShader(gl, { vertex })
+  const vertexShader = makeVertexShader(gl, { vertex, defines: undefined })
 
   function draw() {
     gl.bindVertexArray(vao)

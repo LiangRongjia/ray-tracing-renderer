@@ -1,3 +1,4 @@
+// @ts-check
 export default `
 
 // Computes the exact value of the Fresnel factor

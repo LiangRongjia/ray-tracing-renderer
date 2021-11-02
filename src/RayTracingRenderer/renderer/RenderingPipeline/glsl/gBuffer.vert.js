@@ -1,3 +1,4 @@
+// @ts-check
 export default {
   source: `
   in vec3 aPosition;

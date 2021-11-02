@@ -1,3 +1,4 @@
+// @ts-check
 // Manually performs linear filtering if the extension OES_texture_float_linear is not supported
 
 export default `

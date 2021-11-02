@@ -1,3 +1,4 @@
+// @ts-check
 import { PerspectiveCamera } from 'three'
 
 class LensCamera extends PerspectiveCamera {
@@ -9,6 +10,7 @@ class LensCamera extends PerspectiveCamera {
   copy(source, recursive) {
     super.copy(source, recursive)
     this.aperture = source.aperture
+    return this
   }
 }
 

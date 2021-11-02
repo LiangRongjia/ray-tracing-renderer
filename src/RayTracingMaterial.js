@@ -1,3 +1,4 @@
+// @ts-check
 import { MeshStandardMaterial } from 'three'
 
 class RayTracingMaterial extends MeshStandardMaterial {
@@ -11,6 +12,7 @@ class RayTracingMaterial extends MeshStandardMaterial {
     super.copy(source)
     this.solid = source.solid
     this.shadowCatcher = source.shadowCatcher
+    return this
   }
 }
 

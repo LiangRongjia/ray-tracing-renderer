@@ -1,3 +1,4 @@
+// @ts-check
 export default {
   source: `
   layout(location = 0) in vec2 a_position;

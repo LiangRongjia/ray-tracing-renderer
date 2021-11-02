@@ -1,3 +1,4 @@
+// @ts-check
 import * as constants from './constants.js'
 import { LensCamera } from './LensCamera.js'
 import { SoftDirectionalLight } from './SoftDirectionalLight.js'

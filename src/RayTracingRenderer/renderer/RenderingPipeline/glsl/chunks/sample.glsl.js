@@ -1,3 +1,4 @@
+// @ts-check
 export default `
 
 // https://graphics.pixar.com/library/OrthonormalB/paper.pdf

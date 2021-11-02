@@ -1,3 +1,4 @@
+// @ts-check
 // Extends from concepts found in sampleMaterial.glsl
 // Combines multiple importance sampling with
 // Walter Et al. (2007) - Microfacet Models for Refraction through Rough Surfaces

@@ -433,4 +433,5 @@ function makeRenderingPipeline({
   }
 }
 
+// @ts-check
 export { makeRenderingPipeline }

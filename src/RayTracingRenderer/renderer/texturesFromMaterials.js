@@ -1,3 +1,4 @@
+// @ts-check
 // retrieve textures used by meshes, grouping textures from meshes shared by *the same* mesh property
 function getTexturesFromMaterials(meshes, textureNames) {
   const textureMap = {}
