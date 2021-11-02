@@ -31,6 +31,16 @@ function RayTracingRenderer(params = {}) {
   const size = new THREE.Vector2()
   let pixelRatio = 1
 
+  let isValidTime = 1
+  let currentTime = NaN
+  let syncWarning = false
+
+  const restartTimer = () => {
+    isValidTime = NaN
+  }
+
+  let lastFocus = false
+
   const module = {
     bounces: 2,
     domElement: canvas,
@@ -41,6 +51,89 @@ function RayTracingRenderer(params = {}) {
     toneMapping: THREE.LinearToneMapping,
     toneMappingExposure: 1,
     toneMappingWhitePoint: 1,
+    setSize: (width, height, updateStyle = true) => {
+      size.set(width, height)
+      canvas.width = size.width * pixelRatio
+      canvas.height = size.height * pixelRatio
+
+      if (updateStyle) {
+        canvas.style.width = `${size.width}px`
+        canvas.style.height = `${size.height}px`
+      }
+
+      if (pipeline) {
+        pipeline.setSize(size.width * pixelRatio, size.height * pixelRatio)
+      }
+    },
+    getSize: (target) => {
+      if (!target) {
+        target = new THREE.Vector2()
+      }
+
+      return target.copy(size)
+    },
+    setPixelRatio: (x) => {
+      if (!x) {
+        return
+      }
+      pixelRatio = x
+      module.setSize(size.width, size.height, false)
+    },
+    getPixelRatio: () => pixelRatio,
+    getTotalSamplesRendered: () => {
+      if (pipeline) {
+        return pipeline.getTotalSamplesRendered()
+      }
+    },
+    sync: (t) => {
+      // the first call to the callback of requestAnimationFrame does not have a time parameter
+      // use performance.now() in this case
+      currentTime = t || performance.now()
+    },
+    render: (scene, camera) => {
+      if (!module.renderWhenOffFocus) {
+        const hasFocus = document.hasFocus()
+        if (!hasFocus) {
+          lastFocus = hasFocus
+          return
+        } else if (hasFocus && !lastFocus) {
+          lastFocus = hasFocus
+          restartTimer()
+        }
+      }
+
+      if (module.needsUpdate) {
+        initScene(scene)
+      }
+
+      if (isNaN(currentTime)) {
+        if (!syncWarning) {
+          console.warn('Ray Tracing Renderer warning: For improved performance, please call renderer.sync(time) before render.render(scene, camera), with the time parameter equalling the parameter passed to the callback of requestAnimationFrame')
+          syncWarning = true
+        }
+
+        currentTime = performance.now() // less accurate than requestAnimationFrame's time parameter
+      }
+
+      pipeline.time(isValidTime * currentTime)
+
+      isValidTime = 1
+      currentTime = NaN
+
+      camera.updateMatrixWorld()
+
+      if (module.maxHardwareUsage) {
+        // render new sample for the entire screen
+        pipeline.drawFull(camera)
+      } else {
+        // render new sample for a tiled subset of the screen
+        pipeline.draw(camera)
+      }
+    },
+    dispose: () => {
+      document.removeEventListener('visibilitychange', restartTimer)
+      pipeline = null
+    }
   }
 
   function initScene(scene) {
@@ -66,112 +159,11 @@ function RayTracingRenderer(params = {}) {
     module.needsUpdate = false
   }
 
-  module.setSize = (width, height, updateStyle = true) => {
-    size.set(width, height)
-    canvas.width = size.width * pixelRatio
-    canvas.height = size.height * pixelRatio
-
-    if (updateStyle) {
-      canvas.style.width = `${size.width}px`
-      canvas.style.height = `${size.height}px`
-    }
-
-    if (pipeline) {
-      pipeline.setSize(size.width * pixelRatio, size.height * pixelRatio)
-    }
-  }
-
-  module.getSize = (target) => {
-    if (!target) {
-      target = new THREE.Vector2()
-    }
-
-    return target.copy(size)
-  }
-
-  module.setPixelRatio = (x) => {
-    if (!x) {
-      return
-    }
-    pixelRatio = x
-    module.setSize(size.width, size.height, false)
-  }
-
-  module.getPixelRatio = () => pixelRatio
-
-  module.getTotalSamplesRendered = () => {
-    if (pipeline) {
-      return pipeline.getTotalSamplesRendered()
-    }
-  }
-
-  let isValidTime = 1
-  let currentTime = NaN
-  let syncWarning = false
-
-  function restartTimer() {
-    isValidTime = NaN
-  }
-
-  module.sync = (t) => {
-    // the first call to the callback of requestAnimationFrame does not have a time parameter
-    // use performance.now() in this case
-    currentTime = t || performance.now()
-  }
-
-  let lastFocus = false
-
-  module.render = (scene, camera) => {
-    if (!module.renderWhenOffFocus) {
-      const hasFocus = document.hasFocus()
-      if (!hasFocus) {
-        lastFocus = hasFocus
-        return
-      } else if (hasFocus && !lastFocus) {
-        lastFocus = hasFocus
-        restartTimer()
-      }
-    }
-
-    if (module.needsUpdate) {
-      initScene(scene)
-    }
-
-    if (isNaN(currentTime)) {
-      if (!syncWarning) {
-        console.warn('Ray Tracing Renderer warning: For improved performance, please call renderer.sync(time) before render.render(scene, camera), with the time parameter equalling the parameter passed to the callback of requestAnimationFrame')
-        syncWarning = true
-      }
-
-      currentTime = performance.now() // less accurate than requestAnimationFrame's time parameter
-    }
-
-    pipeline.time(isValidTime * currentTime)
-
-    isValidTime = 1
-    currentTime = NaN
-
-    camera.updateMatrixWorld()
-
-    if (module.maxHardwareUsage) {
-      // render new sample for the entire screen
-      pipeline.drawFull(camera)
-    } else {
-      // render new sample for a tiled subset of the screen
-      pipeline.draw(camera)
-    }
-  }
-
   // Assume module.render is called using requestAnimationFrame.
   // This means that when the user is on a different browser tab, module.render won't be called.
   // Since the timer should not measure time when module.render is inactive,
   // the timer should be reset when the user switches browser tabs
   document.addEventListener('visibilitychange', restartTimer)
-
-  module.dispose = () => {
-    document.removeEventListener('visibilitychange', restartTimer)
-    pipeline = null
-  }
 
   return module
 }
