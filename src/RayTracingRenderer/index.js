@@ -1,6 +1,6 @@
 // @ts-check
-import { loadExtensions } from './renderer/glUtil.js'
-import { makeRenderingPipeline } from './renderer/RenderingPipeline/index.js'
+import { loadExtensions } from './glUtil.js'
+import { makeRenderingPipeline } from './RenderingPipeline/index.js'
 import * as THREE from 'three'
 
 const glRequiredExtensions = [
