@@ -416,7 +416,7 @@ function makeRenderingPipeline({
     toneMapToScreen(reprojectBuffer.color[0], fullscreenScale)
   }
 
-  return {
+  const renderingPipeline = {
     draw,
     drawFull,
     setSize,
@@ -431,6 +431,8 @@ function makeRenderingPipeline({
       return sampleRenderedCallback
     }
   }
+
+  return renderingPipeline
 }
 
 // @ts-check
