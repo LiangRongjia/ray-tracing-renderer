@@ -1,11 +1,4 @@
 // @ts-check
-function loadExtensions(gl, extensions) {
-  const supported = {}
-  for (const name of extensions) {
-    supported[name] = gl.getExtension(name)
-  }
-  return supported
-}
 
 function compileShader(gl, type, source) {
   const shader = gl.createShader(type)
@@ -78,7 +71,6 @@ function getAttributes(gl, program) {
 }
 
 export {
-  loadExtensions,
   compileShader,
   createProgram,
   getUniforms,

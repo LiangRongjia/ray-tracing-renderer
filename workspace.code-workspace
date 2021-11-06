@@ -1,0 +1,30 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+      "editor.defaultFormatter": "vscode.json-language-features"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "visualstudioexptteam.vscodeintellicode",
+      "eamodio.gitlens",
+      "editorconfig.editorconfig",
+      "ritwickdey.liveserver",
+      "esbenp.prettier-vscode"
+    ],
+    "unwantedRecommendations": [
+      "dbaeumer.vscode-eslint"
+    ]
+  }
+}
