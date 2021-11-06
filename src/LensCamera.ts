@@ -1,13 +1,13 @@
-// @ts-check
 import { PerspectiveCamera } from 'three'
 
 class LensCamera extends PerspectiveCamera {
-  constructor(...args) {
-    super(...args)
-    this.aperture = 0.01
+  aperture: number = 0.01
+
+  constructor(fov?: number, aspect?: number, near?: number, far?: number) {
+    super(fov, aspect, near, far)
   }
 
-  copy(source, recursive) {
+  copy(source: this, recursive: boolean) {
     super.copy(source, recursive)
     this.aperture = source.aperture
     return this

@@ -1,8 +1,7 @@
-// @ts-check
-import * as constants from './constants.js'
+import * as constants from './constants'
 import { LensCamera } from './LensCamera.js'
 import { SoftDirectionalLight } from './SoftDirectionalLight.js'
-import { EnvironmentLight } from './EnvironmentLight.js'
+import { EnvironmentLight } from './EnvironmentLight'
 import { RayTracingMaterial } from './RayTracingMaterial.js'
 import { RayTracingRenderer } from './RayTracingRenderer/index.js'
 

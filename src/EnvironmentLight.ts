@@ -1,14 +1,15 @@
-// @ts-check
 import { Light } from 'three'
 
 class EnvironmentLight extends Light {
-  constructor(map, ...args) {
-    super(...args)
+  map: any
+  isEnvironmentLight : boolean = true
+
+  constructor(map: any, hex?: string | number, intensity?: number) {
+    super(hex, intensity)
     this.map = map
-    this.isEnvironmentLight = true
   }
 
-  copy(source) {
+  copy(source: this) {
     super.copy(source)
     this.map = source.map
     return this

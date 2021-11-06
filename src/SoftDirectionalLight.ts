@@ -1,13 +1,14 @@
-// @ts-check
-import { DirectionalLight } from 'three'
+import { Color, DirectionalLight } from 'three'
 
 class SoftDirectionalLight extends DirectionalLight {
-  constructor(color, intensity, softness = 0) {
+  softness: number
+
+  constructor(color?: string | number | Color, intensity?: number, softness: number = 0) {
     super(color, intensity)
     this.softness = softness
   }
 
-  copy(source) {
+  copy(source: this) {
     super.copy(source)
     this.softness = source.softness
     return this

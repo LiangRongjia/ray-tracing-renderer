@@ -1,4 +1,3 @@
-// @ts-check
 const ThinMaterial = 1;
 const ThickMaterial = 2;
 const ShadowCatcherMaterial = 3;
@@ -48508,146 +48507,85 @@ ImageUtils.loadCompressedTextureCube = function () {
 
 };
 
-// @ts-check
-
 class LensCamera extends PerspectiveCamera {
-  constructor(...args) {
-    super(...args);
-    this.aperture = 0.01;
-  }
-
-  copy(source, recursive) {
-    super.copy(source, recursive);
-    this.aperture = source.aperture;
-    return this
-  }
+    constructor(fov, aspect, near, far) {
+        super(fov, aspect, near, far);
+        this.aperture = 0.01;
+    }
+    copy(source, recursive) {
+        super.copy(source, recursive);
+        this.aperture = source.aperture;
+        return this;
+    }
 }
-
-// @ts-check
 
 class SoftDirectionalLight extends DirectionalLight {
-  constructor(color, intensity, softness = 0) {
-    super(color, intensity);
-    this.softness = softness;
-  }
-
-  copy(source) {
-    super.copy(source);
-    this.softness = source.softness;
-    return this
-  }
+    constructor(color, intensity, softness = 0) {
+        super(color, intensity);
+        this.softness = softness;
+    }
+    copy(source) {
+        super.copy(source);
+        this.softness = source.softness;
+        return this;
+    }
 }
-
-// @ts-check
 
 class EnvironmentLight extends Light {
-  constructor(map, ...args) {
-    super(...args);
-    this.map = map;
-    this.isEnvironmentLight = true;
-  }
-
-  copy(source) {
-    super.copy(source);
-    this.map = source.map;
-    return this
-  }
+    constructor(map, hex, intensity) {
+        super(hex, intensity);
+        this.isEnvironmentLight = true;
+        this.map = map;
+    }
+    copy(source) {
+        super.copy(source);
+        this.map = source.map;
+        return this;
+    }
 }
-
-// @ts-check
 
 class RayTracingMaterial extends MeshStandardMaterial {
-  constructor(...args) {
-    super(...args);
-    this.solid = false;
-    this.shadowCatcher = false;
-  }
-
-  copy(source) {
-    super.copy(source);
-    this.solid = source.solid;
-    this.shadowCatcher = source.shadowCatcher;
-    return this
-  }
-}
-
-// @ts-check
-function loadExtensions(gl, extensions) {
-  const supported = {};
-  for (const name of extensions) {
-    supported[name] = gl.getExtension(name);
-  }
-  return supported
-}
-
-function compileShader(gl, type, source) {
-  const shader = gl.createShader(type);
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-
-  if (success) {
-    return shader
-  }
-
-  const output = source.split('\n').map((x, i) => `${i + 1}: ${x}`).join('\n');
-  console.log(output);
-
-  throw gl.getShaderInfoLog(shader)
-}
-
-function createProgram(gl, vertexShader, fragmentShader, transformVaryings, transformBufferMode) {
-  const program = gl.createProgram();
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-
-  if (transformVaryings) {
-    gl.transformFeedbackVaryings(program, transformVaryings, transformBufferMode);
-  }
-
-  gl.linkProgram(program);
-
-  gl.detachShader(program, vertexShader);
-  gl.detachShader(program, fragmentShader);
-
-  const success = gl.getProgramParameter(program, gl.LINK_STATUS);
-
-  if (success) {
-    return program
-  }
-
-  throw gl.getProgramInfoLog(program)
-}
-
-function getUniforms(gl, program) {
-  const uniforms = {};
-
-  const count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-  for (let i = 0; i < count; i++) {
-    const { name, type } = gl.getActiveUniform(program, i);
-    const location = gl.getUniformLocation(program, name);
-    if (location) {
-      uniforms[name] = {
-        type, location
-      };
+    constructor(parameters) {
+        super(parameters);
+        this.solid = false;
+        this.shadowCatcher = false;
     }
-  }
-
-  return uniforms
+    copy(source) {
+        super.copy(source);
+        this.solid = source.solid;
+        this.shadowCatcher = source.shadowCatcher;
+        return this;
+    }
 }
 
-function getAttributes(gl, program) {
-  const attributes = {};
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation.
 
-  const count = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
-  for (let i = 0; i < count; i++) {
-    const { name } = gl.getActiveAttrib(program, i);
-    if (name) {
-      attributes[name] = gl.getAttribLocation(program, name);
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+
+function __classPrivateFieldGet(receiver, privateMap) {
+    if (!privateMap.has(receiver)) {
+        throw new TypeError("attempted to get private field on non-instance");
     }
-  }
+    return privateMap.get(receiver);
+}
 
-  return attributes
+function __classPrivateFieldSet(receiver, privateMap, value) {
+    if (!privateMap.has(receiver)) {
+        throw new TypeError("attempted to set private field on non-instance");
+    }
+    privateMap.set(receiver, value);
+    return value;
 }
 
 // @ts-check
@@ -48762,6 +48700,78 @@ var vertex = {
   }
 `
 };
+
+// @ts-check
+
+function compileShader(gl, type, source) {
+  const shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+
+  if (success) {
+    return shader
+  }
+
+  const output = source.split('\n').map((x, i) => `${i + 1}: ${x}`).join('\n');
+  console.log(output);
+
+  throw gl.getShaderInfoLog(shader)
+}
+
+function createProgram(gl, vertexShader, fragmentShader, transformVaryings, transformBufferMode) {
+  const program = gl.createProgram();
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+
+  if (transformVaryings) {
+    gl.transformFeedbackVaryings(program, transformVaryings, transformBufferMode);
+  }
+
+  gl.linkProgram(program);
+
+  gl.detachShader(program, vertexShader);
+  gl.detachShader(program, fragmentShader);
+
+  const success = gl.getProgramParameter(program, gl.LINK_STATUS);
+
+  if (success) {
+    return program
+  }
+
+  throw gl.getProgramInfoLog(program)
+}
+
+function getUniforms(gl, program) {
+  const uniforms = {};
+
+  const count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+  for (let i = 0; i < count; i++) {
+    const { name, type } = gl.getActiveUniform(program, i);
+    const location = gl.getUniformLocation(program, name);
+    if (location) {
+      uniforms[name] = {
+        type, location
+      };
+    }
+  }
+
+  return uniforms
+}
+
+function getAttributes(gl, program) {
+  const attributes = {};
+
+  const count = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
+  for (let i = 0; i < count; i++) {
+    const { name } = gl.getActiveAttrib(program, i);
+    if (name) {
+      attributes[name] = gl.getAttribLocation(program, name);
+    }
+  }
+
+  return attributes
+}
 
 // @ts-check
 
@@ -53056,7 +53066,7 @@ function makeRenderingPipeline({
     toneMapToScreen(reprojectBuffer.color[0], fullscreenScale);
   }
 
-  return {
+  const renderingPipeline = {
     draw,
     drawFull,
     setSize,
@@ -53070,202 +53080,168 @@ function makeRenderingPipeline({
     get onSampleRendered() {
       return sampleRenderedCallback
     }
-  }
+  };
+
+  return renderingPipeline
 }
 
-// @ts-check
-
+var _RayTracingRendererClass_canvas, _RayTracingRendererClass_gl, _RayTracingRendererClass_size, _RayTracingRendererClass_pipeline, _RayTracingRendererClass_pixelRatio, _RayTracingRendererClass_isValidTime, _RayTracingRendererClass_currentTime, _RayTracingRendererClass_syncWarning, _RayTracingRendererClass_lastFocus, _RayTracingRendererClass_optionalExtensions, _RayTracingRendererClass_restartTimer, _RayTracingRendererClass_initScene;
 const glRequiredExtensions = [
-  'EXT_color_buffer_float', // enables rendering to float buffers
-  'EXT_float_blend',
+    'EXT_color_buffer_float',
+    'EXT_float_blend'
 ];
-
 const glOptionalExtensions = [
-  'OES_texture_float_linear', // enables gl.LINEAR texture filtering for float textures,
+    'OES_texture_float_linear'
 ];
-
-function RayTracingRenderer(params = {}) {
-  const canvas = params.canvas || document.createElement('canvas');
-
-  const gl = canvas.getContext('webgl2', {
-    alpha: false,
-    depth: true,
-    stencil: false,
-    antialias: false,
-    powerPreference: 'high-performance',
-    failIfMajorPerformanceCaveat: true
-  });
-
-  loadExtensions(gl, glRequiredExtensions);
-  const optionalExtensions = loadExtensions(gl, glOptionalExtensions);
-
-  let pipeline = null;
-  const size = new Vector2();
-  let pixelRatio = 1;
-
-  const module = {
-    bounces: 2,
-    domElement: canvas,
-    maxHardwareUsage: false,
-    needsUpdate: true,
-    onSampleRendered: null,
-    renderWhenOffFocus: true,
-    toneMapping: LinearToneMapping,
-    toneMappingExposure: 1,
-    toneMappingWhitePoint: 1,
-  };
-
-  function initScene(scene) {
-    scene.updateMatrixWorld();
-
-    const toneMappingParams = {
-      exposure: module.toneMappingExposure,
-      whitePoint: module.toneMappingWhitePoint,
-      toneMapping: module.toneMapping
-    };
-
-    const bounces = module.bounces;
-
-    pipeline = makeRenderingPipeline({ gl, optionalExtensions, scene, toneMappingParams, bounces });
-
-    pipeline.onSampleRendered = (...args) => {
-      if (module.onSampleRendered) {
-        module.onSampleRendered(...args);
-      }
-    };
-
-    module.setSize(size.width, size.height);
-    module.needsUpdate = false;
-  }
-
-  module.setSize = (width, height, updateStyle = true) => {
-    size.set(width, height);
-    canvas.width = size.width * pixelRatio;
-    canvas.height = size.height * pixelRatio;
-
-    if (updateStyle) {
-      canvas.style.width = `${size.width}px`;
-      canvas.style.height = `${size.height}px`;
+class RayTracingRendererClass {
+    constructor(canvasElement) {
+        _RayTracingRendererClass_canvas.set(this, document.createElement('canvas'));
+        _RayTracingRendererClass_gl.set(this, null);
+        _RayTracingRendererClass_size.set(this, new Vector2());
+        _RayTracingRendererClass_pipeline.set(this, null);
+        _RayTracingRendererClass_pixelRatio.set(this, 1);
+        _RayTracingRendererClass_isValidTime.set(this, 1);
+        _RayTracingRendererClass_currentTime.set(this, NaN);
+        _RayTracingRendererClass_syncWarning.set(this, false);
+        _RayTracingRendererClass_lastFocus.set(this, false);
+        _RayTracingRendererClass_optionalExtensions.set(this, undefined);
+        _RayTracingRendererClass_restartTimer.set(this, () => {
+            __classPrivateFieldSet(this, _RayTracingRendererClass_isValidTime, NaN);
+        });
+        _RayTracingRendererClass_initScene.set(this, (scene) => {
+            scene.updateMatrixWorld();
+            const toneMappingParams = {
+                exposure: this.toneMappingExposure,
+                whitePoint: this.toneMappingWhitePoint,
+                toneMapping: this.toneMapping
+            };
+            const bounces = this.bounces;
+            __classPrivateFieldSet(this, _RayTracingRendererClass_pipeline, makeRenderingPipeline({
+                gl: __classPrivateFieldGet(this, _RayTracingRendererClass_gl),
+                optionalExtensions: __classPrivateFieldGet(this, _RayTracingRendererClass_optionalExtensions),
+                scene,
+                toneMappingParams,
+                bounces
+            }));
+            if (__classPrivateFieldGet(this, _RayTracingRendererClass_pipeline)) {
+                __classPrivateFieldGet(this, _RayTracingRendererClass_pipeline).onSampleRendered = (...args) => {
+                    if (this.onSampleRendered !== null) {
+                        this.onSampleRendered(...args);
+                    }
+                };
+            }
+            this.setSize(__classPrivateFieldGet(this, _RayTracingRendererClass_size).width, __classPrivateFieldGet(this, _RayTracingRendererClass_size).height);
+            this.needsUpdate = false;
+        });
+        this.bounces = 2;
+        this.maxHardwareUsage = false;
+        this.needsUpdate = true;
+        this.onSampleRendered = () => void 0;
+        this.renderWhenOffFocus = true;
+        this.toneMapping = LinearToneMapping;
+        this.toneMappingExposure = 1;
+        this.toneMappingWhitePoint = 1;
+        __classPrivateFieldSet(this, _RayTracingRendererClass_canvas, canvasElement || document.createElement('canvas'));
+        __classPrivateFieldSet(this, _RayTracingRendererClass_gl, __classPrivateFieldGet(this, _RayTracingRendererClass_canvas).getContext('webgl2', {
+            alpha: false,
+            depth: true,
+            stencil: false,
+            antialias: false,
+            powerPreference: 'high-performance',
+            failIfMajorPerformanceCaveat: true
+        }));
+        if (!__classPrivateFieldGet(this, _RayTracingRendererClass_gl)) {
+            alert('你的浏览器不支持 webgl2，可能需要开启实验性功能或升级、更换浏览器。');
+            return;
+        }
+        glRequiredExtensions.map((name) => { var _a; return (_a = __classPrivateFieldGet(this, _RayTracingRendererClass_gl)) === null || _a === void 0 ? void 0 : _a.getExtension(name); });
+        __classPrivateFieldSet(this, _RayTracingRendererClass_optionalExtensions, glOptionalExtensions.map((name) => { var _a; return (_a = __classPrivateFieldGet(this, _RayTracingRendererClass_gl)) === null || _a === void 0 ? void 0 : _a.getExtension(name); }));
+        document.addEventListener('visibilitychange', () => __classPrivateFieldGet(this, _RayTracingRendererClass_restartTimer).call(this));
+        return this;
     }
-
-    if (pipeline) {
-      pipeline.setSize(size.width * pixelRatio, size.height * pixelRatio);
+    get domElement() {
+        return __classPrivateFieldGet(this, _RayTracingRendererClass_canvas);
     }
-  };
-
-  module.getSize = (target) => {
-    if (!target) {
-      target = new Vector2();
+    setSize(width, height, updateStyle = true) {
+        var _a;
+        __classPrivateFieldGet(this, _RayTracingRendererClass_size).set(width, height);
+        __classPrivateFieldGet(this, _RayTracingRendererClass_canvas).width = __classPrivateFieldGet(this, _RayTracingRendererClass_size).width * __classPrivateFieldGet(this, _RayTracingRendererClass_pixelRatio);
+        __classPrivateFieldGet(this, _RayTracingRendererClass_canvas).height = __classPrivateFieldGet(this, _RayTracingRendererClass_size).height * __classPrivateFieldGet(this, _RayTracingRendererClass_pixelRatio);
+        if (updateStyle) {
+            __classPrivateFieldGet(this, _RayTracingRendererClass_canvas).style.width = `${__classPrivateFieldGet(this, _RayTracingRendererClass_size).width}px`;
+            __classPrivateFieldGet(this, _RayTracingRendererClass_canvas).style.height = `${__classPrivateFieldGet(this, _RayTracingRendererClass_size).height}px`;
+        }
+        (_a = __classPrivateFieldGet(this, _RayTracingRendererClass_pipeline)) === null || _a === void 0 ? void 0 : _a.setSize(__classPrivateFieldGet(this, _RayTracingRendererClass_size).width * __classPrivateFieldGet(this, _RayTracingRendererClass_pixelRatio), __classPrivateFieldGet(this, _RayTracingRendererClass_size).height * __classPrivateFieldGet(this, _RayTracingRendererClass_pixelRatio));
     }
-
-    return target.copy(size)
-  };
-
-  module.setPixelRatio = (x) => {
-    if (!x) {
-      return
+    getSize(target) {
+        return target ? target.copy(__classPrivateFieldGet(this, _RayTracingRendererClass_size)) : new Vector2().copy(__classPrivateFieldGet(this, _RayTracingRendererClass_size));
     }
-    pixelRatio = x;
-    module.setSize(size.width, size.height, false);
-  };
-
-  module.getPixelRatio = () => pixelRatio;
-
-  module.getTotalSamplesRendered = () => {
-    if (pipeline) {
-      return pipeline.getTotalSamplesRendered()
+    setPixelRatio(x) {
+        __classPrivateFieldSet(this, _RayTracingRendererClass_pixelRatio, x);
+        this.setSize(__classPrivateFieldGet(this, _RayTracingRendererClass_size).width, __classPrivateFieldGet(this, _RayTracingRendererClass_size).height, false);
     }
-  };
-
-  let isValidTime = 1;
-  let currentTime = NaN;
-  let syncWarning = false;
-
-  function restartTimer() {
-    isValidTime = NaN;
-  }
-
-  module.sync = (t) => {
-    // the first call to the callback of requestAnimationFrame does not have a time parameter
-    // use performance.now() in this case
-    currentTime = t || performance.now();
-  };
-
-  let lastFocus = false;
-
-  module.render = (scene, camera) => {
-    if (!module.renderWhenOffFocus) {
-      const hasFocus = document.hasFocus();
-      if (!hasFocus) {
-        lastFocus = hasFocus;
-        return
-      } else if (hasFocus && !lastFocus) {
-        lastFocus = hasFocus;
-        restartTimer();
-      }
+    getPixelRatio() {
+        return __classPrivateFieldGet(this, _RayTracingRendererClass_pixelRatio);
     }
-
-    if (module.needsUpdate) {
-      initScene(scene);
+    getTotalSamplesRendered() {
+        var _a;
+        return (_a = __classPrivateFieldGet(this, _RayTracingRendererClass_pipeline)) === null || _a === void 0 ? void 0 : _a.getTotalSamplesRendered();
     }
-
-    if (isNaN(currentTime)) {
-      if (!syncWarning) {
-        console.warn('Ray Tracing Renderer warning: For improved performance, please call renderer.sync(time) before render.render(scene, camera), with the time parameter equalling the parameter passed to the callback of requestAnimationFrame');
-        syncWarning = true;
-      }
-
-      currentTime = performance.now(); // less accurate than requestAnimationFrame's time parameter
+    sync(t) {
+        __classPrivateFieldSet(this, _RayTracingRendererClass_currentTime, t || performance.now());
     }
-
-    pipeline.time(isValidTime * currentTime);
-
-    isValidTime = 1;
-    currentTime = NaN;
-
-    camera.updateMatrixWorld();
-
-    if (module.maxHardwareUsage) {
-      // render new sample for the entire screen
-      pipeline.drawFull(camera);
-    } else {
-      // render new sample for a tiled subset of the screen
-      pipeline.draw(camera);
+    render(scene, camera) {
+        var _a, _b, _c;
+        if (!this.renderWhenOffFocus) {
+            const hasFocus = document.hasFocus();
+            if (!hasFocus) {
+                __classPrivateFieldSet(this, _RayTracingRendererClass_lastFocus, hasFocus);
+                return;
+            }
+            if (hasFocus && !__classPrivateFieldGet(this, _RayTracingRendererClass_lastFocus)) {
+                __classPrivateFieldSet(this, _RayTracingRendererClass_lastFocus, hasFocus);
+                __classPrivateFieldGet(this, _RayTracingRendererClass_restartTimer).call(this);
+            }
+        }
+        if (this.needsUpdate) {
+            __classPrivateFieldGet(this, _RayTracingRendererClass_initScene).call(this, scene);
+        }
+        if (isNaN(__classPrivateFieldGet(this, _RayTracingRendererClass_currentTime))) {
+            if (!__classPrivateFieldGet(this, _RayTracingRendererClass_syncWarning)) {
+                console.warn('Ray Tracing Renderer warning: For improved performance, please call renderer.sync(time) before render.render(scene, camera), with the time parameter equalling the parameter passed to the callback of requestAnimationFrame');
+                __classPrivateFieldSet(this, _RayTracingRendererClass_syncWarning, true);
+            }
+            __classPrivateFieldSet(this, _RayTracingRendererClass_currentTime, performance.now());
+        }
+        (_a = __classPrivateFieldGet(this, _RayTracingRendererClass_pipeline)) === null || _a === void 0 ? void 0 : _a.time(__classPrivateFieldGet(this, _RayTracingRendererClass_isValidTime) * __classPrivateFieldGet(this, _RayTracingRendererClass_currentTime));
+        __classPrivateFieldSet(this, _RayTracingRendererClass_isValidTime, 1);
+        __classPrivateFieldSet(this, _RayTracingRendererClass_currentTime, NaN);
+        camera.updateMatrixWorld();
+        if (this.maxHardwareUsage) {
+            (_b = __classPrivateFieldGet(this, _RayTracingRendererClass_pipeline)) === null || _b === void 0 ? void 0 : _b.drawFull(camera);
+        }
+        else {
+            (_c = __classPrivateFieldGet(this, _RayTracingRendererClass_pipeline)) === null || _c === void 0 ? void 0 : _c.draw(camera);
+        }
     }
-  };
-
-  // Assume module.render is called using requestAnimationFrame.
-  // This means that when the user is on a different browser tab, module.render won't be called.
-  // Since the timer should not measure time when module.render is inactive,
-  // the timer should be reset when the user switches browser tabs
-  document.addEventListener('visibilitychange', restartTimer);
-
-  module.dispose = () => {
-    document.removeEventListener('visibilitychange', restartTimer);
-    pipeline = null;
-  };
-
-  return module
+    dispose() {
+        document.removeEventListener('visibilitychange', __classPrivateFieldGet(this, _RayTracingRendererClass_restartTimer));
+        __classPrivateFieldSet(this, _RayTracingRendererClass_pipeline, null);
+    }
+    static isSupported() {
+        const gl = document.createElement('canvas').getContext('webgl2', {
+            failIfMajorPerformanceCaveat: true
+        });
+        if (!gl) {
+            return false;
+        }
+        const extensions = glRequiredExtensions.map((name) => gl.getExtension(name));
+        if (Object.values(extensions).some((extension) => !extension)) {
+            return false;
+        }
+        return true;
+    }
 }
+_RayTracingRendererClass_canvas = new WeakMap(), _RayTracingRendererClass_gl = new WeakMap(), _RayTracingRendererClass_size = new WeakMap(), _RayTracingRendererClass_pipeline = new WeakMap(), _RayTracingRendererClass_pixelRatio = new WeakMap(), _RayTracingRendererClass_isValidTime = new WeakMap(), _RayTracingRendererClass_currentTime = new WeakMap(), _RayTracingRendererClass_syncWarning = new WeakMap(), _RayTracingRendererClass_lastFocus = new WeakMap(), _RayTracingRendererClass_optionalExtensions = new WeakMap(), _RayTracingRendererClass_restartTimer = new WeakMap(), _RayTracingRendererClass_initScene = new WeakMap();
 
-RayTracingRenderer.isSupported = () => {
-  const gl = document.createElement('canvas')
-    .getContext('webgl2', {
-      failIfMajorPerformanceCaveat: true
-    });
-
-  if (!gl) {
-    return false
-  }
-
-  const extensions = loadExtensions(gl, glRequiredExtensions);
-  for (let e in extensions) {
-    if (!extensions[e]) {
-      return false
-    }
-  }
-
-  return true
-};
-
-export { EnvironmentLight, LensCamera, RayTracingMaterial, RayTracingRenderer, SoftDirectionalLight, constants };
+export { EnvironmentLight, LensCamera, RayTracingMaterial, RayTracingRendererClass as RayTracingRenderer, SoftDirectionalLight, constants };
