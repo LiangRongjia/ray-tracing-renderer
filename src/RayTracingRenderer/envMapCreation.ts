@@ -1,4 +1,3 @@
-// @ts-check
 // Convert image data from the RGBE format to a 32-bit floating point format
 // See https://www.cg.tuwien.ac.at/research/theses/matkovic/node84.html for a description of the RGBE format
 
@@ -8,36 +7,44 @@ import * as THREE from 'three'
 
 const DEFAULT_MAP_RESOLUTION = {
   width: 2048,
-  height: 1024,
+  height: 1024
 }
 
 // Tools for generating and modify env maps for lighting from scene component data
 
-function generateBackgroundMapFromSceneBackground(background) {
+function generateBackgroundMapFromSceneBackground(background: THREE.Color | THREE.Texture) {
   let backgroundImage
 
-  if (background.isColor) {
+  if ('isColor' in background) {
     backgroundImage = generateSolidMap(1, 1, background)
   } else if (background.encoding === THREE.RGBEEncoding) {
     backgroundImage = {
       width: background.image.width,
       height: background.image.height,
-      data: background.image.data,
+      data: background.image.data
     }
     backgroundImage.data = rgbeToFloat(backgroundImage.data)
   }
   return backgroundImage
 }
 
-function generateEnvMapFromSceneComponents(directionalLights, ambientLights, environmentLights) {
+function generateEnvMapFromSceneComponents(
+  directionalLights: THREE.Object3D[],
+  ambientLights: THREE.Object3D[],
+  environmentLights: THREE.Object3D[]
+) {
   let envImage = initializeEnvMap(environmentLights)
-  ambientLights.forEach(light => { addAmbientLightToEnvMap(light, envImage) })
-  directionalLights.forEach(light => { envImage.data = addDirectionalLightToEnvMap(light, envImage) })
+  ambientLights.forEach((light) => {
+    addAmbientLightToEnvMap(light, envImage)
+  })
+  directionalLights.forEach((light) => {
+    envImage.data = addDirectionalLightToEnvMap(light, envImage)
+  })
 
   return envImage
 }
 
-function initializeEnvMap(environmentLights) {
+function initializeEnvMap(environmentLights: THREE.Object3D[]) {
   let envImage
 
   // Initialize map from environment light if present
@@ -45,10 +52,14 @@ function initializeEnvMap(environmentLights) {
     // TODO: support multiple environment lights (what if they have different resolutions?)
     const environmentLight = environmentLights[0]
     envImage = {
+      // @ts-ignore
       width: environmentLight.map.image.width,
+      // @ts-ignore
       height: environmentLight.map.image.height,
-      data: environmentLight.map.image.data,
+      // @ts-ignore
+      data: environmentLight.map.image.data
     }
+    // @ts-ignore
     envImage.data = rgbeToFloat(envImage.data, environmentLight.intensity)
   } else {
     // initialize blank map
@@ -58,7 +69,7 @@ function initializeEnvMap(environmentLights) {
   return envImage
 }
 
-function generateSolidMap(width, height, color, intensity) {
+function generateSolidMap(width: number, height: number, color?: THREE.Color, intensity?: number) {
   const texels = width * height
   const floatBuffer = new Float32Array(texels * 3)
   if (color && color.isColor) {
@@ -67,55 +78,57 @@ function generateSolidMap(width, height, color, intensity) {
   return {
     width: width,
     height: height,
-    data: floatBuffer,
+    data: floatBuffer
   }
 }
 
-function setBufferToColor(buffer, color, intensity = 1) {
+// @ts-ignore
+function setBufferToColor(buffer, color: THREE.Color, intensity: number = 1) {
+  // @ts-ignore
   buffer.forEach(function (part, index) {
     const component = index % 3
     if (component === 0) {
       buffer[index] = color.r * intensity
-    }
-    else if (component === 1) {
+    } else if (component === 1) {
       buffer[index] = color.g * intensity
-    }
-    else if (component === 2) {
+    } else if (component === 2) {
       buffer[index] = color.b * intensity
     }
   })
   return buffer
 }
 
+// @ts-ignore
 function addAmbientLightToEnvMap(light, image) {
   const color = light.color
-  image.data.forEach(function (part, index) {
+  // @ts-ignore
+  image.data.forEach(function (part, index: number) {
     const component = index % 3
     if (component === 0) {
       image.data[index] += color.r * light.intensity
-    }
-    else if (component === 1) {
+    } else if (component === 1) {
       image.data[index] += color.g * light.intensity
-    }
-    else if (component === 2) {
+    } else if (component === 2) {
       image.data[index] += color.b * light.intensity
     }
   })
 }
 
+// @ts-ignore
 function addDirectionalLightToEnvMap(light, image) {
   const sphericalCoords = new THREE.Spherical()
   const lightDirection = light.position.clone().sub(light.target.position)
 
   sphericalCoords.setFromVector3(lightDirection)
-  sphericalCoords.theta = (Math.PI * 3 / 2) - sphericalCoords.theta
+  sphericalCoords.theta = (Math.PI * 3) / 2 - sphericalCoords.theta
   sphericalCoords.makeSafe()
 
   return addLightAtCoordinates(light, image, sphericalCoords)
 }
 
+// @ts-ignore
 // Perform modifications on env map to match input scene
-function addLightAtCoordinates(light, image, originCoords) {
+function addLightAtCoordinates(light, image, originCoords: THREE.Spherical) {
   const floatBuffer = image.data
   const width = image.width
   const height = image.height
@@ -132,14 +145,15 @@ function addLightAtCoordinates(light, image, originCoords) {
   const useThreshold = threshold < Math.PI / 5
 
   // functional trick to keep the conditional check out of the main loop
-  const intensityFromAngleFunction = useThreshold ? getIntensityFromAngleDifferentialThresholded : getIntensityFromAngleDifferential
+  const intensityFromAngleFunction = useThreshold
+    ? getIntensityFromAngleDifferentialThresholded
+    : getIntensityFromAngleDifferential
 
   let begunAddingContributions = false
   let currentCoords = new THREE.Spherical()
 
   // Iterates over each row from top to bottom
   for (let i = 0; i < xTexels; i++) {
-
     let encounteredInThisRow = false
 
     // Iterates over each texel in row
@@ -170,7 +184,7 @@ function addLightAtCoordinates(light, image, originCoords) {
   return floatBuffer
 }
 
-function findThreshold(softness) {
+function findThreshold(softness: number) {
   const step = Math.PI / 128
   const maxSteps = (2.0 * Math.PI) / step
 
@@ -181,9 +195,15 @@ function findThreshold(softness) {
       return angle
     }
   }
+  return 0
 }
 
-function getIntensityFromAngleDifferentialThresholded(originCoords, currentCoords, softness, threshold) {
+function getIntensityFromAngleDifferentialThresholded(
+  originCoords: THREE.Spherical,
+  currentCoords: THREE.Spherical,
+  softness: number,
+  threshold: number
+) {
   const deltaPhi = getAngleDelta(originCoords.phi, currentCoords.phi)
   const deltaTheta = getAngleDelta(originCoords.theta, currentCoords.theta)
 
@@ -195,26 +215,30 @@ function getIntensityFromAngleDifferentialThresholded(originCoords, currentCoord
   return getFalloffAtAngle(angle, softness)
 }
 
-function getIntensityFromAngleDifferential(originCoords, currentCoords, softness) {
+function getIntensityFromAngleDifferential(
+  originCoords: THREE.Spherical,
+  currentCoords: THREE.Spherical,
+  softness: number
+) {
   const angle = angleBetweenSphericals(originCoords, currentCoords)
   return getFalloffAtAngle(angle, softness)
 }
 
-function getAngleDelta(angleA, angleB) {
+function getAngleDelta(angleA: number, angleB: number) {
   const diff = Math.abs(angleA - angleB) % (2 * Math.PI)
-  return diff > Math.PI ? (2 * Math.PI - diff) : diff
+  return diff > Math.PI ? 2 * Math.PI - diff : diff
 }
 
-const angleBetweenSphericals = function () {
+const angleBetweenSphericals = (function () {
   const originVector = new THREE.Vector3()
   const currentVector = new THREE.Vector3()
 
-  return (originCoords, currentCoords) => {
+  return (originCoords: THREE.Spherical, currentCoords: THREE.Spherical) => {
     originVector.setFromSpherical(originCoords)
     currentVector.setFromSpherical(currentCoords)
     return originVector.angleTo(currentVector)
   }
-}()
+})()
 
 // TODO: possibly clean this up and optimize it
 //
@@ -224,13 +248,13 @@ const angleBetweenSphericals = function () {
 //
 // For now it doesn't incur too much of a performance penalty because for most of our use cases (lights without too much softness)
 // the threshold cutoff in getIntensityFromAngleDifferential stops us from running it too many times
-function getFalloffAtAngle(angle, softness) {
+function getFalloffAtAngle(angle: number, softness: number) {
   const softnessCoefficient = Math.pow(2, 14.5 * Math.max(0.001, 1.0 - clamp(softness, 0.0, 1.0)))
   const falloff = Math.pow(softnessCoefficient, 1.1) * Math.pow(8, -softnessCoefficient * Math.pow(angle, 1.8))
   return falloff
 }
 
-function equirectangularToSpherical(x, y, width, height, target) {
+function equirectangularToSpherical(x: number, y: number, width: number, height: number, target: THREE.Spherical) {
   target.phi = (Math.PI * y) / height
   target.theta = (2.0 * Math.PI * x) / width
   return target
