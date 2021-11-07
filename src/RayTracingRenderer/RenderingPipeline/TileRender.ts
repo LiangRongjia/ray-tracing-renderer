@@ -12,22 +12,22 @@ import { clamp } from '../util'
 // Since the render time of a tile is dependent on the device, we find the desired tile dimensions by measuring
 // the time it takes to render an arbitrarily-set tile size and adjusting the size according to the benchmark.
 
-function makeTileRender(gl) {
+function makeTileRender(gl: WebGL2RenderingContext) {
   const desiredMsPerTile = 21
 
   let currentTile = -1
   let numTiles = 1
 
-  let tileWidth
-  let tileHeight
+  let tileWidth: number
+  let tileHeight: number
 
-  let columns
-  let rows
+  let columns: number
+  let rows: number
 
   let width = 0
   let height = 0
 
-  let totalElapsedMs
+  let totalElapsedMs: number
 
   // initial number of pixels per rendered tile
   // based on correlation between system performance and max supported render buffer size
@@ -39,7 +39,7 @@ function makeTileRender(gl) {
     totalElapsedMs = NaN
   }
 
-  function setSize(w, h) {
+  function setSize(w: number, h: number) {
     width = w
     height = h
     reset()
@@ -48,6 +48,10 @@ function makeTileRender(gl) {
 
   function calcTileDimensions() {
     const aspectRatio = width / height
+
+    if (pixelsPerTile === undefined) {
+      return
+    }
 
     // quantize the width of the tile so that it evenly divides the entire window
     tileWidth = Math.ceil(width / Math.round(width / Math.sqrt(pixelsPerTile * aspectRatio)))
@@ -66,12 +70,16 @@ function makeTileRender(gl) {
     // tweak to find balance. higher = faster convergence, lower = less fluctuations to microstutters
     const strength = 5000
 
+    if (pixelsPerTile === undefined) {
+      return
+    }
+
     // sqrt prevents massive fluctuations in pixelsPerTile for the occasional stutter
     pixelsPerTile += strength * Math.sign(error) * Math.sqrt(Math.abs(error))
     pixelsPerTile = clamp(pixelsPerTile, 8192, width * height)
   }
 
-  function nextTile(elapsedFrameMs) {
+  function nextTile(elapsedFrameMs: number) {
     currentTile++
     totalElapsedMs += elapsedFrameMs
 
@@ -96,18 +104,18 @@ function makeTileRender(gl) {
       tileWidth,
       tileHeight,
       isFirstTile: currentTile === 0,
-      isLastTile,
+      isLastTile
     }
   }
 
   return {
     nextTile,
     reset,
-    setSize,
+    setSize
   }
 }
 
-function pixelsPerTileEstimate(gl) {
+function pixelsPerTileEstimate(gl: WebGL2RenderingContext) {
   const maxRenderbufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE)
 
   if (maxRenderbufferSize <= 8192) {
@@ -117,6 +125,7 @@ function pixelsPerTileEstimate(gl) {
   } else if (maxRenderbufferSize >= 32768) {
     return 600000
   }
+  return undefined
 }
 
 export { makeTileRender }
