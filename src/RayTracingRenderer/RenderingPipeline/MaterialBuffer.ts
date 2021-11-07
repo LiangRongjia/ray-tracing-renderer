@@ -2,31 +2,36 @@
 import { ThinMaterial, ThickMaterial, ShadowCatcherMaterial } from '../../constants'
 import materialBufferChunk from './glsl/chunks/materialBuffer.glsl.js'
 import { makeUniformBuffer } from '../UniformBuffer'
-import { makeRenderPass } from "../RenderPass"
+import { makeRenderPass } from '../RenderPass'
 import { makeTexture } from './Texture'
 import { getTexturesFromMaterials, mergeTexturesFromMaterials } from '../texturesFromMaterials'
 
-function makeMaterialBuffer(gl, materials) {
+// @ts-ignore
+function makeMaterialBuffer(gl: WebGL2RenderingContext, materials) {
   const maps = getTexturesFromMaterials(materials, ['map', 'normalMap'])
   const pbrMap = mergeTexturesFromMaterials(materials, ['roughnessMap', 'metalnessMap'])
 
-  const textures = {}
+  const textures: any = {}
 
-  const bufferData = {}
-
-  bufferData.color = materials.map(m => m.color)
-  bufferData.roughness = materials.map(m => m.roughness)
-  bufferData.metalness = materials.map(m => m.metalness)
-  bufferData.normalScale = materials.map(m => m.normalScale)
-
-  bufferData.type = materials.map(m => {
-    if (m.shadowCatcher) {
-      return ShadowCatcherMaterial
-    }
-    if (m.transparent) {
-      return m.solid ? ThickMaterial : ThinMaterial
-    }
-  })
+  const bufferData: any = {
+    // @ts-ignore
+    color: materials.map((m) => m.color),
+    // @ts-ignore
+    roughness: materials.map((m) => m.roughness),
+    // @ts-ignore
+    metalness: materials.map((m) => m.metalness),
+    // @ts-ignore
+    normalScale: materials.map((m) => m.normalScale),
+    // @ts-ignore
+    type: materials.map((m) => {
+      if (m.shadowCatcher) {
+        return ShadowCatcherMaterial
+      }
+      if (m.transparent) {
+        return m.solid ? ThickMaterial : ThinMaterial
+      }
+    })
+  }
 
   if (maps.map.textures.length > 0) {
     const { relativeSizes, texture } = makeTextureArray(gl, maps.map.textures, true)
@@ -55,7 +60,7 @@ function makeMaterialBuffer(gl, materials) {
     NUM_DIFFUSE_MAPS: maps.map.textures.length,
     NUM_NORMAL_MAPS: maps.normalMap.textures.length,
     NUM_DIFFUSE_NORMAL_MAPS: Math.max(maps.map.textures.length, maps.normalMap.textures.length),
-    NUM_PBR_MAPS: pbrMap.textures.length,
+    NUM_PBR_MAPS: pbrMap.textures.length
   }
 
   // create temporary shader program including the Material uniform buffer
@@ -65,20 +70,27 @@ function makeMaterialBuffer(gl, materials) {
       source: `void main() {}`
     },
     fragment: {
+      // @ts-ignore
       includes: [materialBufferChunk],
       source: `void main() {}`
     },
     defines
   })
 
+  if (renderPass === undefined) {
+    return
+  }
   uploadToUniformBuffer(gl, renderPass.program, bufferData)
 
   return { defines, textures }
 }
 
-function makeTextureArray(gl, textures, gammaCorrection = false) {
-  const images = textures.map(t => t.image)
-  const flipY = textures.map(t => t.flipY)
+// @ts-ignore
+function makeTextureArray(gl: WebGL2RenderingContext, textures, gammaCorrection = false) {
+  // @ts-ignore
+  const images = textures.map((t) => t.image)
+  // @ts-ignore
+  const flipY = textures.map((t) => t.flipY)
   const { maxSize, relativeSizes } = maxImageSize(images)
 
   // create GL Array Texture from individual textures
@@ -90,7 +102,7 @@ function makeTextureArray(gl, textures, gammaCorrection = false) {
     flipY,
     channels: 3,
     minFilter: gl.LINEAR,
-    magFilter: gl.LINEAR,
+    magFilter: gl.LINEAR
   })
 
   return {
@@ -99,6 +111,7 @@ function makeTextureArray(gl, textures, gammaCorrection = false) {
   }
 }
 
+// @ts-ignore
 function maxImageSize(images) {
   const maxSize = {
     width: 0,
@@ -119,41 +132,54 @@ function maxImageSize(images) {
   return { maxSize, relativeSizes }
 }
 
-
 // Upload arrays to uniform buffer objects
 // Packs different arrays into vec4's to take advantage of GLSL's std140 memory layout
 
-function uploadToUniformBuffer(gl, program, bufferData) {
+// @ts-ignore
+function uploadToUniformBuffer(gl: WebGL2RenderingContext, program: WebGLProgram, bufferData) {
   const materialBuffer = makeUniformBuffer(gl, program, 'Materials')
 
-  materialBuffer.set('Materials.colorAndMaterialType[0]', interleave(
-    { data: [].concat(...bufferData.color.map(d => d.toArray())), channels: 3 },
-    { data: bufferData.type, channels: 1 }
-  ))
+  materialBuffer.set(
+    'Materials.colorAndMaterialType[0]',
+    interleave(
+      // @ts-ignore
+      { data: [].concat(...bufferData.color.map((d) => d.toArray())), channels: 3 },
+      { data: bufferData.type, channels: 1 }
+    )
+  )
 
-  materialBuffer.set('Materials.roughnessMetalnessNormalScale[0]', interleave(
-    { data: bufferData.roughness, channels: 1 },
-    { data: bufferData.metalness, channels: 1 },
-    { data: [].concat(...bufferData.normalScale.map(d => d.toArray())), channels: 2 }
-  ))
+  materialBuffer.set(
+    'Materials.roughnessMetalnessNormalScale[0]',
+    interleave(
+      { data: bufferData.roughness, channels: 1 },
+      { data: bufferData.metalness, channels: 1 },
 
-  materialBuffer.set('Materials.diffuseNormalRoughnessMetalnessMapIndex[0]', interleave(
-    { data: bufferData.diffuseMapIndex, channels: 1 },
-    { data: bufferData.normalMapIndex, channels: 1 },
-    { data: bufferData.roughnessMapIndex, channels: 1 },
-    { data: bufferData.metalnessMapIndex, channels: 1 }
-  ))
+      // @ts-ignore
+      { data: [].concat(...bufferData.normalScale.map((d) => d.toArray())), channels: 2 }
+    )
+  )
 
-  materialBuffer.set('Materials.diffuseNormalMapSize[0]', interleave(
-    { data: bufferData.diffuseMapSize, channels: 2 },
-    { data: bufferData.normalMapSize, channels: 2 }
-  ))
+  materialBuffer.set(
+    'Materials.diffuseNormalRoughnessMetalnessMapIndex[0]',
+    interleave(
+      { data: bufferData.diffuseMapIndex, channels: 1 },
+      { data: bufferData.normalMapIndex, channels: 1 },
+      { data: bufferData.roughnessMapIndex, channels: 1 },
+      { data: bufferData.metalnessMapIndex, channels: 1 }
+    )
+  )
+
+  materialBuffer.set(
+    'Materials.diffuseNormalMapSize[0]',
+    interleave({ data: bufferData.diffuseMapSize, channels: 2 }, { data: bufferData.normalMapSize, channels: 2 })
+  )
 
   materialBuffer.set('Materials.pbrMapSize[0]', bufferData.pbrMapSize)
 
   materialBuffer.bind(0)
 }
 
+// @ts-ignore
 function interleave(...arrays) {
   let maxLength = 0
   for (let i = 0; i < arrays.length; i++) {
