@@ -6,7 +6,7 @@ import fragment from '../glsl/rayTrace.frag.js'
 import { makeRenderPass } from '../../RenderPass.js'
 import { makeStratifiedSamplerCombined } from '../../StratifiedSamplerCombined.js'
 import { makeTexture } from '../Texture.js'
-import { clamp } from '../../util.js'
+import { clamp } from '../../util'
 
 function makeRayTracePass(gl, {
   bounces, // number of global illumination bounces

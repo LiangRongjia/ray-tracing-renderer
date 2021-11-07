@@ -3,7 +3,7 @@
 // See https://www.cg.tuwien.ac.at/research/theses/matkovic/node84.html for a description of the RGBE format
 
 import { rgbeToFloat } from './rgbeToFloat.js'
-import { clamp } from './util.js'
+import { clamp } from './util'
 import * as THREE from 'three'
 
 const DEFAULT_MAP_RESOLUTION = {

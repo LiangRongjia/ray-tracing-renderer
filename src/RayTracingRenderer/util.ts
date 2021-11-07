@@ -1,9 +1,8 @@
-// @ts-check
-function clamp(x, min, max) {
+function clamp(x: number, min: number, max: number) {
   return Math.min(Math.max(x, min), max)
 }
 
-function shuffle(arr) {
+function shuffle(arr: number[]) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     const x = arr[i]
@@ -13,7 +12,7 @@ function shuffle(arr) {
   return arr
 }
 
-function numberArraysEqual(a, b, eps = 1e-4) {
+function numberArraysEqual(a: number[], b: number[], eps: number = 1e-4) {
   for (let i = 0; i < a.length; i++) {
     if (Math.abs(a[i] - b[i]) > eps) {
       return false
@@ -23,8 +22,4 @@ function numberArraysEqual(a, b, eps = 1e-4) {
   return true
 }
 
-export {
-  clamp,
-  shuffle,
-  numberArraysEqual
-}
+export { clamp, shuffle, numberArraysEqual }

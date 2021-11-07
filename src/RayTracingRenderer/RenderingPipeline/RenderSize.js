@@ -1,5 +1,5 @@
 // @ts-check
-import { clamp } from '../util.js'
+import { clamp } from '../util'
 import { Vector2 } from 'three'
 
 function makeRenderSize(gl) {

@@ -1,5 +1,5 @@
 // @ts-check
-import { clamp } from '../util.js'
+import { clamp } from '../util'
 
 function makeTexture(gl, params) {
   let {
