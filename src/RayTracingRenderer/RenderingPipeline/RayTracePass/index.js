@@ -1,7 +1,7 @@
 // @ts-check
 import { bvhAccel, flattenBvh } from './bvhAccel.js'
 import { generateEnvMapFromSceneComponents, generateBackgroundMapFromSceneBackground } from '../../envMapCreation.js'
-import { envMapDistribution } from '../../envMapDistribution.js'
+import { envMapDistribution } from '../../envMapDistribution'
 import fragment from '../glsl/rayTrace.frag.js'
 import { makeRenderPass } from '../../RenderPass'
 import { makeStratifiedSamplerCombined } from '../../StratifiedSamplerCombined'
