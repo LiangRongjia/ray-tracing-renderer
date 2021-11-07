@@ -1,4 +1,3 @@
-// @ts-check
 /*
 Stratified Sampling
 http://www.pbr-book.org/3ed-2018/Sampling_and_Reconstruction/Stratified_Sampling.html
@@ -9,16 +8,20 @@ e.g. instead of sampling a 6D domain, we sample a 2D + 2D + 2D domain.
 This reaps many benefits of stratification while still allowing for small strata sizes.
 */
 
-import { makeStratifiedSampler } from "./StratifiedSampler"
+import { makeStratifiedSampler } from './StratifiedSampler'
 
-function makeStratifiedSamplerCombined(strataCount, listOfDimensions) {
-  const strataObjs = []
+function makeStratifiedSamplerCombined(strataCount: number, listOfDimensions: number[]) {
+  const strataObjs: {
+    next: () => number[]
+    restart: () => void
+    strataCount: number
+  }[] = []
 
   for (const dim of listOfDimensions) {
     strataObjs.push(makeStratifiedSampler(strataCount, dim))
   }
 
-  const combined = []
+  const combined: number[] = []
 
   function next() {
     let i = 0

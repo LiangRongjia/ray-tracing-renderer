@@ -51788,42 +51788,32 @@ function makeStratifiedSampler(strataCount, dimensions) {
     };
 }
 
-// @ts-check
-
 function makeStratifiedSamplerCombined(strataCount, listOfDimensions) {
-  const strataObjs = [];
-
-  for (const dim of listOfDimensions) {
-    strataObjs.push(makeStratifiedSampler(strataCount, dim));
-  }
-
-  const combined = [];
-
-  function next() {
-    let i = 0;
-
-    for (const strata of strataObjs) {
-      const nums = strata.next();
-
-      for (const num of nums) {
-        combined[i++] = num;
-      }
+    const strataObjs = [];
+    for (const dim of listOfDimensions) {
+        strataObjs.push(makeStratifiedSampler(strataCount, dim));
     }
-
-    return combined
-  }
-
-  function restart() {
-    for (const strata of strataObjs) {
-      strata.restart();
+    const combined = [];
+    function next() {
+        let i = 0;
+        for (const strata of strataObjs) {
+            const nums = strata.next();
+            for (const num of nums) {
+                combined[i++] = num;
+            }
+        }
+        return combined;
     }
-  }
-
-  return {
-    next,
-    restart,
-    strataCount
-  }
+    function restart() {
+        for (const strata of strataObjs) {
+            strata.restart();
+        }
+    }
+    return {
+        next,
+        restart,
+        strataCount
+    };
 }
 
 // @ts-check
