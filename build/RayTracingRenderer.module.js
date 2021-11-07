@@ -51758,43 +51758,34 @@ var fragment$1 = {
 `
 };
 
-// @ts-check
-
 function makeStratifiedSampler(strataCount, dimensions) {
-  const strata = [];
-  const l = strataCount ** dimensions;
-  for (let i = 0; i < l; i++) {
-    strata[i] = i;
-  }
-
-  let index = strata.length;
-
-  const sample = [];
-
-  function restart() {
-    index = 0;
-  }
-
-  function next() {
-    if (index >= strata.length) {
-      shuffle(strata);
-      restart();
+    const strata = [];
+    const l = Math.pow(strataCount, dimensions);
+    for (let i = 0; i < l; i++) {
+        strata[i] = i;
     }
-    let stratum = strata[index++];
-
-    for (let i = 0; i < dimensions; i++) {
-      sample[i] = stratum % strataCount + Math.random();
-      stratum = Math.floor(stratum / strataCount);
+    let index = strata.length;
+    const sample = [];
+    function restart() {
+        index = 0;
     }
-
-    return sample
-  }
-
-  return {
-    next,
-    restart,
-    strataCount
-  }
+    function next() {
+        if (index >= strata.length) {
+            shuffle(strata);
+            restart();
+        }
+        let stratum = strata[index++];
+        for (let i = 0; i < dimensions; i++) {
+            sample[i] = (stratum % strataCount) + Math.random();
+            stratum = Math.floor(stratum / strataCount);
+        }
+        return sample;
+    }
+    return {
+        next,
+        restart,
+        strataCount
+    };
 }
 
 // @ts-check

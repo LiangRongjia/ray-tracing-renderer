@@ -1,4 +1,3 @@
-// @ts-check
 /*
 Stratified Sampling
 http://www.pbr-book.org/3ed-2018/Sampling_and_Reconstruction/Stratified_Sampling.html
@@ -19,10 +18,10 @@ The fractional part is the random number.
 To obtain the stratified sample between [0, 1), divide the returned sample by the stratum count.
 */
 
-import { shuffle } from "./util"
+import { shuffle } from './util'
 
-function makeStratifiedSampler(strataCount, dimensions) {
-  const strata = []
+function makeStratifiedSampler(strataCount: number, dimensions: number) {
+  const strata: number[] = []
   const l = strataCount ** dimensions
   for (let i = 0; i < l; i++) {
     strata[i] = i
@@ -30,7 +29,7 @@ function makeStratifiedSampler(strataCount, dimensions) {
 
   let index = strata.length
 
-  const sample = []
+  const sample: number[] = []
 
   function restart() {
     index = 0
@@ -44,7 +43,7 @@ function makeStratifiedSampler(strataCount, dimensions) {
     let stratum = strata[index++]
 
     for (let i = 0; i < dimensions; i++) {
-      sample[i] = stratum % strataCount + Math.random()
+      sample[i] = (stratum % strataCount) + Math.random()
       stratum = Math.floor(stratum / strataCount)
     }
 
