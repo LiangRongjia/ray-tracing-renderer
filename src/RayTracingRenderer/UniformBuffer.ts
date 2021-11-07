@@ -1,5 +1,4 @@
-// @ts-check
-function makeUniformBuffer(gl, program, blockName) {
+function makeUniformBuffer(gl: WebGL2RenderingContext, program: WebGLProgram, blockName: string) {
   const blockIndex = gl.getUniformBlockIndex(program, blockName)
   const blockSize = gl.getActiveUniformBlockParameter(program, blockIndex, gl.UNIFORM_BLOCK_DATA_SIZE)
 
@@ -11,12 +10,14 @@ function makeUniformBuffer(gl, program, blockName) {
 
   const data = new DataView(new ArrayBuffer(blockSize))
 
-  function set(name, value) {
+  function set(name: string, value: any[]) {
+    // @ts-ignore
     if (!uniforms[name]) {
       // console.warn('No uniform property with name ', name);
       return
     }
 
+    // @ts-ignore
     const { type, size, offset, stride } = uniforms[name]
 
     switch (type) {
@@ -52,7 +53,7 @@ function makeUniformBuffer(gl, program, blockName) {
     }
   }
 
-  function bind(index) {
+  function bind(index: number) {
     gl.bindBuffer(gl.UNIFORM_BUFFER, buffer)
     gl.bufferSubData(gl.UNIFORM_BUFFER, 0, data)
     gl.bindBufferBase(gl.UNIFORM_BUFFER, index, buffer)
@@ -64,14 +65,19 @@ function makeUniformBuffer(gl, program, blockName) {
   }
 }
 
-function getUniformBlockInfo(gl, program, blockIndex) {
+function getUniformBlockInfo(gl: WebGL2RenderingContext, program: WebGLProgram, blockIndex: number) {
   const indices = gl.getActiveUniformBlockParameter(program, blockIndex, gl.UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES)
   const offset = gl.getActiveUniforms(program, indices, gl.UNIFORM_OFFSET)
   const stride = gl.getActiveUniforms(program, indices, gl.UNIFORM_ARRAY_STRIDE)
 
   const uniforms = {}
   for (let i = 0; i < indices.length; i++) {
-    const { name, type, size } = gl.getActiveUniform(program, indices[i])
+    const activeUniform = gl.getActiveUniform(program, indices[i])
+    if (!activeUniform) {
+      continue
+    }
+    const { name, type, size } = activeUniform
+    // @ts-ignore
     uniforms[name] = {
       type,
       size,
@@ -83,10 +89,19 @@ function getUniformBlockInfo(gl, program, blockIndex) {
   return uniforms
 }
 
-function setData(dataView, setter, size, offset, stride, components, value) {
+function setData(
+  dataView: DataView,
+  setter: string,
+  size: number,
+  offset: number,
+  stride: number,
+  components: number,
+  value: any
+) {
   const l = Math.min(value.length / components, size)
   for (let i = 0; i < l; i++) {
     for (let k = 0; k < components; k++) {
+      // @ts-ignore
       dataView[setter](offset + i * stride + k * 4, value[components * i + k], true)
     }
   }
