@@ -2,19 +2,19 @@
 import { clamp } from '../util'
 import { Vector2 } from 'three'
 
-function makeRenderSize(gl) {
+function makeRenderSize(gl: WebGL2RenderingContext) {
   const desiredMsPerFrame = 20
 
-  let fullWidth
-  let fullHeight
+  let fullWidth: number
+  let fullHeight: number
 
-  let renderWidth
-  let renderHeight
+  let renderWidth: number
+  let renderHeight: number
   let scale = new Vector2(1, 1)
 
   let pixelsPerFrame = pixelsPerFrameEstimate(gl)
 
-  function setSize(w, h) {
+  function setSize(w: number, h: number) {
     fullWidth = w
     fullHeight = h
     calcDimensions()
@@ -22,12 +22,15 @@ function makeRenderSize(gl) {
 
   function calcDimensions() {
     const aspectRatio = fullWidth / fullHeight
+    if (pixelsPerFrame === undefined) {
+      return
+    }
     renderWidth = Math.round(clamp(Math.sqrt(pixelsPerFrame * aspectRatio), 1, fullWidth))
     renderHeight = Math.round(clamp(renderWidth / aspectRatio, 1, fullHeight))
     scale.set(renderWidth / fullWidth, renderHeight / fullHeight)
   }
 
-  function adjustSize(elapsedFrameMs) {
+  function adjustSize(elapsedFrameMs: number) {
     if (!elapsedFrameMs) {
       return
     }
@@ -37,6 +40,9 @@ function makeRenderSize(gl) {
 
     const error = desiredMsPerFrame - elapsedFrameMs
 
+    if (pixelsPerFrame === undefined) {
+      return
+    }
     pixelsPerFrame += strength * error
     pixelsPerFrame = clamp(pixelsPerFrame, 8192, fullWidth * fullHeight)
     calcDimensions()
@@ -55,7 +61,7 @@ function makeRenderSize(gl) {
   }
 }
 
-function pixelsPerFrameEstimate(gl) {
+function pixelsPerFrameEstimate(gl: WebGL2RenderingContext) {
   const maxRenderbufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE)
 
   if (maxRenderbufferSize <= 8192) {
@@ -65,6 +71,7 @@ function pixelsPerFrameEstimate(gl) {
   } else if (maxRenderbufferSize >= 32768) {
     return 400000
   }
+  return
 }
 
 export { makeRenderSize }
