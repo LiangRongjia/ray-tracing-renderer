@@ -1,6 +1,6 @@
 // @ts-check
 import fragment from './glsl/toneMap.frag.js'
-import { makeRenderPass } from '../RenderPass.js'
+import { makeRenderPass } from '../RenderPass'
 import * as THREE from 'three'
 
 const toneMapFunctions = {

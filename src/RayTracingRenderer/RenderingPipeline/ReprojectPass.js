@@ -1,6 +1,6 @@
 // @ts-check
 import fragment from './glsl/reproject.frag.js'
-import { makeRenderPass } from '../RenderPass.js'
+import { makeRenderPass } from '../RenderPass'
 import * as THREE from 'three'
 
 function makeReprojectPass(gl, params) {

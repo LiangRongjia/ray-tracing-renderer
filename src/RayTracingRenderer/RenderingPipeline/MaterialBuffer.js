@@ -2,7 +2,7 @@
 import { ThinMaterial, ThickMaterial, ShadowCatcherMaterial } from '../../constants'
 import materialBufferChunk from './glsl/chunks/materialBuffer.glsl.js'
 import { makeUniformBuffer } from '../UniformBuffer.js'
-import { makeRenderPass } from "../RenderPass.js"
+import { makeRenderPass } from "../RenderPass"
 import { makeTexture } from './Texture.js'
 import { getTexturesFromMaterials, mergeTexturesFromMaterials } from '../texturesFromMaterials.js'
 
