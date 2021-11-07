@@ -48751,10 +48751,13 @@ function getUniforms(gl, program) {
         if (!location) {
             continue;
         }
-        uniforms = Object.assign(Object.assign({}, uniforms), { [name]: {
+        uniforms = {
+            ...uniforms,
+            [name]: {
                 type,
                 location
-            } });
+            }
+        };
     }
     return uniforms;
 }
@@ -48766,7 +48769,10 @@ function getAttributes(gl, program) {
         if (!activeAttrib) {
             continue;
         }
-        attributes = Object.assign(Object.assign({}, attributes), { [activeAttrib.name]: gl.getAttribLocation(program, activeAttrib.name) });
+        attributes = {
+            ...attributes,
+            [activeAttrib.name]: gl.getAttribLocation(program, activeAttrib.name)
+        };
     }
     return attributes;
 }
@@ -48786,7 +48792,10 @@ function makeUniformSetter(gl, program) {
             v2: 0,
             v3: 0
         };
-        uniforms = Object.assign(Object.assign({}, uniforms), { [name]: uniform });
+        uniforms = {
+            ...uniforms,
+            [name]: uniform
+        };
     }
     const failedUnis = new Set();
     function setUniform(name, v0, v1, v2, v3) {
@@ -48873,7 +48882,10 @@ function makeRenderPass(gl, params) {
     if (!program) {
         return;
     }
-    return Object.assign(Object.assign({}, makeRenderPassFromProgram(gl, program)), { outputLocs: fragment.outputs ? getOutputLocations(fragment.outputs) : {} });
+    return {
+        ...makeRenderPassFromProgram(gl, program),
+        outputLocs: fragment.outputs ? getOutputLocations(fragment.outputs) : {}
+    };
 }
 function makeVertexShader(gl, { defines, vertex }) {
     return makeShaderStage(gl, gl.VERTEX_SHADER, vertex, defines);
@@ -49601,62 +49613,53 @@ function getTextureFormat(gl, channels, storage, data, gammaCorrection) {
   }
 }
 
-// @ts-check
-// retrieve textures used by meshes, grouping textures from meshes shared by *the same* mesh property
 function getTexturesFromMaterials(meshes, textureNames) {
-  const textureMap = {};
-
-  for (const name of textureNames) {
-    const textures = [];
-    textureMap[name] = {
-      indices: texturesFromMaterials(meshes, name, textures),
-      textures
-    };
-  }
-
-  return textureMap
-}
-
-// retrieve textures used by meshes, grouping textures from meshes shared *across all* mesh properties
-function mergeTexturesFromMaterials(meshes, textureNames) {
-  const textureMap = {
-    textures: [],
-    indices: {}
-  };
-
-  for (const name of textureNames) {
-    textureMap.indices[name] = texturesFromMaterials(meshes, name, textureMap.textures);
-  }
-
-  return textureMap
-}
-
-function texturesFromMaterials(materials, textureName, textures) {
-  const indices = [];
-
-  for (const material of materials) {
-    const isTextureLoaded = material[textureName] && material[textureName].image;
-
-    if (!isTextureLoaded) {
-      indices.push(-1);
-    } else {
-      let index = textures.length;
-      for (let i = 0; i < textures.length; i++) {
-        if (textures[i] === material[textureName]) {
-          // Reuse existing duplicate texture.
-          index = i;
-          break
-        }
-      }
-      if (index === textures.length) {
-        // New texture. Add texture to list.
-        textures.push(material[textureName]);
-      }
-      indices.push(index);
+    let textureMap = {};
+    for (const name of textureNames) {
+        textureMap = {
+            ...textureMap,
+            [name]: texturesFromMaterials(meshes, name)
+        };
     }
-  }
-
-  return indices
+    return textureMap;
+}
+function mergeTexturesFromMaterials(meshes, textureNames) {
+    const temp = textureNames.map((name) => ({
+        name,
+        ...texturesFromMaterials(meshes, name)
+    }));
+    const textureMap = {
+        textures: temp.map((item) => item.textures).flat(),
+        indices: temp.reduce((acc, item) => ({
+            ...acc,
+            [item.name]: item.indices
+        }), {})
+    };
+    return textureMap;
+}
+function texturesFromMaterials(materials, textureName) {
+    const indices = [];
+    const textures = [];
+    for (const material of materials) {
+        const isTextureLoaded = material[textureName] && material[textureName].image;
+        if (!isTextureLoaded) {
+            indices.push(-1);
+        }
+        else {
+            let index = textures.length;
+            for (let i = 0; i < textures.length; i++) {
+                if (textures[i] === material[textureName]) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index === textures.length) {
+                textures.push(material[textureName]);
+            }
+            indices.push(index);
+        }
+    }
+    return { indices, textures };
 }
 
 // @ts-check
@@ -51760,7 +51763,7 @@ var fragment$1 = {
 
 function makeStratifiedSampler(strataCount, dimensions) {
     const strata = [];
-    const l = Math.pow(strataCount, dimensions);
+    const l = strataCount ** dimensions;
     for (let i = 0; i < l; i++) {
         strata[i] = i;
     }
@@ -53065,8 +53068,8 @@ class RayTracingRenderer {
             alert('你的浏览器不支持 webgl2，可能需要开启实验性功能或升级、更换浏览器。');
             return;
         }
-        glRequiredExtensions.map((name) => { var _a; return (_a = __classPrivateFieldGet(this, _RayTracingRenderer_gl)) === null || _a === void 0 ? void 0 : _a.getExtension(name); });
-        __classPrivateFieldSet(this, _RayTracingRenderer_optionalExtensions, glOptionalExtensions.map((name) => { var _a; return (_a = __classPrivateFieldGet(this, _RayTracingRenderer_gl)) === null || _a === void 0 ? void 0 : _a.getExtension(name); }));
+        glRequiredExtensions.map((name) => __classPrivateFieldGet(this, _RayTracingRenderer_gl)?.getExtension(name));
+        __classPrivateFieldSet(this, _RayTracingRenderer_optionalExtensions, glOptionalExtensions.map((name) => __classPrivateFieldGet(this, _RayTracingRenderer_gl)?.getExtension(name)));
         document.addEventListener('visibilitychange', () => __classPrivateFieldGet(this, _RayTracingRenderer_restartTimer).call(this));
         return this;
     }
@@ -53074,7 +53077,6 @@ class RayTracingRenderer {
         return __classPrivateFieldGet(this, _RayTracingRenderer_canvas);
     }
     setSize(width, height, updateStyle = true) {
-        var _a;
         __classPrivateFieldGet(this, _RayTracingRenderer_size).set(width, height);
         __classPrivateFieldGet(this, _RayTracingRenderer_canvas).width = __classPrivateFieldGet(this, _RayTracingRenderer_size).width * __classPrivateFieldGet(this, _RayTracingRenderer_pixelRatio);
         __classPrivateFieldGet(this, _RayTracingRenderer_canvas).height = __classPrivateFieldGet(this, _RayTracingRenderer_size).height * __classPrivateFieldGet(this, _RayTracingRenderer_pixelRatio);
@@ -53082,7 +53084,7 @@ class RayTracingRenderer {
             __classPrivateFieldGet(this, _RayTracingRenderer_canvas).style.width = `${__classPrivateFieldGet(this, _RayTracingRenderer_size).width}px`;
             __classPrivateFieldGet(this, _RayTracingRenderer_canvas).style.height = `${__classPrivateFieldGet(this, _RayTracingRenderer_size).height}px`;
         }
-        (_a = __classPrivateFieldGet(this, _RayTracingRenderer_pipeline)) === null || _a === void 0 ? void 0 : _a.setSize(__classPrivateFieldGet(this, _RayTracingRenderer_size).width * __classPrivateFieldGet(this, _RayTracingRenderer_pixelRatio), __classPrivateFieldGet(this, _RayTracingRenderer_size).height * __classPrivateFieldGet(this, _RayTracingRenderer_pixelRatio));
+        __classPrivateFieldGet(this, _RayTracingRenderer_pipeline)?.setSize(__classPrivateFieldGet(this, _RayTracingRenderer_size).width * __classPrivateFieldGet(this, _RayTracingRenderer_pixelRatio), __classPrivateFieldGet(this, _RayTracingRenderer_size).height * __classPrivateFieldGet(this, _RayTracingRenderer_pixelRatio));
     }
     getSize(target) {
         return target ? target.copy(__classPrivateFieldGet(this, _RayTracingRenderer_size)) : new Vector2().copy(__classPrivateFieldGet(this, _RayTracingRenderer_size));
@@ -53095,14 +53097,12 @@ class RayTracingRenderer {
         return __classPrivateFieldGet(this, _RayTracingRenderer_pixelRatio);
     }
     getTotalSamplesRendered() {
-        var _a;
-        return (_a = __classPrivateFieldGet(this, _RayTracingRenderer_pipeline)) === null || _a === void 0 ? void 0 : _a.getTotalSamplesRendered();
+        return __classPrivateFieldGet(this, _RayTracingRenderer_pipeline)?.getTotalSamplesRendered();
     }
     sync(t) {
         __classPrivateFieldSet(this, _RayTracingRenderer_currentTime, t || performance.now());
     }
     render(scene, camera) {
-        var _a, _b, _c;
         if (!this.renderWhenOffFocus) {
             const hasFocus = document.hasFocus();
             if (!hasFocus) {
@@ -53124,15 +53124,15 @@ class RayTracingRenderer {
             }
             __classPrivateFieldSet(this, _RayTracingRenderer_currentTime, performance.now());
         }
-        (_a = __classPrivateFieldGet(this, _RayTracingRenderer_pipeline)) === null || _a === void 0 ? void 0 : _a.time(__classPrivateFieldGet(this, _RayTracingRenderer_isValidTime) * __classPrivateFieldGet(this, _RayTracingRenderer_currentTime));
+        __classPrivateFieldGet(this, _RayTracingRenderer_pipeline)?.time(__classPrivateFieldGet(this, _RayTracingRenderer_isValidTime) * __classPrivateFieldGet(this, _RayTracingRenderer_currentTime));
         __classPrivateFieldSet(this, _RayTracingRenderer_isValidTime, 1);
         __classPrivateFieldSet(this, _RayTracingRenderer_currentTime, NaN);
         camera.updateMatrixWorld();
         if (this.maxHardwareUsage) {
-            (_b = __classPrivateFieldGet(this, _RayTracingRenderer_pipeline)) === null || _b === void 0 ? void 0 : _b.drawFull(camera);
+            __classPrivateFieldGet(this, _RayTracingRenderer_pipeline)?.drawFull(camera);
         }
         else {
-            (_c = __classPrivateFieldGet(this, _RayTracingRenderer_pipeline)) === null || _c === void 0 ? void 0 : _c.draw(camera);
+            __classPrivateFieldGet(this, _RayTracingRenderer_pipeline)?.draw(camera);
         }
     }
     dispose() {

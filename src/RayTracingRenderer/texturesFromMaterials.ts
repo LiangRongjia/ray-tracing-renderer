@@ -1,35 +1,43 @@
-// @ts-check
 // retrieve textures used by meshes, grouping textures from meshes shared by *the same* mesh property
-function getTexturesFromMaterials(meshes, textureNames) {
-  const textureMap = {}
+function getTexturesFromMaterials(meshes: string[], textureNames: string[]) {
+  let textureMap = {}
 
   for (const name of textureNames) {
-    const textures = []
-    textureMap[name] = {
-      indices: texturesFromMaterials(meshes, name, textures),
-      textures
+    textureMap = {
+      ...textureMap,
+      [name]: texturesFromMaterials(meshes, name)
     }
   }
 
-  return textureMap
+  return textureMap as {
+    [key: string]: {
+      indices: number[]
+      textures: any[]
+    }
+  }
 }
 
 // retrieve textures used by meshes, grouping textures from meshes shared *across all* mesh properties
-function mergeTexturesFromMaterials(meshes, textureNames) {
-  const textureMap = {
-    textures: [],
-    indices: {}
-  }
+function mergeTexturesFromMaterials(meshes: string[], textureNames: string[]) {
+  const temp = textureNames.map((name) => ({
+    name,
+    ...texturesFromMaterials(meshes, name)
+  }))
 
-  for (const name of textureNames) {
-    textureMap.indices[name] = texturesFromMaterials(meshes, name, textureMap.textures)
+  const textureMap = {
+    textures: temp.map((item) => item.textures).flat(),
+    indices: temp.reduce((acc, item) => ({
+      ...acc,
+      [item.name]: item.indices
+    }),{ } as { [key: string]: number[] })
   }
 
   return textureMap
 }
 
-function texturesFromMaterials(materials, textureName, textures) {
+function texturesFromMaterials(materials: any[], textureName: string) {
   const indices = []
+  const textures = []
 
   for (const material of materials) {
     const isTextureLoaded = material[textureName] && material[textureName].image
@@ -53,10 +61,7 @@ function texturesFromMaterials(materials, textureName, textures) {
     }
   }
 
-  return indices
+  return { indices, textures }
 }
 
-export {
-  getTexturesFromMaterials,
-  mergeTexturesFromMaterials
-}
+export { getTexturesFromMaterials, mergeTexturesFromMaterials }

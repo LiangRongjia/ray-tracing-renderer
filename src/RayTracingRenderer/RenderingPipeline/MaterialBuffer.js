@@ -4,7 +4,7 @@ import materialBufferChunk from './glsl/chunks/materialBuffer.glsl.js'
 import { makeUniformBuffer } from '../UniformBuffer.js'
 import { makeRenderPass } from "../RenderPass"
 import { makeTexture } from './Texture.js'
-import { getTexturesFromMaterials, mergeTexturesFromMaterials } from '../texturesFromMaterials.js'
+import { getTexturesFromMaterials, mergeTexturesFromMaterials } from '../texturesFromMaterials'
 
 function makeMaterialBuffer(gl, materials) {
   const maps = getTexturesFromMaterials(materials, ['map', 'normalMap'])
