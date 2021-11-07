@@ -37,7 +37,7 @@ function makeUniformSetter(gl: WebGL2RenderingContext, program: WebGLProgram) {
   const failedUnis = new Set()
 
   //@ts-ignore
-  function setUniform(name: string, v0, v1, v2, v3) {
+  function setUniform(name: string, v0, v1?, v2?, v3?) {
     // v0 - v4 are the values to be passed to the uniform
     // v0 can either be a number or an array, and v1-v3 are optional
     //@ts-ignore
