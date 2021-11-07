@@ -1,12 +1,20 @@
-// @ts-check
 import { getUniforms } from './glUtil'
 
-let typeMap
+let typeMap: {
+  [x: number]:
+    | {
+        values: string
+        array: string
+      }
+    | {
+        matrix: string
+      }
+}
 
-function makeUniformSetter(gl, program) {
+function makeUniformSetter(gl: WebGL2RenderingContext, program: WebGLProgram) {
   const uniformInfo = getUniforms(gl, program)
-  const uniforms = {}
-  const needsUpload = []
+  const needsUpload: { type: number; location: WebGLUniformLocation; v0: []; v1: []; v2: []; v3: [] }[] = []
+  let uniforms = {}
 
   for (let name in uniformInfo) {
     const { type, location } = uniformInfo[name]
@@ -20,14 +28,19 @@ function makeUniformSetter(gl, program) {
       v3: 0
     }
 
-    uniforms[name] = uniform
+    uniforms = {
+      ...uniforms,
+      [name]: uniform
+    }
   }
 
   const failedUnis = new Set()
 
-  function setUniform(name, v0, v1, v2, v3) {
+  //@ts-ignore
+  function setUniform(name: string, v0, v1, v2, v3) {
     // v0 - v4 are the values to be passed to the uniform
     // v0 can either be a number or an array, and v1-v3 are optional
+    //@ts-ignore
     const uni = uniforms[name]
 
     if (!uni) {
@@ -50,19 +63,27 @@ function makeUniformSetter(gl, program) {
 
   function upload() {
     while (needsUpload.length > 0) {
+      const needupld = needsUpload.pop()
 
-      const { type, location, v0, v1, v2, v3 } = needsUpload.pop()
+      if (!needupld) {
+        continue
+      }
+
+      const { type, location, v0, v1, v2, v3 } = needupld
       const glMethod = typeMap[type]
 
       if (v0.length) {
-        if (glMethod.matrix) {
+        if ('matrix' in glMethod) {
           const array = v0
           const transpose = v1 || false
+          // @ts-ignore
           gl[glMethod.matrix](location, transpose, array)
         } else {
+          //@ts-ignore
           gl[glMethod.array](location, v0)
         }
-      } else {
+      } else if ('values' in glMethod) {
+        //@ts-ignore
         gl[glMethod.values](location, v0, v1, v2, v3)
       }
     }
@@ -70,11 +91,11 @@ function makeUniformSetter(gl, program) {
 
   return {
     setUniform,
-    upload,
+    upload
   }
 }
 
-function initTypeMap(gl) {
+function initTypeMap(gl: WebGL2RenderingContext) {
   return {
     [gl.FLOAT]: glName(1, 'f'),
     [gl.FLOAT_VEC2]: glName(2, 'f'),
@@ -92,18 +113,16 @@ function initTypeMap(gl) {
   }
 }
 
-function glName(numComponents, type) {
+function glName(numComponents: number, type: string) {
   return {
     values: `uniform${numComponents}${type}`,
     array: `uniform${numComponents}${type}v`
   }
 }
 
-function glNameMatrix(rows, columns) {
+function glNameMatrix(rows: number, columns: number) {
   return {
-    matrix: rows === columns ?
-      `uniformMatrix${rows}fv` :
-      `uniformMatrix${rows}x${columns}fv`
+    matrix: rows === columns ? `uniformMatrix${rows}fv` : `uniformMatrix${rows}x${columns}fv`
   }
 }
 

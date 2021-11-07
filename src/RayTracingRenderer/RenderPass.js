@@ -1,6 +1,6 @@
 // @ts-check
 import { compileShader, createProgram, getAttributes } from './glUtil'
-import { makeUniformSetter } from './UniformSetter.js'
+import { makeUniformSetter } from './UniformSetter'
 
 function makeRenderPass(gl, params) {
   const {
