@@ -1,4 +1,3 @@
-// @ts-check
 import fragment from './glsl/toneMap.frag.js'
 import { makeRenderPass } from '../RenderPass'
 import * as THREE from 'three'
@@ -12,40 +11,36 @@ const toneMapFunctions = {
   [THREE.ACESFilmicToneMapping]: 'acesFilmic'
 }
 
-function makeToneMapPass(gl, params) {
-  const {
-    fullscreenQuad,
-    toneMappingParams
-  } = params
+// @ts-ignore
+function makeToneMapPass(gl: WebGL2RenderingContext, params) {
+  const { fullscreenQuad, toneMappingParams } = params
 
   const renderPassConfig = {
     gl,
     defines: {
       TONE_MAPPING: toneMapFunctions[toneMappingParams.toneMapping] || 'linear',
       WHITE_POINT: toneMappingParams.whitePoint.toExponential(), // toExponential allows integers to be represented as GLSL floats
-      EXPOSURE: toneMappingParams.exposure.toExponential()
+      EXPOSURE: toneMappingParams.exposure.toExponential(),
+      EDGE_PRESERVING_UPSCALE: true
     },
     vertex: fullscreenQuad.vertexShader,
-    fragment,
+    fragment
   }
 
-  renderPassConfig.defines.EDGE_PRESERVING_UPSCALE = true
   const renderPassUpscale = makeRenderPass(gl, renderPassConfig)
 
   renderPassConfig.defines.EDGE_PRESERVING_UPSCALE = false
   const renderPassNative = makeRenderPass(gl, renderPassConfig)
 
+  // @ts-ignore
   function draw(params) {
-    const {
-      light,
-      lightScale,
-      position
-    } = params
+    const { light, lightScale, position } = params
 
-    const renderPass =
-      lightScale.x !== 1 && lightScale.y !== 1 ?
-        renderPassUpscale :
-        renderPassNative
+    const renderPass = lightScale.x !== 1 && lightScale.y !== 1 ? renderPassUpscale : renderPassNative
+
+    if (!renderPass) {
+      return
+    }
 
     renderPass.setUniform('lightScale', lightScale.x, lightScale.y)
     renderPass.setTexture('lightTex', light)
