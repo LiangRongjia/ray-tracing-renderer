@@ -10,7 +10,7 @@ import { makeReprojectPass } from './ReprojectPass.js'
 import { makeToneMapPass } from './ToneMapPass.js'
 import { clamp, numberArraysEqual } from '../util'
 import { makeTileRender } from './TileRender.js'
-import { makeDepthTarget, makeTexture } from './Texture.js'
+import { makeDepthTarget, makeTexture } from './Texture'
 import noiseBase64 from './texture/noise.js'
 import { PerspectiveCamera, Vector2 } from 'three'
 

@@ -5,7 +5,7 @@ import { envMapDistribution } from '../../envMapDistribution'
 import fragment from '../glsl/rayTrace.frag.js'
 import { makeRenderPass } from '../../RenderPass'
 import { makeStratifiedSamplerCombined } from '../../StratifiedSamplerCombined'
-import { makeTexture } from '../Texture.js'
+import { makeTexture } from '../Texture'
 import { clamp } from '../../util'
 
 function makeRayTracePass(gl, {

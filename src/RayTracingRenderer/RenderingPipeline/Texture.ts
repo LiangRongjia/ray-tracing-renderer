@@ -1,7 +1,7 @@
-// @ts-check
 import { clamp } from '../util'
 
-function makeTexture(gl, params) {
+// @ts-ignore
+function makeTexture(gl: WebGL2RenderingContext, params) {
   let {
     width = null,
     height = null,
@@ -28,7 +28,7 @@ function makeTexture(gl, params) {
     wrapS = gl.CLAMP_TO_EDGE,
     wrapT = gl.CLAMP_TO_EDGE,
     minFilter = gl.NEAREST,
-    magFilter = gl.NEAREST,
+    magFilter = gl.NEAREST
   } = params
 
   width = width || data.width || 0
@@ -67,6 +67,10 @@ function makeTexture(gl, params) {
 
   const { type, format, internalFormat } = getTextureFormat(gl, channels, storage, data, gammaCorrection)
 
+  if (internalFormat === undefined || type === undefined) {
+    return
+  }
+
   if (dataArray) {
     gl.texStorage3D(target, 1, internalFormat, width, height, dataArray.length)
     for (let i = 0; i < dataArray.length; i++) {
@@ -99,7 +103,7 @@ function makeTexture(gl, params) {
   }
 }
 
-function makeDepthTarget(gl, width, height) {
+function makeDepthTarget(gl: WebGL2RenderingContext, width: number, height: number) {
   const texture = gl.createRenderbuffer()
   const target = gl.RENDERBUFFER
 
@@ -113,17 +117,25 @@ function makeDepthTarget(gl, width, height) {
   }
 }
 
-function getFormat(gl, channels) {
+function getFormat(gl: WebGL2RenderingContext, channels: number) {
   const map = {
     1: gl.RED,
     2: gl.RG,
     3: gl.RGB,
     4: gl.RGBA
   }
+  // @ts-ignore
   return map[channels]
 }
 
-function getTextureFormat(gl, channels, storage, data, gammaCorrection) {
+function getTextureFormat(
+  gl: WebGL2RenderingContext,
+  channels: number,
+  storage: string,
+  // @ts-ignore
+  data,
+  gammaCorrection: boolean
+) {
   let type
   let internalFormat
 
@@ -167,7 +179,7 @@ function getTextureFormat(gl, channels, storage, data, gammaCorrection) {
       1: gl.R8_SNORM,
       2: gl.RG8_SNORM,
       3: gl.RGB8_SNORM,
-      4: gl.RGBA8_SNORM,
+      4: gl.RGBA8_SNORM
     }[channels]
 
     type = gl.UNSIGNED_BYTE
@@ -182,7 +194,4 @@ function getTextureFormat(gl, channels, storage, data, gammaCorrection) {
   }
 }
 
-export {
-  makeTexture,
-  makeDepthTarget
-}
+export { makeTexture, makeDepthTarget }
