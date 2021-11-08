@@ -2,7 +2,7 @@
 import vertex from './glsl/fullscreenQuad.vert.js'
 import { makeVertexShader } from '../RenderPass'
 
-function makeFullscreenQuad(gl) {
+function makeFullscreenQuad(gl: WebGL2RenderingContext) {
   const vao = gl.createVertexArray()
 
   gl.bindVertexArray(vao)

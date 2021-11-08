@@ -1,6 +1,6 @@
 import { decomposeScene } from './decomposeScene.js'
 import { makeFramebuffer } from './Framebuffer'
-import { makeFullscreenQuad } from './FullscreenQuad.js'
+import { makeFullscreenQuad } from './FullscreenQuad'
 import { makeGBufferPass } from './GBufferPass.js'
 import { makeMaterialBuffer } from './MaterialBuffer'
 import { mergeMeshesToGeometry } from './mergeMeshesToGeometry.js'
