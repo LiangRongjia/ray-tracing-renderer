@@ -44,6 +44,10 @@ class RayTracingRenderer {
 
     const bounces = this.bounces
 
+    if (this.#gl === null) {
+      throw new Error('this.#gl === null')
+    }
+
     this.#pipeline = makeRenderingPipeline({
       gl: this.#gl,
       optionalExtensions: this.#optionalExtensions,

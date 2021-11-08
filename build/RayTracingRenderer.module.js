@@ -48689,8 +48689,8 @@ var vertex = {
 
 function compileShader(gl, type, source) {
     const shader = gl.createShader(type);
-    if (!shader) {
-        return;
+    if (shader === null) {
+        throw new Error('gl.createShader(type) === null');
     }
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
@@ -48707,8 +48707,8 @@ function compileShader(gl, type, source) {
 }
 function createProgram(gl, vertexShader, fragmentShader, transformVaryings, transformBufferMode) {
     const program = gl.createProgram();
-    if (!program) {
-        return;
+    if (program === null) {
+        throw new Error('gl.createProgram() === null');
     }
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
@@ -49411,6 +49411,9 @@ function makeTexture(gl, params) {
     width = width || data.width || 0;
     height = height || data.height || 0;
     const texture = gl.createTexture();
+    if (texture === null) {
+        throw new Error('gl.createTexture() === null');
+    }
     let target;
     let dataArray;
     if (Array.isArray(data)) {
@@ -49434,9 +49437,6 @@ function makeTexture(gl, params) {
     }
     channels = clamp(channels, 1, 4);
     const { type, format, internalFormat } = getTextureFormat(gl, channels, storage, data, gammaCorrection);
-    if (internalFormat === undefined || type === undefined) {
-        return;
-    }
     if (dataArray) {
         gl.texStorage3D(target, 1, internalFormat, width, height, dataArray.length);
         for (let i = 0; i < dataArray.length; i++) {
@@ -49465,6 +49465,9 @@ function makeTexture(gl, params) {
 function makeDepthTarget(gl, width, height) {
     const texture = gl.createRenderbuffer();
     const target = gl.RENDERBUFFER;
+    if (texture === null) {
+        throw new Error('gl.createRenderbuffer() === null');
+    }
     gl.bindRenderbuffer(target, texture);
     gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, width, height);
     gl.bindRenderbuffer(target, null);
@@ -49483,8 +49486,8 @@ function getFormat(gl, channels) {
     return map[channels];
 }
 function getTextureFormat(gl, channels, storage, data, gammaCorrection) {
-    let type;
-    let internalFormat;
+    let type = NaN;
+    let internalFormat = NaN;
     const isByteArray = data instanceof Uint8Array ||
         data instanceof HTMLImageElement ||
         data instanceof HTMLCanvasElement ||
@@ -49526,9 +49529,8 @@ function getTextureFormat(gl, channels, storage, data, gammaCorrection) {
         }[channels];
         type = gl.UNSIGNED_BYTE;
     }
-    const format = getFormat(gl, channels);
     return {
-        format,
+        format: getFormat(gl, channels),
         internalFormat,
         type
     };
@@ -52754,6 +52756,9 @@ class RayTracingRenderer {
                 toneMapping: this.toneMapping
             };
             const bounces = this.bounces;
+            if (__classPrivateFieldGet(this, _RayTracingRenderer_gl) === null) {
+                throw new Error('this.#gl === null');
+            }
             __classPrivateFieldSet(this, _RayTracingRenderer_pipeline, makeRenderingPipeline({
                 gl: __classPrivateFieldGet(this, _RayTracingRenderer_gl),
                 optionalExtensions: __classPrivateFieldGet(this, _RayTracingRenderer_optionalExtensions),

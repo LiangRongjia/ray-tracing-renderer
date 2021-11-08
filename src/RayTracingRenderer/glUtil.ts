@@ -1,8 +1,8 @@
 function compileShader(gl: WebGL2RenderingContext, type: number, source: string) {
   const shader = gl.createShader(type)
 
-  if (!shader) {
-    return
+  if (shader === null) {
+    throw new Error('gl.createShader(type) === null')
   }
 
   gl.shaderSource(shader, source)
@@ -31,8 +31,8 @@ function createProgram(
 ) {
   const program = gl.createProgram()
 
-  if (!program) {
-    return
+  if (program === null) {
+    throw new Error('gl.createProgram() === null')
   }
 
   gl.attachShader(program, vertexShader)

@@ -1,7 +1,7 @@
 import { clamp } from '../util'
 
 // @ts-ignore
-function makeTexture(gl: WebGL2RenderingContext, params) {
+function makeTexture(gl: WebGL2RenderingContext, params: any) {
   let {
     width = null,
     height = null,
@@ -36,6 +36,10 @@ function makeTexture(gl: WebGL2RenderingContext, params) {
 
   const texture = gl.createTexture()
 
+  if (texture === null) {
+    throw new Error('gl.createTexture() === null')
+  }
+
   let target
   let dataArray
 
@@ -66,10 +70,6 @@ function makeTexture(gl: WebGL2RenderingContext, params) {
   channels = clamp(channels, 1, 4)
 
   const { type, format, internalFormat } = getTextureFormat(gl, channels, storage, data, gammaCorrection)
-
-  if (internalFormat === undefined || type === undefined) {
-    return
-  }
 
   if (dataArray) {
     gl.texStorage3D(target, 1, internalFormat, width, height, dataArray.length)
@@ -107,6 +107,10 @@ function makeDepthTarget(gl: WebGL2RenderingContext, width: number, height: numb
   const texture = gl.createRenderbuffer()
   const target = gl.RENDERBUFFER
 
+  if (texture === null) {
+    throw new Error('gl.createRenderbuffer() === null')
+  }
+
   gl.bindRenderbuffer(target, texture)
   gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, width, height)
   gl.bindRenderbuffer(target, null)
@@ -117,27 +121,26 @@ function makeDepthTarget(gl: WebGL2RenderingContext, width: number, height: numb
   }
 }
 
-function getFormat(gl: WebGL2RenderingContext, channels: number) {
+function getFormat(gl: WebGL2RenderingContext, channels: 1 | 2 | 3 | 4): number {
   const map = {
     1: gl.RED,
     2: gl.RG,
     3: gl.RGB,
     4: gl.RGBA
   }
-  // @ts-ignore
   return map[channels]
 }
 
 function getTextureFormat(
   gl: WebGL2RenderingContext,
-  channels: number,
-  storage: string,
+  channels: 1 | 2 | 3 | 4,
+  storage: 'byte' | 'float' | 'halfFloat' | 'snorm',
   // @ts-ignore
   data,
   gammaCorrection: boolean
 ) {
-  let type
-  let internalFormat
+  let type: number = NaN
+  let internalFormat: number = NaN
 
   const isByteArray =
     data instanceof Uint8Array ||
@@ -185,10 +188,8 @@ function getTextureFormat(
     type = gl.UNSIGNED_BYTE
   }
 
-  const format = getFormat(gl, channels)
-
   return {
-    format,
+    format: getFormat(gl, channels),
     internalFormat,
     type
   }
