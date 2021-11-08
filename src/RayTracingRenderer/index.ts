@@ -1,4 +1,4 @@
-import { makeRenderingPipeline, Pipeline } from './RenderingPipeline'
+import { RenderingPipeline } from './RenderingPipeline'
 import * as THREE from 'three'
 
 const glRequiredExtensions = [
@@ -14,7 +14,7 @@ class RayTracingRenderer {
   #canvas: HTMLCanvasElement = document.createElement('canvas')
   #gl: WebGL2RenderingContext
   #size: THREE.Vector2 = new THREE.Vector2()
-  #pipeline: Pipeline | null = null
+  #pipeline: RenderingPipeline | null = null
   #pixelRatio: number = 1
   #isValidTime: number = 1
   #currentTime: number = NaN
@@ -35,7 +35,7 @@ class RayTracingRenderer {
 
     const bounces = this.bounces
 
-    this.#pipeline = makeRenderingPipeline({
+    this.#pipeline = new RenderingPipeline({
       gl: this.#gl,
       optionalExtensions: this.#optionalExtensions,
       scene,
@@ -44,7 +44,7 @@ class RayTracingRenderer {
     })
 
     if (this.#pipeline) {
-      this.#pipeline.onSampleRendered = (...args) => {
+      this.#pipeline.onSampleRendered = (...args: any[]) => {
         this.onSampleRendered(...args)
       }
     }
