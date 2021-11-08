@@ -1,7 +1,7 @@
 import { decomposeScene } from './decomposeScene.js'
 import { makeFramebuffer } from './Framebuffer'
 import { makeFullscreenQuad } from './FullscreenQuad.js'
-import { makeGBufferPass } from './GBufferPass'
+import { makeGBufferPass } from './GBufferPass.js'
 import { makeMaterialBuffer } from './MaterialBuffer'
 import { mergeMeshesToGeometry } from './mergeMeshesToGeometry.js'
 import { makeRayTracePass } from './RayTracePass/index.js'
@@ -19,9 +19,14 @@ function makeRenderingPipeline({
   optionalExtensions,
   scene,
   toneMappingParams,
-  bounces, // number of global illumination bounces
+  bounces // number of global illumination bounces
+}: {
+  gl: WebGL2RenderingContext
+  optionalExtensions: string[]
+  scene: THREE.Scene
+  toneMappingParams: any
+  bounces: number // number of global illumination bounces
 }) {
-
   const maxReprojectedSamples = 20
 
   // how many samples to render with uniform noise before switching to stratified noise
@@ -48,7 +53,14 @@ function makeRenderingPipeline({
 
   const fullscreenQuad = makeFullscreenQuad(gl)
 
-  const rayTracePass = makeRayTracePass(gl, { bounces, decomposedScene, fullscreenQuad, materialBuffer, mergedMesh, optionalExtensions, scene })
+  const rayTracePass = makeRayTracePass(gl, {
+    bounces,
+    decomposedScene,
+    fullscreenQuad,
+    materialBuffer,
+    mergedMesh,
+    optionalExtensions
+  })
 
   const reprojectPass = makeReprojectPass(gl, { fullscreenQuad, maxReprojectedSamples })
 
@@ -65,16 +77,16 @@ function makeRenderingPipeline({
     ready = true
   }
 
-  let frameTime
-  let elapsedFrameTime
-  let sampleTime
+  let frameTime: number
+  let elapsedFrameTime: number
+  let sampleTime: number
 
   let sampleCount = 0
   let numPreviewsRendered = 0
 
   let firstFrame = true
 
-  let sampleRenderedCallback = () => { }
+  let sampleRenderedCallback: (n1?: number, n2?: number) => void = () => {}
 
   const lastCamera = new PerspectiveCamera()
   lastCamera.position.set(1, 1, 1)
@@ -87,24 +99,56 @@ function makeRenderingPipeline({
 
   let lastToneMappedScale = fullscreenScale
 
-  let hdrBuffer
-  let hdrBackBuffer
-  let reprojectBuffer
-  let reprojectBackBuffer
+  interface Buffer {
+    color: {
+      [key: string]: {
+        target: number
+        texture: WebGLTexture
+      }
+    }
+    bind: () => void
+    unbind: () => void
+  }
 
-  let gBuffer
-  let gBufferBack
+  let hdrBuffer: Buffer
+  let hdrBackBuffer: Buffer
+  let reprojectBuffer: Buffer
+  let reprojectBackBuffer: Buffer
 
-  let lastToneMappedTexture
+  let gBuffer: Buffer
+  let gBufferBack: Buffer
 
-  function initFrameBuffers(width, height) {
-    const makeHdrBuffer = () => makeFramebuffer(gl, {
-      color: { 0: makeTexture(gl, { width, height, storage: 'float', magFilter: gl.LINEAR, minFilter: gl.LINEAR }) }
-    })
+  let lastToneMappedTexture: {
+    target: number
+    texture: WebGLTexture
+  }
 
-    const makeReprojectBuffer = () => makeFramebuffer(gl, {
-      color: { 0: makeTexture(gl, { width, height, storage: 'float', magFilter: gl.LINEAR, minFilter: gl.LINEAR }) }
-    })
+  function initFrameBuffers(width: number, height: number) {
+    const makeHdrBuffer = () =>
+      makeFramebuffer(gl, {
+        color: {
+          0: makeTexture(gl, {
+            width,
+            height,
+            storage: 'float',
+            magFilter: gl.LINEAR,
+            minFilter: gl.LINEAR
+          })
+        }
+      })
+
+    const makeReprojectBuffer = () =>
+      makeFramebuffer(gl, {
+        color: {
+          0: makeTexture(gl, {
+            width,
+            height,
+            storage: 'float',
+            magFilter: gl.LINEAR,
+            minFilter: gl.LINEAR
+          })
+        }
+      })
 
     hdrBuffer = makeHdrBuffer()
     hdrBackBuffer = makeHdrBuffer()
@@ -118,20 +162,27 @@ function makeRenderingPipeline({
     const matProps = makeTexture(gl, { width, height, storage: 'byte', channels: 2 })
     const depthTarget = makeDepthTarget(gl, width, height)
 
-    const makeGBuffer = () => makeFramebuffer(gl, {
-      color: {
-        [gBufferPass.outputLocs.position]: makeTexture(gl, { width, height, storage: 'float' }),
-        [gBufferPass.outputLocs.normal]: normalBuffer,
-        [gBufferPass.outputLocs.faceNormal]: faceNormalBuffer,
-        [gBufferPass.outputLocs.color]: colorBuffer,
-        [gBufferPass.outputLocs.matProps]: matProps,
-      },
-      depth: depthTarget
-    })
+    const makeGBuffer = () =>
+      makeFramebuffer(gl, {
+        color: {
+          // @ts-ignore
+          [gBufferPass.outputLocs.position]: makeTexture(gl, { width, height, storage: 'float' }),
+          // @ts-ignore
+          [gBufferPass.outputLocs.normal]: normalBuffer,
+          // @ts-ignore
+          [gBufferPass.outputLocs.faceNormal]: faceNormalBuffer,
+          // @ts-ignore
+          [gBufferPass.outputLocs.color]: colorBuffer,
+          // @ts-ignore
+          [gBufferPass.outputLocs.matProps]: matProps
+        },
+        depth: depthTarget
+      })
 
     gBuffer = makeGBuffer()
     gBufferBack = makeGBuffer()
 
+    // @ts-ignore
     lastToneMappedTexture = hdrBuffer.color[rayTracePass.outputLocs.light]
   }
 
@@ -161,7 +212,7 @@ function makeRenderingPipeline({
     swapHdrBuffer()
   }
 
-  function setSize(w, h) {
+  function setSize(w: number, h: number) {
     screenWidth = w
     screenHeight = h
 
@@ -172,18 +223,20 @@ function makeRenderingPipeline({
   }
 
   // called every frame to update clock
-  function time(newTime) {
+  function time(newTime: number) {
     elapsedFrameTime = newTime - frameTime
     frameTime = newTime
   }
 
-  function areCamerasEqual(cam1, cam2) {
-    return numberArraysEqual(cam1.matrixWorld.elements, cam2.matrixWorld.elements) &&
+  function areCamerasEqual(cam1: any, cam2: any) {
+    return (
+      numberArraysEqual(cam1.matrixWorld.elements, cam2.matrixWorld.elements) &&
       cam1.aspect === cam2.aspect &&
       cam1.fov === cam2.fov
+    )
   }
 
-  function updateSeed(width, height, useJitter = true) {
+  function updateSeed(width: number, height: number, useJitter: boolean = true) {
     rayTracePass.setSize(width, height)
 
     const jitterX = useJitter ? (Math.random() - 0.5) / width : 0
@@ -201,13 +254,13 @@ function makeRenderingPipeline({
     }
   }
 
-  function clearBuffer(buffer) {
+  function clearBuffer(buffer: Buffer) {
     buffer.bind()
     gl.clear(gl.COLOR_BUFFER_BIT)
     buffer.unbind()
   }
 
-  function addSampleToBuffer(buffer, width, height) {
+  function addSampleToBuffer(buffer: Buffer, width: number, height: number) {
     buffer.bind()
 
     gl.blendEquation(gl.FUNC_ADD)
@@ -221,19 +274,21 @@ function makeRenderingPipeline({
     buffer.unbind()
   }
 
-  function newSampleToBuffer(buffer, width, height) {
+  function newSampleToBuffer(buffer: Buffer, width: number, height: number) {
     buffer.bind()
     gl.viewport(0, 0, width, height)
     rayTracePass.draw()
     buffer.unbind()
   }
 
+  // @ts-ignore
   function toneMapToScreen(lightTexture, lightScale) {
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
     toneMapPass.draw({
       light: lightTexture,
       lightScale,
-      position: gBuffer.color[gBufferPass.outputLocs.position],
+      // @ts-ignore
+      position: gBuffer.color[gBufferPass.outputLocs.position]
     })
 
     lastToneMappedTexture = lightTexture
@@ -248,22 +303,27 @@ function makeRenderingPipeline({
     gBuffer.unbind()
 
     rayTracePass.setGBuffers({
+      // @ts-ignore
       position: gBuffer.color[gBufferPass.outputLocs.position],
+      // @ts-ignore
       normal: gBuffer.color[gBufferPass.outputLocs.normal],
+      // @ts-ignore
       faceNormal: gBuffer.color[gBufferPass.outputLocs.faceNormal],
+      // @ts-ignore
       color: gBuffer.color[gBufferPass.outputLocs.color],
+      // @ts-ignore
       matProps: gBuffer.color[gBufferPass.outputLocs.matProps]
     })
   }
 
-  function renderTile(buffer, x, y, width, height) {
+  function renderTile(buffer: Buffer, x: number, y: number, width: number, height: number) {
     gl.scissor(x, y, width, height)
     gl.enable(gl.SCISSOR_TEST)
     addSampleToBuffer(buffer, screenWidth, screenHeight)
     gl.disable(gl.SCISSOR_TEST)
   }
 
-  function setCameras(camera, lastCamera) {
+  function setCameras(camera: THREE.Camera, lastCamera: THREE.Camera) {
     rayTracePass.setCamera(camera)
     gBufferPass.setCamera(camera)
     reprojectPass.setPreviousCamera(lastCamera)
@@ -292,10 +352,12 @@ function makeRenderingPipeline({
       blendAmount: 1.0,
       light: hdrBuffer.color[0],
       lightScale: previewSize.scale,
+      // @ts-ignore
       position: gBuffer.color[gBufferPass.outputLocs.position],
       previousLight: lastToneMappedTexture,
       previousLightScale: lastToneMappedScale,
-      previousPosition: gBufferBack.color[gBufferPass.outputLocs.position],
+      // @ts-ignore
+      previousPosition: gBufferBack.color[gBufferPass.outputLocs.position]
     })
     reprojectBuffer.unbind()
 
@@ -308,8 +370,8 @@ function makeRenderingPipeline({
     const { x, y, tileWidth, tileHeight, isFirstTile, isLastTile } = tileRender.nextTile(elapsedFrameTime)
 
     if (isFirstTile) {
-
-      if (sampleCount === 0) { // previous rendered image was a preview image
+      if (sampleCount === 0) {
+        // previous rendered image was a preview image
         clearBuffer(hdrBuffer)
         reprojectPass.setPreviousCamera(lastCamera)
       } else {
@@ -337,10 +399,12 @@ function makeRenderingPipeline({
           blendAmount,
           light: hdrBuffer.color[0],
           lightScale: fullscreenScale,
+          // @ts-ignore
           position: gBuffer.color[gBufferPass.outputLocs.position],
           previousLight: reprojectBackBuffer.color[0],
           previousLightScale: previewSize.scale,
-          previousPosition: gBufferBack.color[gBufferPass.outputLocs.position],
+          // @ts-ignore
+          previousPosition: gBufferBack.color[gBufferPass.outputLocs.position]
         })
         reprojectBuffer.unbind()
 
@@ -351,32 +415,34 @@ function makeRenderingPipeline({
     }
   }
 
-  function draw(camera) {
+  function draw(camera: THREE.Camera) {
     if (!ready) {
       return
     }
 
-    if (!areCamerasEqual(camera, lastCamera)) {
-      setCameras(camera, lastCamera)
-
-      if (firstFrame) {
-        firstFrame = false
-      } else {
-        drawPreview(camera, lastCamera)
-        numPreviewsRendered++
-      }
-      tileRender.reset()
-      sampleCount = 0
-    } else {
+    if (areCamerasEqual(camera, lastCamera)) {
       drawTile()
       numPreviewsRendered = 0
+      return
     }
+
+    setCameras(camera, lastCamera)
+
+    if (firstFrame) {
+      firstFrame = false
+    } else {
+      drawPreview()
+      numPreviewsRendered++
+    }
+
+    tileRender.reset()
+    sampleCount = 0
   }
 
   // debug draw call to measure performance
   // use full resolution buffers every frame
   // reproject every frame
-  function drawFull(camera) {
+  function drawFull(camera: THREE.Camera) {
     if (!ready) {
       return
     }
@@ -395,7 +461,7 @@ function makeRenderingPipeline({
 
     updateSeed(screenWidth, screenHeight, true)
 
-    renderGBuffer(camera)
+    renderGBuffer()
 
     rayTracePass.bindTextures()
     addSampleToBuffer(hdrBuffer, screenWidth, screenHeight)
@@ -406,10 +472,12 @@ function makeRenderingPipeline({
       blendAmount: 1.0,
       light: hdrBuffer.color[0],
       lightScale: fullscreenScale,
+      // @ts-ignore
       position: gBuffer.color[gBufferPass.outputLocs.position],
       previousLight: lastToneMappedTexture,
       previousLightScale: lastToneMappedScale,
-      previousPosition: gBufferBack.color[gBufferPass.outputLocs.position],
+      // @ts-ignore
+      previousPosition: gBufferBack.color[gBufferPass.outputLocs.position]
     })
     reprojectBuffer.unbind()
 

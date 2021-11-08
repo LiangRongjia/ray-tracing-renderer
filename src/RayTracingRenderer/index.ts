@@ -1,4 +1,4 @@
-import { makeRenderingPipeline } from './RenderingPipeline/index.js'
+import { makeRenderingPipeline } from './RenderingPipeline'
 import * as THREE from 'three'
 
 interface Pipeline {
@@ -7,7 +7,7 @@ interface Pipeline {
   setSize: (w: any, h: any) => void
   time: (newTime: any) => void
   getTotalSamplesRendered(): number
-  onSampleRendered: () => void
+  onSampleRendered: (n1?: number, n2?: number) => void
 }
 
 const glRequiredExtensions = [
