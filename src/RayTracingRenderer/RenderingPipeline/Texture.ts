@@ -1,5 +1,100 @@
 import { clamp } from '../util'
 
+// interface TextureProps {
+//   width?: number
+//   height?: number
+
+//   // A single HTMLImageElement, ImageData, or TypedArray,
+//   // Or an array of any of these objects. In this case an Array Texture will be created
+//   data?: any
+
+//   // If greater than 1, create an Array Texture of this length
+//   length?: number
+
+//   // Number of channels, [1-4]. If left blank, the the function will decide the number of channels automatically from the data
+//   channels?: 1 | 2 | 3 | 4
+
+//   // Either 'byte' or 'float'
+//   // If left empty, the function will decide the format automatically from the data
+//   storage?: any
+
+//   // Reverse the texture across the y-axis.
+//   flipY?: boolean
+
+//   // sampling properties
+//   gammaCorrection?: boolean
+//   wrapS?: number
+//   wrapT?: number
+//   minFilter?: number
+//   magFilter?: number
+// }
+
+// class Texture {
+//   width: number = 0
+//   height: number = 0
+
+//   // A single HTMLImageElement, ImageData, or TypedArray,
+//   // Or an array of any of these objects. In this case an Array Texture will be created
+//   data: any = null
+
+//   // If greater than 1, create an Array Texture of this length
+//   length: number = 1
+
+//   // Number of channels, [1-4]. If left blank, the the function will decide the number of channels automatically from the data
+//   channels: any = null
+
+//   // Either 'byte' or 'float'
+//   // If left empty, the function will decide the format automatically from the data
+//   storage: any = null
+
+//   // Reverse the texture across the y-axis.
+//   flipY: boolean = false
+
+//   // sampling properties
+//   gammaCorrection: boolean = false
+//   wrapS: number = 0
+//   wrapT: number = 0
+//   minFilter: number = 0
+//   magFilter: number = 0
+
+//   texture: WebGLTexture | null
+
+//   target
+//   dataArray
+
+//   constructor(gl: WebGL2RenderingContext, params: TextureProps) {
+//     params.width !== undefined && (this.width = params.width)
+//     params.height !== undefined && (this.height = params.height)
+//     params.data !== undefined && (this.data = params.data)
+//     params.length !== undefined && (this.length = params.length)
+//     params.channels !== undefined && (this.channels = params.channels)
+//     params.storage !== undefined && (this.storage = params.storage)
+//     params.flipY !== undefined && (this.flipY = params.flipY)
+//     params.gammaCorrection !== undefined && (this.gammaCorrection = params.gammaCorrection)
+//     this.wrapS = params.wrapS !== undefined ? params.wrapS : gl.CLAMP_TO_EDGE
+//     this.wrapT = params.wrapT !== undefined ? params.wrapT : gl.CLAMP_TO_EDGE
+//     this.minFilter = params.minFilter !== undefined ? params.minFilter : gl.NEAREST
+//     this.magFilter = params.magFilter !== undefined ? params.magFilter : gl.NEAREST
+//     this.texture = gl.createTexture()
+
+//     // if data is a JS array but not a TypedArray, assume data is an array of images and create a GL Array Texture
+//     if (Array.isArray(this.data)) {
+//       this.dataArray = this.data
+//       this.data = this.dataArray[0]
+//     }
+
+//     this.target = this.dataArray || length > 1 ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_2D
+
+//     gl.activeTexture(gl.TEXTURE0)
+//     gl.bindTexture(this.target, this.texture)
+
+//     gl.texParameteri(this.target, gl.TEXTURE_WRAP_S, this.wrapS)
+//     gl.texParameteri(target, gl.TEXTURE_WRAP_T, wrapT)
+//     gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, minFilter)
+//     gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, magFilter)
+//   }
+// }
+
 // @ts-ignore
 function makeTexture(gl: WebGL2RenderingContext, params: any) {
   let {

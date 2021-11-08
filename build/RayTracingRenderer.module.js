@@ -49563,7 +49563,9 @@ function texturesFromMaterials(materials, textureName) {
 function makeMaterialBuffer(gl, materials) {
     const maps = getTexturesFromMaterials(materials, ['map', 'normalMap']);
     const pbrMap = mergeTexturesFromMaterials(materials, ['roughnessMap', 'metalnessMap']);
-    const textures = {};
+    const mapTextureArray = maps.map.textures.length > 0 ? makeTextureArray(gl, maps.map.textures, true) : null;
+    const normalMapTextureArray = maps.normalMap.textures.length > 0 ? makeTextureArray(gl, maps.normalMap.textures, false) : null;
+    const pbrMapTextureArray = pbrMap.textures.length > 0 ? makeTextureArray(gl, pbrMap.textures, false) : null;
     const bufferData = {
         color: materials.map((m) => m.color),
         roughness: materials.map((m) => m.roughness),
@@ -49576,27 +49578,42 @@ function makeMaterialBuffer(gl, materials) {
             if (m.transparent) {
                 return m.solid ? ThickMaterial : ThinMaterial;
             }
-        })
+        }),
+        ...(() => {
+            const _diffuseMap = mapTextureArray !== null
+                ? {
+                    diffuseMapSize: mapTextureArray.relativeSizes,
+                    diffuseMapIndex: maps.map.indices
+                }
+                : {};
+            const _normalMap = normalMapTextureArray !== null
+                ? {
+                    normalMapSize: normalMapTextureArray.relativeSizes,
+                    normalMapIndex: maps.normalMap.indices
+                }
+                : {};
+            const _pbrMap = pbrMapTextureArray !== null ? {
+                pbrMapSize: pbrMapTextureArray.relativeSizes,
+                roughnessMapIndex: pbrMap.indices.roughnessMap,
+                metalnessMapIndex: pbrMap.indices.metalnessMap
+            } : {};
+            return {
+                ..._diffuseMap,
+                ..._normalMap,
+                ..._pbrMap
+            };
+        })()
     };
-    if (maps.map.textures.length > 0) {
-        const { relativeSizes, texture } = makeTextureArray(gl, maps.map.textures, true);
-        textures.diffuseMap = texture;
-        bufferData.diffuseMapSize = relativeSizes;
-        bufferData.diffuseMapIndex = maps.map.indices;
-    }
-    if (maps.normalMap.textures.length > 0) {
-        const { relativeSizes, texture } = makeTextureArray(gl, maps.normalMap.textures, false);
-        textures.normalMap = texture;
-        bufferData.normalMapSize = relativeSizes;
-        bufferData.normalMapIndex = maps.normalMap.indices;
-    }
-    if (pbrMap.textures.length > 0) {
-        const { relativeSizes, texture } = makeTextureArray(gl, pbrMap.textures, false);
-        textures.pbrMap = texture;
-        bufferData.pbrMapSize = relativeSizes;
-        bufferData.roughnessMapIndex = pbrMap.indices.roughnessMap;
-        bufferData.metalnessMapIndex = pbrMap.indices.metalnessMap;
-    }
+    const textures = (() => {
+        const _diffuseMap = mapTextureArray !== null ? { diffuseMap: mapTextureArray.texture } : {};
+        const _normalMap = normalMapTextureArray !== null ? { normalMap: normalMapTextureArray.texture } : {};
+        const _pbrMap = pbrMapTextureArray !== null ? { pbrMap: pbrMapTextureArray.texture } : {};
+        return {
+            ..._diffuseMap,
+            ..._normalMap,
+            ..._pbrMap
+        };
+    })();
     const defines = {
         NUM_MATERIALS: materials.length,
         NUM_DIFFUSE_MAPS: maps.map.textures.length,
