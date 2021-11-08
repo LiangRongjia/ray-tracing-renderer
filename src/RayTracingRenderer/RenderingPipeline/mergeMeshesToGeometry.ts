@@ -1,8 +1,7 @@
-// @ts-check
 import { BufferGeometry, BufferAttribute } from 'three'
 
-function mergeMeshesToGeometry(meshes) {
-
+// @ts-ignore
+function mergeMeshesToGeometry(meshes: any[]) {
   let vertexCount = 0
   let indexCount = 0
 
@@ -14,9 +13,9 @@ function mergeMeshesToGeometry(meshes) {
       continue
     }
 
-    const geometry = mesh.geometry.isBufferGeometry ?
-      cloneBufferGeometry(mesh.geometry, ['position', 'normal', 'uv']) : // BufferGeometry object
-      new BufferGeometry().fromGeometry(mesh.geometry) // Geometry object
+    const geometry = mesh.geometry.isBufferGeometry
+      ? cloneBufferGeometry(mesh.geometry, ['position', 'normal', 'uv']) // BufferGeometry object
+      : new BufferGeometry().fromGeometry(mesh.geometry) // Geometry object
 
     const index = geometry.getIndex()
     if (!index) {
@@ -55,7 +54,8 @@ function mergeMeshesToGeometry(meshes) {
   }
 }
 
-function mergeGeometry(geometryAndMaterialIndex, vertexCount, indexCount) {
+// @ts-ignore
+function mergeGeometry(geometryAndMaterialIndex, vertexCount: number, indexCount: number) {
   const positionAttrib = new BufferAttribute(new Float32Array(3 * vertexCount), 3, false)
   const normalAttrib = new BufferAttribute(new Float32Array(3 * vertexCount), 3, false)
   const uvAttrib = new BufferAttribute(new Float32Array(2 * vertexCount), 2, false)
@@ -94,6 +94,7 @@ function mergeGeometry(geometryAndMaterialIndex, vertexCount, indexCount) {
   return mergedGeometry
 }
 
+// @ts-ignore
 // Similar to buffergeometry.clone(), except we only copy
 // specific attributes instead of everything
 function cloneBufferGeometry(bufferGeometry, attributes) {
@@ -114,7 +115,7 @@ function cloneBufferGeometry(bufferGeometry, attributes) {
   return newGeometry
 }
 
-function addFlatGeometryIndices(geometry) {
+function addFlatGeometryIndices(geometry: any) {
   const position = geometry.getAttribute('position')
 
   if (!position) {
