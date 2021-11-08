@@ -1,5 +1,5 @@
 import { decomposeScene } from './decomposeScene.js'
-import { makeFramebuffer } from './Framebuffer.js'
+import { makeFramebuffer } from './Framebuffer'
 import { makeFullscreenQuad } from './FullscreenQuad.js'
 import { makeGBufferPass } from './GBufferPass.js'
 import { makeMaterialBuffer } from './MaterialBuffer'

@@ -1,6 +1,17 @@
-// @ts-check
-function makeFramebuffer(gl, { color, depth }) {
+interface MakeFramebufferParams {
+  color: {
+    [key: string]: {
+      target: number
+      texture: WebGLTexture
+    }
+  }
+  depth?: {
+    target: number
+    texture: WebGLRenderbuffer
+  }
+}
 
+function makeFramebuffer(gl: WebGL2RenderingContext, { color, depth }: MakeFramebufferParams) {
   const framebuffer = gl.createFramebuffer()
 
   function bind() {
@@ -46,4 +57,4 @@ function makeFramebuffer(gl, { color, depth }) {
   }
 }
 
-export { makeFramebuffer }
+export { makeFramebuffer, MakeFramebufferParams }
