@@ -49387,6 +49387,13 @@ function numberArraysEqual(a, b, eps = 1e-4) {
     }
     return true;
 }
+const createIndexArray = (length) => {
+    const arr = [];
+    for (let i = 0; i < length; i++) {
+        arr.push(i);
+    }
+    return arr;
+};
 
 function makeTexture(gl, params) {
     let { width = null, height = null, data = null, length = 1, channels = null, storage = null, flipY = false, gammaCorrection = false, wrapS = gl.CLAMP_TO_EDGE, wrapT = gl.CLAMP_TO_EDGE, minFilter = gl.NEAREST, magFilter = gl.NEAREST } = params;
@@ -51535,40 +51542,43 @@ var fragment$1 = {
 `
 };
 
-function makeStratifiedSampler(strataCount, dimensions) {
-    const strata = [];
-    const l = strataCount ** dimensions;
-    for (let i = 0; i < l; i++) {
-        strata[i] = i;
+var _StratifiedSampler_strata, _StratifiedSampler_l, _StratifiedSampler_index, _StratifiedSampler_sample, _StratifiedSampler_dimensions;
+class StratifiedSampler {
+    constructor(strataCount, dimensions) {
+        _StratifiedSampler_strata.set(this, void 0);
+        _StratifiedSampler_l.set(this, void 0);
+        _StratifiedSampler_index.set(this, void 0);
+        _StratifiedSampler_sample.set(this, []);
+        _StratifiedSampler_dimensions.set(this, void 0);
+        this.strataCount = strataCount;
+        __classPrivateFieldSet(this, _StratifiedSampler_dimensions, dimensions);
+        __classPrivateFieldSet(this, _StratifiedSampler_l, this.strataCount ** __classPrivateFieldGet(this, _StratifiedSampler_dimensions));
+        __classPrivateFieldSet(this, _StratifiedSampler_strata, createIndexArray(__classPrivateFieldGet(this, _StratifiedSampler_l)));
+        __classPrivateFieldSet(this, _StratifiedSampler_index, __classPrivateFieldGet(this, _StratifiedSampler_strata).length);
     }
-    let index = strata.length;
-    const sample = [];
-    function restart() {
-        index = 0;
+    restart() {
+        __classPrivateFieldSet(this, _StratifiedSampler_index, 0);
     }
-    function next() {
-        if (index >= strata.length) {
-            shuffle(strata);
-            restart();
+    next() {
+        var _a, _b;
+        if (__classPrivateFieldGet(this, _StratifiedSampler_index) >= __classPrivateFieldGet(this, _StratifiedSampler_strata).length) {
+            shuffle(__classPrivateFieldGet(this, _StratifiedSampler_strata));
+            this.restart();
         }
-        let stratum = strata[index++];
-        for (let i = 0; i < dimensions; i++) {
-            sample[i] = (stratum % strataCount) + Math.random();
-            stratum = Math.floor(stratum / strataCount);
+        let stratum = __classPrivateFieldGet(this, _StratifiedSampler_strata)[__classPrivateFieldSet(this, _StratifiedSampler_index, (_b = __classPrivateFieldGet(this, _StratifiedSampler_index), _a = _b++, _b)), _a];
+        for (let i = 0; i < __classPrivateFieldGet(this, _StratifiedSampler_dimensions); i++) {
+            __classPrivateFieldGet(this, _StratifiedSampler_sample)[i] = (stratum % this.strataCount) + Math.random();
+            stratum = Math.floor(stratum / this.strataCount);
         }
-        return sample;
+        return __classPrivateFieldGet(this, _StratifiedSampler_sample);
     }
-    return {
-        next,
-        restart,
-        strataCount
-    };
 }
+_StratifiedSampler_strata = new WeakMap(), _StratifiedSampler_l = new WeakMap(), _StratifiedSampler_index = new WeakMap(), _StratifiedSampler_sample = new WeakMap(), _StratifiedSampler_dimensions = new WeakMap();
 
 function makeStratifiedSamplerCombined(strataCount, listOfDimensions) {
     const strataObjs = [];
     for (const dim of listOfDimensions) {
-        strataObjs.push(makeStratifiedSampler(strataCount, dim));
+        strataObjs.push(new StratifiedSampler(strataCount, dim));
     }
     const combined = [];
     function next() {

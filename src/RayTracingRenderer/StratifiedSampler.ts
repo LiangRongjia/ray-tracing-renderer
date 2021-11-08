@@ -18,43 +18,43 @@ The fractional part is the random number.
 To obtain the stratified sample between [0, 1), divide the returned sample by the stratum count.
 */
 
-import { shuffle } from './util'
+import { createIndexArray, shuffle } from './util'
 
-function makeStratifiedSampler(strataCount: number, dimensions: number) {
-  const strata: number[] = []
-  const l = strataCount ** dimensions
-  for (let i = 0; i < l; i++) {
-    strata[i] = i
+class StratifiedSampler {
+  #strata: number[]
+  #l: number
+  #index: number
+  #sample: number[] = []
+  #dimensions: number
+
+  strataCount: number
+
+  constructor(strataCount: number, dimensions: number) {
+    this.strataCount = strataCount
+    this.#dimensions = dimensions
+    this.#l = this.strataCount ** this.#dimensions
+    this.#strata = createIndexArray(this.#l)
+    this.#index = this.#strata.length
   }
 
-  let index = strata.length
-
-  const sample: number[] = []
-
-  function restart() {
-    index = 0
+  restart() {
+    this.#index = 0
   }
 
-  function next() {
-    if (index >= strata.length) {
-      shuffle(strata)
-      restart()
+  next() {
+    if (this.#index >= this.#strata.length) {
+      shuffle(this.#strata)
+      this.restart()
     }
-    let stratum = strata[index++]
+    let stratum = this.#strata[this.#index++]
 
-    for (let i = 0; i < dimensions; i++) {
-      sample[i] = (stratum % strataCount) + Math.random()
-      stratum = Math.floor(stratum / strataCount)
+    for (let i = 0; i < this.#dimensions; i++) {
+      this.#sample[i] = (stratum % this.strataCount) + Math.random()
+      stratum = Math.floor(stratum / this.strataCount)
     }
 
-    return sample
-  }
-
-  return {
-    next,
-    restart,
-    strataCount
+    return this.#sample
   }
 }
 
-export { makeStratifiedSampler }
+export { StratifiedSampler }

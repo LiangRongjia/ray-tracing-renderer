@@ -22,4 +22,12 @@ function numberArraysEqual(a: number[], b: number[], eps: number = 1e-4) {
   return true
 }
 
-export { clamp, shuffle, numberArraysEqual }
+const createIndexArray = (length: number) => {
+  const arr = []
+  for (let i = 0; i < length; i++) {
+    arr.push(i)
+  }
+  return arr
+}
+
+export { clamp, shuffle, numberArraysEqual, createIndexArray }
