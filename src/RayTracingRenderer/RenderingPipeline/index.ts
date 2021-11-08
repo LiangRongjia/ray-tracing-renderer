@@ -14,6 +14,15 @@ import { makeDepthTarget, makeTexture } from './Texture'
 import noiseBase64 from './texture/noise.js'
 import { PerspectiveCamera, Vector2 } from 'three'
 
+interface Pipeline {
+  draw: (camera: any) => void
+  drawFull: (camera: any) => void
+  setSize: (w: any, h: any) => void
+  time: (newTime: any) => void
+  getTotalSamplesRendered(): number
+  onSampleRendered: (n1?: number, n2?: number) => void
+}
+
 function makeRenderingPipeline({
   gl,
   optionalExtensions,
@@ -504,4 +513,4 @@ function makeRenderingPipeline({
 }
 
 // @ts-check
-export { makeRenderingPipeline }
+export { makeRenderingPipeline, Pipeline }

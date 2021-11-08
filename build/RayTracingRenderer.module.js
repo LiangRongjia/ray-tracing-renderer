@@ -52605,7 +52605,7 @@ const glOptionalExtensions = [
 class RayTracingRenderer {
     constructor(canvasElement) {
         _RayTracingRenderer_canvas.set(this, document.createElement('canvas'));
-        _RayTracingRenderer_gl.set(this, null);
+        _RayTracingRenderer_gl.set(this, void 0);
         _RayTracingRenderer_size.set(this, new Vector2());
         _RayTracingRenderer_pipeline.set(this, null);
         _RayTracingRenderer_pixelRatio.set(this, 1);
@@ -52625,9 +52625,6 @@ class RayTracingRenderer {
                 toneMapping: this.toneMapping
             };
             const bounces = this.bounces;
-            if (__classPrivateFieldGet(this, _RayTracingRenderer_gl) === null) {
-                throw new Error('this.#gl === null');
-            }
             __classPrivateFieldSet(this, _RayTracingRenderer_pipeline, makeRenderingPipeline({
                 gl: __classPrivateFieldGet(this, _RayTracingRenderer_gl),
                 optionalExtensions: __classPrivateFieldGet(this, _RayTracingRenderer_optionalExtensions),
@@ -52637,9 +52634,7 @@ class RayTracingRenderer {
             }));
             if (__classPrivateFieldGet(this, _RayTracingRenderer_pipeline)) {
                 __classPrivateFieldGet(this, _RayTracingRenderer_pipeline).onSampleRendered = (...args) => {
-                    if (this.onSampleRendered !== null) {
-                        this.onSampleRendered(...args);
-                    }
+                    this.onSampleRendered(...args);
                 };
             }
             this.setSize(__classPrivateFieldGet(this, _RayTracingRenderer_size).width, __classPrivateFieldGet(this, _RayTracingRenderer_size).height);
@@ -52654,20 +52649,21 @@ class RayTracingRenderer {
         this.toneMappingExposure = 1;
         this.toneMappingWhitePoint = 1;
         __classPrivateFieldSet(this, _RayTracingRenderer_canvas, canvasElement || document.createElement('canvas'));
-        __classPrivateFieldSet(this, _RayTracingRenderer_gl, __classPrivateFieldGet(this, _RayTracingRenderer_canvas).getContext('webgl2', {
+        const _gl = __classPrivateFieldGet(this, _RayTracingRenderer_canvas).getContext('webgl2', {
             alpha: false,
             depth: true,
             stencil: false,
             antialias: false,
             powerPreference: 'high-performance',
             failIfMajorPerformanceCaveat: true
-        }));
-        if (!__classPrivateFieldGet(this, _RayTracingRenderer_gl)) {
+        });
+        if (_gl === null) {
             alert('你的浏览器不支持 webgl2，可能需要开启实验性功能或升级、更换浏览器。');
-            return;
+            throw new Error("this.#canvas.getContext('webgl2',...) === null");
         }
-        glRequiredExtensions.map((name) => __classPrivateFieldGet(this, _RayTracingRenderer_gl)?.getExtension(name));
-        __classPrivateFieldSet(this, _RayTracingRenderer_optionalExtensions, glOptionalExtensions.map((name) => __classPrivateFieldGet(this, _RayTracingRenderer_gl)?.getExtension(name)));
+        __classPrivateFieldSet(this, _RayTracingRenderer_gl, _gl);
+        glRequiredExtensions.map((name) => __classPrivateFieldGet(this, _RayTracingRenderer_gl).getExtension(name));
+        __classPrivateFieldSet(this, _RayTracingRenderer_optionalExtensions, glOptionalExtensions.map((name) => __classPrivateFieldGet(this, _RayTracingRenderer_gl).getExtension(name)));
         document.addEventListener('visibilitychange', () => __classPrivateFieldGet(this, _RayTracingRenderer_restartTimer).call(this));
         return this;
     }

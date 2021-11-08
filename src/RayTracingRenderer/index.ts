@@ -1,14 +1,5 @@
-import { makeRenderingPipeline } from './RenderingPipeline'
+import { makeRenderingPipeline, Pipeline } from './RenderingPipeline'
 import * as THREE from 'three'
-
-interface Pipeline {
-  draw: (camera: any) => void
-  drawFull: (camera: any) => void
-  setSize: (w: any, h: any) => void
-  time: (newTime: any) => void
-  getTotalSamplesRendered(): number
-  onSampleRendered: (n1?: number, n2?: number) => void
-}
 
 const glRequiredExtensions = [
   'EXT_color_buffer_float', // enables rendering to float buffers
@@ -21,7 +12,7 @@ const glOptionalExtensions = [
 
 class RayTracingRenderer {
   #canvas: HTMLCanvasElement = document.createElement('canvas')
-  #gl: WebGL2RenderingContext | null = null
+  #gl: WebGL2RenderingContext
   #size: THREE.Vector2 = new THREE.Vector2()
   #pipeline: Pipeline | null = null
   #pixelRatio: number = 1
@@ -44,10 +35,6 @@ class RayTracingRenderer {
 
     const bounces = this.bounces
 
-    if (this.#gl === null) {
-      throw new Error('this.#gl === null')
-    }
-
     this.#pipeline = makeRenderingPipeline({
       gl: this.#gl,
       optionalExtensions: this.#optionalExtensions,
@@ -58,9 +45,7 @@ class RayTracingRenderer {
 
     if (this.#pipeline) {
       this.#pipeline.onSampleRendered = (...args) => {
-        if (this.onSampleRendered !== null) {
-          this.onSampleRendered(...args)
-        }
+        this.onSampleRendered(...args)
       }
     }
 
@@ -86,7 +71,7 @@ class RayTracingRenderer {
     this.#canvas = canvasElement || document.createElement('canvas')
     // this.domElement = this.#canvas
 
-    this.#gl = this.#canvas.getContext('webgl2', {
+    const _gl = this.#canvas.getContext('webgl2', {
       alpha: false,
       depth: true,
       stencil: false,
@@ -95,13 +80,15 @@ class RayTracingRenderer {
       failIfMajorPerformanceCaveat: true
     })
 
-    if (!this.#gl) {
+    if (_gl === null) {
       alert('你的浏览器不支持 webgl2，可能需要开启实验性功能或升级、更换浏览器。')
-      return
+      throw new Error("this.#canvas.getContext('webgl2',...) === null")
     }
 
-    glRequiredExtensions.map((name) => this.#gl?.getExtension(name))
-    this.#optionalExtensions = glOptionalExtensions.map((name) => this.#gl?.getExtension(name))
+    this.#gl = _gl
+
+    glRequiredExtensions.map((name) => this.#gl.getExtension(name))
+    this.#optionalExtensions = glOptionalExtensions.map((name) => this.#gl.getExtension(name))
 
     // Assume module.render is called using requestAnimationFrame.
     // This means that when the user is on a different browser tab, module.render won't be called.
