@@ -1,7 +1,7 @@
 import { decomposeScene } from './decomposeScene.js'
 import { makeFramebuffer } from './Framebuffer'
 import { makeFullscreenQuad } from './FullscreenQuad.js'
-import { makeGBufferPass } from './GBufferPass.js'
+import { makeGBufferPass } from './GBufferPass'
 import { makeMaterialBuffer } from './MaterialBuffer'
 import { mergeMeshesToGeometry } from './mergeMeshesToGeometry.js'
 import { makeRayTracePass } from './RayTracePass/index.js'

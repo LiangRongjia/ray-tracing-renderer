@@ -1,10 +1,10 @@
-// @ts-check
-import { makeRenderPass } from '../RenderPass'
+import { makeRenderPass, RenderPass } from '../RenderPass'
 import vertex from './glsl/gBuffer.vert.js'
 import fragment from './glsl/gBuffer.frag.js'
 import { Matrix4 } from 'three'
 
-function makeGBufferPass(gl, { materialBuffer, mergedMesh }) {
+// @ts-ignore
+function makeGBufferPass(gl: WebGL2RenderingContext, { materialBuffer, mergedMesh }) {
   const renderPass = makeRenderPass(gl, {
     defines: materialBuffer.defines,
     vertex,
@@ -27,13 +27,13 @@ function makeGBufferPass(gl, { materialBuffer, mergedMesh }) {
 
   let jitterX = 0
   let jitterY = 0
-  function setJitter(x, y) {
+  function setJitter(x: number, y: number) {
     jitterX = x
     jitterY = y
   }
 
-  let currentCamera
-  function setCamera(camera) {
+  let currentCamera: THREE.Camera
+  function setCamera(camera: THREE.Camera) {
     currentCamera = camera
   }
 
@@ -66,17 +66,23 @@ function makeGBufferPass(gl, { materialBuffer, mergedMesh }) {
   }
 }
 
-function uploadAttributes(gl, renderPass, geometry) {
+// @ts-ignore
+function uploadAttributes(gl: WebGL2RenderingContext, renderPass: RenderPass, geometry) {
+  // @ts-ignore
   setAttribute(gl, renderPass.attribLocs.aPosition, geometry.getAttribute('position'))
+  // @ts-ignore
   setAttribute(gl, renderPass.attribLocs.aNormal, geometry.getAttribute('normal'))
+  // @ts-ignore
   setAttribute(gl, renderPass.attribLocs.aUv, geometry.getAttribute('uv'))
+  // @ts-ignore
   setAttribute(gl, renderPass.attribLocs.aMaterialMeshIndex, geometry.getAttribute('materialMeshIndex'))
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer())
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.getIndex().array, gl.STATIC_DRAW)
 }
 
-function setAttribute(gl, location, bufferAttribute) {
+// @ts-ignore
+function setAttribute(gl: WebGL2RenderingContext, location, bufferAttribute) {
   if (location === undefined) {
     return
   }
