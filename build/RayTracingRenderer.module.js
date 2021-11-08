@@ -48861,13 +48861,7 @@ function makeRenderPass(gl, params) {
     const { fragment, vertex } = params;
     const vertexCompiled = vertex instanceof WebGLShader ? vertex : makeVertexShader(gl, params);
     const fragmentCompiled = fragment instanceof WebGLShader ? fragment : makeFragmentShader(gl, params);
-    if (!vertexCompiled || !fragmentCompiled) {
-        return;
-    }
     const program = createProgram(gl, vertexCompiled, fragmentCompiled);
-    if (!program) {
-        return;
-    }
     return {
         ...makeRenderPassFromProgram(gl, program),
         outputLocs: fragment.outputs ? getOutputLocations(fragment.outputs) : {}

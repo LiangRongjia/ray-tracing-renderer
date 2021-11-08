@@ -1,6 +1,17 @@
 import { compileShader, createProgram, getAttributes } from './glUtil'
 import { makeUniformSetter } from './UniformSetter'
 
+interface RenderPass {
+  outputLocs: {}
+  attribLocs: {}
+  bindTextures: () => void
+  program: WebGLProgram
+  setTexture: (name: any, texture: any) => void
+  setUniform: (name: string, v0: any, v1?: any, v2?: any, v3?: any) => void
+  textures: {}
+  useProgram: (autoBindTextures?: boolean) => void
+}
+
 function makeRenderPass(
   gl: WebGL2RenderingContext,
   params: {
@@ -10,22 +21,14 @@ function makeRenderPass(
       outputs: any
     }
   }
-) {
+): RenderPass {
   const { fragment, vertex } = params
 
   const vertexCompiled = vertex instanceof WebGLShader ? vertex : makeVertexShader(gl, params)
 
   const fragmentCompiled = fragment instanceof WebGLShader ? fragment : makeFragmentShader(gl, params)
 
-  if (!vertexCompiled || !fragmentCompiled) {
-    return
-  }
-
   const program = createProgram(gl, vertexCompiled, fragmentCompiled)
-
-  if (!program) {
-    return
-  }
 
   return {
     ...makeRenderPassFromProgram(gl, program),
@@ -46,12 +49,26 @@ function makeFragmentShader(gl: WebGL2RenderingContext, { defines, fragment }) {
 function makeRenderPassFromProgram(gl: WebGL2RenderingContext, program: WebGLProgram) {
   const uniformSetter = makeUniformSetter(gl, program)
 
-  const textures = {}
+  interface Texture {
+    unit: number
+    tex: WebGLTexture
+    target: number
+    texture: WebGLTexture
+  }
 
-  let nextTexUnit = 1
+  const textures: {
+    [key: string]: {
+      unit: number
+      tex: Texture
+      target: number
+      texture: WebGLTexture
+    }
+  } = {}
+
+  let nextTexUnit: number = 1
 
   //@ts-ignore
-  function setTexture(name, texture) {
+  function setTexture(name: string, texture: Texture) {
     if (!texture) {
       return
     }
@@ -185,4 +202,4 @@ function getOutputLocations(outputs: any[]) {
   return locations
 }
 
-export { makeRenderPass, makeVertexShader, makeFragmentShader }
+export { makeRenderPass, makeVertexShader, makeFragmentShader, RenderPass }
