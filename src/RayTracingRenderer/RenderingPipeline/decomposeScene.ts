@@ -1,30 +1,26 @@
 // @ts-check
 import * as THREE from 'three'
 
-function decomposeScene(scene) {
-  const meshes = []
-  const directionalLights = []
-  const ambientLights = []
-  const environmentLights = []
+function decomposeScene(scene: THREE.Scene) {
+  const meshes: THREE.Object3D[] = []
+  const directionalLights: THREE.DirectionalLight[] = []
+  const ambientLights: THREE.AmbientLight[] = []
+  const environmentLights: THREE.Object3D[] = []
 
-  scene.traverse(child => {
+  scene.traverse((child: any) => {
     if (child.isMesh) {
       if (!child.geometry) {
         console.warn(child, 'must have a geometry property')
-      }
-      else if (!(child.material.isMeshStandardMaterial)) {
+      } else if (!child.material.isMeshStandardMaterial) {
         console.warn(child, 'must use MeshStandardMaterial in order to be rendered.')
       } else {
         meshes.push(child)
       }
-    }
-    else if (child.isDirectionalLight) {
+    } else if (child.isDirectionalLight) {
       directionalLights.push(child)
-    }
-    else if (child.isAmbientLight) {
+    } else if (child.isAmbientLight) {
       ambientLights.push(child)
-    }
-    else if (child.isEnvironmentLight) {
+    } else if (child.isEnvironmentLight) {
       if (environmentLights.length > 1) {
         console.warn(environmentLights, 'only one environment light can be used per scene')
       }
@@ -40,14 +36,20 @@ function decomposeScene(scene) {
   const background = scene.background
 
   return {
-    background, meshes, directionalLights, ambientLights, environmentLights
+    background,
+    meshes,
+    directionalLights,
+    ambientLights,
+    environmentLights
   }
 }
 
-function isHDRTexture(texture) {
-  return texture.map
-    && texture.map.image
-    && (texture.map.encoding === THREE.RGBEEncoding || texture.map.encoding === THREE.LinearEncoding)
+function isHDRTexture(texture: any) {
+  return (
+    texture.map &&
+    texture.map.image &&
+    (texture.map.encoding === THREE.RGBEEncoding || texture.map.encoding === THREE.LinearEncoding)
+  )
 }
 
 export { decomposeScene }
