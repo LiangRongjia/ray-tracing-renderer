@@ -1,7 +1,7 @@
 import { decomposeScene } from './decomposeScene'
 import { makeFramebuffer } from './Framebuffer'
 import { makeFullscreenQuad } from './FullscreenQuad'
-import { makeGBufferPass } from './GBufferPass.js'
+import { GBufferPass } from './GBufferPass.js'
 import { makeMaterialBuffer } from './MaterialBuffer'
 import { mergeMeshesToGeometry } from './mergeMeshesToGeometry'
 import { makeRayTracePass } from './RayTracePass/index.js'
@@ -198,7 +198,8 @@ class RenderingPipeline {
 
     this.#toneMapPass = makeToneMapPass(gl, { fullscreenQuad: this.#fullscreenQuad, toneMappingParams })
 
-    this.#gBufferPass = makeGBufferPass(gl, { materialBuffer: this.#materialBuffer, mergedMesh: this.#mergedMesh })
+    // this.#gBufferPass = makeGBufferPass(gl, { materialBuffer: this.#materialBuffer, mergedMesh: this.#mergedMesh })
+    this.#gBufferPass = new GBufferPass({ gl, materialBuffer: this.#materialBuffer, mergedMesh: this.#mergedMesh })
 
     this.#ready = false
 

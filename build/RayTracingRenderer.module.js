@@ -49189,63 +49189,16 @@ var fragment = {
 
 };
 
-function makeGBufferPass(gl, { materialBuffer, mergedMesh }) {
-    const renderPass = makeRenderPass(gl, {
-        defines: materialBuffer.defines,
-        vertex: vertex$1,
-        fragment
-    });
-    renderPass.setTexture('diffuseMap', materialBuffer.textures.diffuseMap);
-    renderPass.setTexture('normalMap', materialBuffer.textures.normalMap);
-    renderPass.setTexture('pbrMap', materialBuffer.textures.pbrMap);
-    const geometry = mergedMesh.geometry;
-    const elementCount = geometry.getIndex().count;
-    const vao = gl.createVertexArray();
-    gl.bindVertexArray(vao);
-    uploadAttributes(gl, renderPass, geometry);
-    gl.bindVertexArray(null);
-    let jitterX = 0;
-    let jitterY = 0;
-    function setJitter(x, y) {
-        jitterX = x;
-        jitterY = y;
-    }
-    let currentCamera;
-    function setCamera(camera) {
-        currentCamera = camera;
-    }
-    function calcCamera() {
-        projView.copy(currentCamera.projectionMatrix);
-        projView.elements[8] += 2 * jitterX;
-        projView.elements[9] += 2 * jitterY;
-        projView.multiply(currentCamera.matrixWorldInverse);
-        renderPass.setUniform('projView', projView.elements);
-    }
-    let projView = new Matrix4();
-    function draw() {
-        calcCamera();
-        gl.bindVertexArray(vao);
-        renderPass.useProgram();
-        gl.enable(gl.DEPTH_TEST);
-        gl.drawElements(gl.TRIANGLES, elementCount, gl.UNSIGNED_INT, 0);
-        gl.disable(gl.DEPTH_TEST);
-    }
-    return {
-        draw,
-        outputLocs: renderPass.outputLocs,
-        setCamera,
-        setJitter
-    };
-}
-function uploadAttributes(gl, renderPass, geometry) {
+var _GBufferPass_renderPass, _GBufferPass_gl, _GBufferPass_geometry, _GBufferPass_elementCount, _GBufferPass_vao, _GBufferPass_jitterX, _GBufferPass_jitterY, _GBufferPass_currentCamera, _GBufferPass_projView;
+const uploadAttributes = (gl, renderPass, geometry) => {
     setAttribute(gl, renderPass.attribLocs.aPosition, geometry.getAttribute('position'));
     setAttribute(gl, renderPass.attribLocs.aNormal, geometry.getAttribute('normal'));
     setAttribute(gl, renderPass.attribLocs.aUv, geometry.getAttribute('uv'));
     setAttribute(gl, renderPass.attribLocs.aMaterialMeshIndex, geometry.getAttribute('materialMeshIndex'));
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.getIndex().array, gl.STATIC_DRAW);
-}
-function setAttribute(gl, location, bufferAttribute) {
+};
+const setAttribute = (gl, location, bufferAttribute) => {
     if (location === undefined) {
         return;
     }
@@ -49262,7 +49215,73 @@ function setAttribute(gl, location, bufferAttribute) {
     else {
         throw 'Unsupported buffer type';
     }
+};
+class GBufferPass {
+    constructor({ gl, materialBuffer, mergedMesh }) {
+        _GBufferPass_renderPass.set(this, void 0);
+        _GBufferPass_gl.set(this, void 0);
+        _GBufferPass_geometry.set(this, void 0);
+        _GBufferPass_elementCount.set(this, void 0);
+        _GBufferPass_vao.set(this, void 0);
+        _GBufferPass_jitterX.set(this, void 0);
+        _GBufferPass_jitterY.set(this, void 0);
+        _GBufferPass_currentCamera.set(this, null);
+        _GBufferPass_projView.set(this, void 0);
+        __classPrivateFieldSet(this, _GBufferPass_gl, gl);
+        __classPrivateFieldSet(this, _GBufferPass_renderPass, makeRenderPass(gl, {
+            defines: materialBuffer.defines,
+            vertex: vertex$1,
+            fragment
+        }));
+        __classPrivateFieldGet(this, _GBufferPass_renderPass).setTexture('diffuseMap', materialBuffer.textures.diffuseMap);
+        __classPrivateFieldGet(this, _GBufferPass_renderPass).setTexture('normalMap', materialBuffer.textures.normalMap);
+        __classPrivateFieldGet(this, _GBufferPass_renderPass).setTexture('pbrMap', materialBuffer.textures.pbrMap);
+        __classPrivateFieldSet(this, _GBufferPass_geometry, mergedMesh.geometry);
+        __classPrivateFieldSet(this, _GBufferPass_elementCount, __classPrivateFieldGet(this, _GBufferPass_geometry).getIndex().count);
+        const _vao = gl.createVertexArray();
+        if (_vao === null)
+            throw new Error('gl.createVertexArray() === null');
+        __classPrivateFieldSet(this, _GBufferPass_vao, _vao);
+        gl.bindVertexArray(__classPrivateFieldGet(this, _GBufferPass_vao));
+        uploadAttributes(gl, __classPrivateFieldGet(this, _GBufferPass_renderPass), __classPrivateFieldGet(this, _GBufferPass_geometry));
+        gl.bindVertexArray(null);
+        __classPrivateFieldSet(this, _GBufferPass_jitterX, 0);
+        __classPrivateFieldSet(this, _GBufferPass_jitterY, 0);
+        __classPrivateFieldSet(this, _GBufferPass_projView, new Matrix4());
+    }
+    get outputLocs() {
+        return __classPrivateFieldGet(this, _GBufferPass_renderPass).outputLocs;
+    }
+    set outputLocs(outputLocs) {
+        __classPrivateFieldGet(this, _GBufferPass_renderPass).outputLocs = outputLocs;
+    }
+    calcCamera() {
+        if (__classPrivateFieldGet(this, _GBufferPass_currentCamera) === null) {
+            throw new Error('this.currentCamera === null');
+        }
+        __classPrivateFieldGet(this, _GBufferPass_projView).copy(__classPrivateFieldGet(this, _GBufferPass_currentCamera).projectionMatrix);
+        __classPrivateFieldGet(this, _GBufferPass_projView).elements[8] += 2 * __classPrivateFieldGet(this, _GBufferPass_jitterX);
+        __classPrivateFieldGet(this, _GBufferPass_projView).elements[9] += 2 * __classPrivateFieldGet(this, _GBufferPass_jitterY);
+        __classPrivateFieldGet(this, _GBufferPass_projView).multiply(__classPrivateFieldGet(this, _GBufferPass_currentCamera).matrixWorldInverse);
+        __classPrivateFieldGet(this, _GBufferPass_renderPass).setUniform('projView', __classPrivateFieldGet(this, _GBufferPass_projView).elements);
+    }
+    setJitter(x, y) {
+        __classPrivateFieldSet(this, _GBufferPass_jitterX, x);
+        __classPrivateFieldSet(this, _GBufferPass_jitterY, y);
+    }
+    setCamera(camera) {
+        __classPrivateFieldSet(this, _GBufferPass_currentCamera, camera);
+    }
+    draw() {
+        this.calcCamera();
+        __classPrivateFieldGet(this, _GBufferPass_gl).bindVertexArray(__classPrivateFieldGet(this, _GBufferPass_vao));
+        __classPrivateFieldGet(this, _GBufferPass_renderPass).useProgram();
+        __classPrivateFieldGet(this, _GBufferPass_gl).enable(__classPrivateFieldGet(this, _GBufferPass_gl).DEPTH_TEST);
+        __classPrivateFieldGet(this, _GBufferPass_gl).drawElements(__classPrivateFieldGet(this, _GBufferPass_gl).TRIANGLES, __classPrivateFieldGet(this, _GBufferPass_elementCount), __classPrivateFieldGet(this, _GBufferPass_gl).UNSIGNED_INT, 0);
+        __classPrivateFieldGet(this, _GBufferPass_gl).disable(__classPrivateFieldGet(this, _GBufferPass_gl).DEPTH_TEST);
+    }
 }
+_GBufferPass_renderPass = new WeakMap(), _GBufferPass_gl = new WeakMap(), _GBufferPass_geometry = new WeakMap(), _GBufferPass_elementCount = new WeakMap(), _GBufferPass_vao = new WeakMap(), _GBufferPass_jitterX = new WeakMap(), _GBufferPass_jitterY = new WeakMap(), _GBufferPass_currentCamera = new WeakMap(), _GBufferPass_projView = new WeakMap();
 
 function makeUniformBuffer(gl, program, blockName) {
     const blockIndex = gl.getUniformBlockIndex(program, blockName);
@@ -52307,7 +52326,7 @@ class RenderingPipeline {
         }));
         __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, makeReprojectPass(gl, { fullscreenQuad: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenQuad), maxReprojectedSamples }));
         __classPrivateFieldSet(this, _RenderingPipeline_toneMapPass, makeToneMapPass(gl, { fullscreenQuad: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenQuad), toneMappingParams }));
-        __classPrivateFieldSet(this, _RenderingPipeline_gBufferPass, makeGBufferPass(gl, { materialBuffer: __classPrivateFieldGet(this, _RenderingPipeline_materialBuffer), mergedMesh: __classPrivateFieldGet(this, _RenderingPipeline_mergedMesh) }));
+        __classPrivateFieldSet(this, _RenderingPipeline_gBufferPass, new GBufferPass({ gl, materialBuffer: __classPrivateFieldGet(this, _RenderingPipeline_materialBuffer), mergedMesh: __classPrivateFieldGet(this, _RenderingPipeline_mergedMesh) }));
         __classPrivateFieldSet(this, _RenderingPipeline_ready, false);
         __classPrivateFieldSet(this, _RenderingPipeline_noiseImage, new Image());
         __classPrivateFieldGet(this, _RenderingPipeline_noiseImage).src = noiseBase64;

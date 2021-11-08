@@ -4,70 +4,7 @@ import fragment from './glsl/gBuffer.frag.js'
 import { Matrix4 } from 'three'
 
 // @ts-ignore
-function makeGBufferPass(gl: WebGL2RenderingContext, { materialBuffer, mergedMesh }) {
-  const renderPass = makeRenderPass(gl, {
-    defines: materialBuffer.defines,
-    vertex,
-    fragment
-  })
-
-  renderPass.setTexture('diffuseMap', materialBuffer.textures.diffuseMap)
-  renderPass.setTexture('normalMap', materialBuffer.textures.normalMap)
-  renderPass.setTexture('pbrMap', materialBuffer.textures.pbrMap)
-
-  const geometry = mergedMesh.geometry
-
-  const elementCount = geometry.getIndex().count
-
-  const vao = gl.createVertexArray()
-
-  gl.bindVertexArray(vao)
-  uploadAttributes(gl, renderPass, geometry)
-  gl.bindVertexArray(null)
-
-  let jitterX = 0
-  let jitterY = 0
-  function setJitter(x: number, y: number) {
-    jitterX = x
-    jitterY = y
-  }
-
-  let currentCamera: THREE.Camera
-  function setCamera(camera: THREE.Camera) {
-    currentCamera = camera
-  }
-
-  function calcCamera() {
-    projView.copy(currentCamera.projectionMatrix)
-
-    projView.elements[8] += 2 * jitterX
-    projView.elements[9] += 2 * jitterY
-
-    projView.multiply(currentCamera.matrixWorldInverse)
-    renderPass.setUniform('projView', projView.elements)
-  }
-
-  let projView = new Matrix4()
-
-  function draw() {
-    calcCamera()
-    gl.bindVertexArray(vao)
-    renderPass.useProgram()
-    gl.enable(gl.DEPTH_TEST)
-    gl.drawElements(gl.TRIANGLES, elementCount, gl.UNSIGNED_INT, 0)
-    gl.disable(gl.DEPTH_TEST)
-  }
-
-  return {
-    draw,
-    outputLocs: renderPass.outputLocs,
-    setCamera,
-    setJitter
-  }
-}
-
-// @ts-ignore
-function uploadAttributes(gl: WebGL2RenderingContext, renderPass: RenderPass, geometry) {
+const uploadAttributes = (gl: WebGL2RenderingContext, renderPass: RenderPass, geometry) => {
   // @ts-ignore
   setAttribute(gl, renderPass.attribLocs.aPosition, geometry.getAttribute('position'))
   // @ts-ignore
@@ -82,7 +19,7 @@ function uploadAttributes(gl: WebGL2RenderingContext, renderPass: RenderPass, ge
 }
 
 // @ts-ignore
-function setAttribute(gl: WebGL2RenderingContext, location, bufferAttribute) {
+const setAttribute = (gl: WebGL2RenderingContext, location, bufferAttribute) => {
   if (location === undefined) {
     return
   }
@@ -102,4 +39,88 @@ function setAttribute(gl: WebGL2RenderingContext, location, bufferAttribute) {
   }
 }
 
-export { makeGBufferPass }
+interface GBufferPassProps {
+  gl: WebGL2RenderingContext
+  materialBuffer: any
+  mergedMesh: any
+}
+class GBufferPass {
+  #renderPass: RenderPass
+  #gl: WebGL2RenderingContext
+  #geometry: any
+  #elementCount: any
+  #vao: WebGLVertexArrayObject
+  #jitterX: number
+  #jitterY: number
+  #currentCamera: THREE.Camera | null = null
+  #projView: Matrix4
+
+  get outputLocs() {
+    return this.#renderPass.outputLocs
+  }
+
+  set outputLocs(outputLocs: any) {
+    this.#renderPass.outputLocs = outputLocs
+  }
+
+  constructor({ gl, materialBuffer, mergedMesh }: GBufferPassProps) {
+    this.#gl = gl
+    this.#renderPass = makeRenderPass(gl, {
+      defines: materialBuffer.defines,
+      vertex,
+      fragment
+    })
+
+    this.#renderPass.setTexture('diffuseMap', materialBuffer.textures.diffuseMap)
+    this.#renderPass.setTexture('normalMap', materialBuffer.textures.normalMap)
+    this.#renderPass.setTexture('pbrMap', materialBuffer.textures.pbrMap)
+
+    this.#geometry = mergedMesh.geometry
+
+    this.#elementCount = this.#geometry.getIndex().count
+
+    const _vao = gl.createVertexArray()
+
+    if (_vao === null) throw new Error('gl.createVertexArray() === null')
+
+    this.#vao = _vao
+
+    gl.bindVertexArray(this.#vao)
+    uploadAttributes(gl, this.#renderPass, this.#geometry)
+    gl.bindVertexArray(null)
+
+    this.#jitterX = 0
+    this.#jitterY = 0
+
+    this.#projView = new Matrix4()
+  }
+  private calcCamera() {
+    if (this.#currentCamera === null) {
+      throw new Error('this.currentCamera === null')
+    }
+    this.#projView.copy(this.#currentCamera.projectionMatrix)
+
+    this.#projView.elements[8] += 2 * this.#jitterX
+    this.#projView.elements[9] += 2 * this.#jitterY
+
+    this.#projView.multiply(this.#currentCamera.matrixWorldInverse)
+    this.#renderPass.setUniform('projView', this.#projView.elements)
+  }
+  setJitter(x: number, y: number) {
+    this.#jitterX = x
+    this.#jitterY = y
+  }
+  setCamera(camera: THREE.Camera) {
+    this.#currentCamera = camera
+  }
+  draw() {
+    this.calcCamera()
+    this.#gl.bindVertexArray(this.#vao)
+    this.#renderPass.useProgram()
+    this.#gl.enable(this.#gl.DEPTH_TEST)
+    this.#gl.drawElements(this.#gl.TRIANGLES, this.#elementCount, this.#gl.UNSIGNED_INT, 0)
+    this.#gl.disable(this.#gl.DEPTH_TEST)
+  }
+}
+
+export { GBufferPass }
