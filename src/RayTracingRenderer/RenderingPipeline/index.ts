@@ -5,7 +5,7 @@ import { GBufferPass } from './GBufferPass.js'
 import { makeMaterialBuffer } from './MaterialBuffer'
 import { mergeMeshesToGeometry } from './mergeMeshesToGeometry'
 import { makeRayTracePass } from './RayTracePass/index.js'
-import { makeRenderSize } from './RenderSize.js'
+import { RenderSize } from './RenderSize.js'
 import { makeReprojectPass } from './ReprojectPass'
 import { makeToneMapPass } from './ToneMapPass'
 import { clamp, numberArraysEqual } from '../util'
@@ -175,7 +175,7 @@ class RenderingPipeline {
     // used to sample only a portion of the scene to the HDR Buffer to prevent the GPU from locking up from excessive computation
     this.#tileRender = makeTileRender(gl)
 
-    this.#previewSize = makeRenderSize(gl)
+    this.#previewSize = new RenderSize(gl)
 
     this.#decomposedScene = decomposeScene(scene)
 

@@ -1,67 +1,9 @@
-// @ts-check
 import { clamp } from '../util'
 import { Vector2 } from 'three'
 
-function makeRenderSize(gl: WebGL2RenderingContext) {
-  const desiredMsPerFrame = 20
+const desiredMsPerFrame = 20
 
-  let fullWidth: number
-  let fullHeight: number
-
-  let renderWidth: number
-  let renderHeight: number
-  let scale = new Vector2(1, 1)
-
-  let pixelsPerFrame = pixelsPerFrameEstimate(gl)
-
-  function setSize(w: number, h: number) {
-    fullWidth = w
-    fullHeight = h
-    calcDimensions()
-  }
-
-  function calcDimensions() {
-    const aspectRatio = fullWidth / fullHeight
-    if (pixelsPerFrame === undefined) {
-      return
-    }
-    renderWidth = Math.round(clamp(Math.sqrt(pixelsPerFrame * aspectRatio), 1, fullWidth))
-    renderHeight = Math.round(clamp(renderWidth / aspectRatio, 1, fullHeight))
-    scale.set(renderWidth / fullWidth, renderHeight / fullHeight)
-  }
-
-  function adjustSize(elapsedFrameMs: number) {
-    if (!elapsedFrameMs) {
-      return
-    }
-
-    // tweak to find balance. higher = faster convergence, lower = less fluctuations to microstutters
-    const strength = 600
-
-    const error = desiredMsPerFrame - elapsedFrameMs
-
-    if (pixelsPerFrame === undefined) {
-      return
-    }
-    pixelsPerFrame += strength * error
-    pixelsPerFrame = clamp(pixelsPerFrame, 8192, fullWidth * fullHeight)
-    calcDimensions()
-  }
-
-  return {
-    adjustSize,
-    setSize,
-    scale,
-    get width() {
-      return renderWidth
-    },
-    get height() {
-      return renderHeight
-    }
-  }
-}
-
-function pixelsPerFrameEstimate(gl: WebGL2RenderingContext) {
+const pixelsPerFrameEstimate = (gl: WebGL2RenderingContext) => {
   const maxRenderbufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE)
 
   if (maxRenderbufferSize <= 8192) {
@@ -71,7 +13,62 @@ function pixelsPerFrameEstimate(gl: WebGL2RenderingContext) {
   } else if (maxRenderbufferSize >= 32768) {
     return 400000
   }
-  return
+  return NaN
 }
 
-export { makeRenderSize }
+class RenderSize {
+  #fullWidth: number = NaN
+  #fullHeight: number = NaN
+  #renderWidth: number = NaN
+  #renderHeight: number = NaN
+  #pixelsPerFrame: number
+  scale = new Vector2(1, 1)
+
+  get width() {
+    return this.#renderWidth
+  }
+
+  get height() {
+    return this.#renderHeight
+  }
+
+  constructor(gl: WebGL2RenderingContext) {
+    this.#pixelsPerFrame = pixelsPerFrameEstimate(gl)
+  }
+
+  private calcDimensions() {
+    const aspectRatio = this.#fullWidth / this.#fullHeight
+    if (this.#pixelsPerFrame === undefined) {
+      return
+    }
+    this.#renderWidth = Math.round(clamp(Math.sqrt(this.#pixelsPerFrame * aspectRatio), 1, this.#fullWidth))
+    this.#renderHeight = Math.round(clamp(this.#renderWidth / aspectRatio, 1, this.#fullHeight))
+    this.scale.set(this.#renderWidth / this.#fullWidth, this.#renderHeight / this.#fullHeight)
+  }
+
+  setSize(w: number, h: number) {
+    this.#fullWidth = w
+    this.#fullHeight = h
+    this.calcDimensions()
+  }
+
+  adjustSize(elapsedFrameMs: number) {
+    if (!elapsedFrameMs) {
+      return
+    }
+
+    // tweak to find balance. higher = faster convergence, lower = less fluctuations to microstutters
+    const strength = 600
+
+    const error = desiredMsPerFrame - elapsedFrameMs
+
+    if (this.#pixelsPerFrame === undefined) {
+      return
+    }
+    this.#pixelsPerFrame += strength * error
+    this.#pixelsPerFrame = clamp(this.#pixelsPerFrame, 8192, this.#fullWidth * this.#fullHeight)
+    this.calcDimensions()
+  }
+}
+
+export { RenderSize }
