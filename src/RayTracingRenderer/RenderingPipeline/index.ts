@@ -6,7 +6,7 @@ import { makeMaterialBuffer } from './MaterialBuffer'
 import { mergeMeshesToGeometry } from './mergeMeshesToGeometry'
 import { makeRayTracePass } from './RayTracePass/index.js'
 import { RenderSize } from './RenderSize.js'
-import { makeReprojectPass } from './ReprojectPass'
+import { ReprojectPass } from './ReprojectPass'
 import { makeToneMapPass } from './ToneMapPass'
 import { clamp, numberArraysEqual } from '../util'
 import { makeTileRender } from './TileRender'
@@ -194,7 +194,7 @@ class RenderingPipeline {
       optionalExtensions
     })
 
-    this.#reprojectPass = makeReprojectPass(gl, { fullscreenQuad: this.#fullscreenQuad, maxReprojectedSamples })
+    this.#reprojectPass = new ReprojectPass(gl, { fullscreenQuad: this.#fullscreenQuad, maxReprojectedSamples })
 
     this.#toneMapPass = makeToneMapPass(gl, { fullscreenQuad: this.#fullscreenQuad, toneMappingParams })
 

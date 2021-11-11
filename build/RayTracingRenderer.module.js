@@ -52002,41 +52002,45 @@ var fragment$2 = {
 `
 };
 
-function makeReprojectPass(gl, params) {
-    const { fullscreenQuad, maxReprojectedSamples } = params;
-    const renderPass = makeRenderPass(gl, {
-        defines: {
-            MAX_SAMPLES: maxReprojectedSamples.toFixed(1)
-        },
-        vertex: fullscreenQuad.vertexShader,
-        fragment: fragment$2
-    });
-    const historyCamera = new Matrix4();
-    function setPreviousCamera(camera) {
-        historyCamera.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-        renderPass?.setUniform('historyCamera', historyCamera.elements);
+var _ReprojectPass_fullscreenQuad, _ReprojectPass_maxReprojectedSamples, _ReprojectPass_renderPass, _ReprojectPass_historyCamera;
+class ReprojectPass {
+    constructor(gl, params) {
+        _ReprojectPass_fullscreenQuad.set(this, void 0);
+        _ReprojectPass_maxReprojectedSamples.set(this, void 0);
+        _ReprojectPass_renderPass.set(this, void 0);
+        _ReprojectPass_historyCamera.set(this, void 0);
+        __classPrivateFieldSet(this, _ReprojectPass_fullscreenQuad, params.fullscreenQuad);
+        __classPrivateFieldSet(this, _ReprojectPass_maxReprojectedSamples, params.maxReprojectedSamples);
+        __classPrivateFieldSet(this, _ReprojectPass_renderPass, makeRenderPass(gl, {
+            defines: {
+                MAX_SAMPLES: __classPrivateFieldGet(this, _ReprojectPass_maxReprojectedSamples).toFixed(1)
+            },
+            vertex: __classPrivateFieldGet(this, _ReprojectPass_fullscreenQuad).vertexShader,
+            fragment: fragment$2
+        }));
+        __classPrivateFieldSet(this, _ReprojectPass_historyCamera, new Matrix4());
     }
-    function setJitter(x, y) {
-        renderPass?.setUniform('jitter', x, y);
+    setPreviousCamera(camera) {
+        __classPrivateFieldGet(this, _ReprojectPass_historyCamera).multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setUniform('historyCamera', __classPrivateFieldGet(this, _ReprojectPass_historyCamera).elements);
     }
-    function draw(params) {
+    setJitter(x, y) {
+        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setUniform('jitter', x, y);
+    }
+    draw(params) {
         const { blendAmount, light, lightScale, position, previousLight, previousLightScale, previousPosition } = params;
-        renderPass?.setUniform('blendAmount', blendAmount);
-        renderPass?.setUniform('lightScale', lightScale.x, lightScale.y);
-        renderPass?.setUniform('previousLightScale', previousLightScale.x, previousLightScale.y);
-        renderPass?.setTexture('lightTex', light);
-        renderPass?.setTexture('positionTex', position);
-        renderPass?.setTexture('previousLightTex', previousLight);
-        renderPass?.setTexture('previousPositionTex', previousPosition);
-        renderPass?.useProgram();
-        fullscreenQuad.draw();
+        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setUniform('blendAmount', blendAmount);
+        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setUniform('lightScale', lightScale.x, lightScale.y);
+        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setUniform('previousLightScale', previousLightScale.x, previousLightScale.y);
+        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setTexture('lightTex', light);
+        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setTexture('positionTex', position);
+        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setTexture('previousLightTex', previousLight);
+        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setTexture('previousPositionTex', previousPosition);
+        __classPrivateFieldGet(this, _ReprojectPass_renderPass).useProgram();
+        __classPrivateFieldGet(this, _ReprojectPass_fullscreenQuad).draw();
     }
-    return {
-        draw,
-        setJitter,
-        setPreviousCamera
-    };
 }
+_ReprojectPass_fullscreenQuad = new WeakMap(), _ReprojectPass_maxReprojectedSamples = new WeakMap(), _ReprojectPass_renderPass = new WeakMap(), _ReprojectPass_historyCamera = new WeakMap();
 
 // @ts-check
 
@@ -52334,7 +52338,7 @@ class RenderingPipeline {
             mergedMesh: __classPrivateFieldGet(this, _RenderingPipeline_mergedMesh),
             optionalExtensions
         }));
-        __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, makeReprojectPass(gl, { fullscreenQuad: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenQuad), maxReprojectedSamples }));
+        __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, new ReprojectPass(gl, { fullscreenQuad: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenQuad), maxReprojectedSamples }));
         __classPrivateFieldSet(this, _RenderingPipeline_toneMapPass, makeToneMapPass(gl, { fullscreenQuad: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenQuad), toneMappingParams }));
         __classPrivateFieldSet(this, _RenderingPipeline_gBufferPass, new GBufferPass({ gl, materialBuffer: __classPrivateFieldGet(this, _RenderingPipeline_materialBuffer), mergedMesh: __classPrivateFieldGet(this, _RenderingPipeline_mergedMesh) }));
         __classPrivateFieldSet(this, _RenderingPipeline_ready, false);
