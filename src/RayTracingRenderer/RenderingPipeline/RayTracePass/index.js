@@ -1,5 +1,5 @@
 // @ts-check
-import { bvhAccel, flattenBvh } from './bvhAccel.js'
+import { bvhAccel, flattenBvh } from './bvhAccel'
 import { generateEnvMapFromSceneComponents, generateBackgroundMapFromSceneBackground } from '../../envMapCreation'
 import { envMapDistribution } from '../../envMapDistribution'
 import fragment from '../glsl/rayTrace.frag.js'
