@@ -4,7 +4,7 @@ import { envMapDistribution } from '../../envMapDistribution'
 import fragment from '../glsl/rayTrace.frag.js'
 import { makeRenderPass } from '../../RenderPass'
 import { makeStratifiedSamplerCombined } from '../../StratifiedSamplerCombined'
-import { makeTexture } from '../Texture'
+import { Texture } from '../Texture'
 import { clamp } from '../../util'
 
 function makeRayTracePass(
@@ -95,7 +95,7 @@ function makeRayTracePass(
   function setNoise(noiseImage: any) {
     renderPass.setTexture(
       'noiseTex',
-      makeTexture(gl, {
+      new Texture(gl, {
         data: noiseImage,
         wrapS: gl.REPEAT,
         wrapT: gl.REPEAT,
@@ -239,7 +239,7 @@ function makeRenderPassFromScene({
   renderPass.setTexture('bvhBuffer', makeDataTexture(gl, flattenedBvh.buffer, 4))
 
   const envImage = generateEnvMapFromSceneComponents(directionalLights, ambientLights, environmentLights)
-  const envImageTextureObject = makeTexture(gl, {
+  const envImageTextureObject = new Texture(gl, {
     data: envImage.data,
     storage: 'halfFloat',
     minFilter: OES_texture_float_linear ? gl.LINEAR : gl.NEAREST,
@@ -256,7 +256,7 @@ function makeRenderPassFromScene({
 
     if (backgroundImage === undefined) throw new Error('backgroundImage === undefined')
 
-    backgroundImageTextureObject = makeTexture(gl, {
+    backgroundImageTextureObject = new Texture(gl, {
       data: backgroundImage.data,
       storage: 'halfFloat',
       minFilter: OES_texture_float_linear ? gl.LINEAR : gl.NEAREST,
@@ -274,7 +274,7 @@ function makeRenderPassFromScene({
 
   renderPass.setTexture(
     'envMapDistribution',
-    makeTexture(gl, {
+    new Texture(gl, {
       data: distribution.data,
       storage: 'halfFloat',
       width: distribution.width,
@@ -299,7 +299,7 @@ function textureDimensionsFromArray(count: number) {
 
 function makeDataTexture(gl: WebGL2RenderingContext, dataArray: any, channels: 1 | 2 | 3 | 4) {
   const textureDim = textureDimensionsFromArray(dataArray.length / channels)
-  return makeTexture(gl, {
+  return new Texture(gl, {
     data: padArray(dataArray, channels * textureDim.size),
     width: textureDim.columns,
     height: textureDim.rows

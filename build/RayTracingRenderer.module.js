@@ -49395,68 +49395,11 @@ const createIndexArray = (length) => {
     return arr;
 };
 
-function makeTexture(gl, params) {
-    let { width = null, height = null, data = null, length = 1, channels = null, storage = null, flipY = false, gammaCorrection = false, wrapS = gl.CLAMP_TO_EDGE, wrapT = gl.CLAMP_TO_EDGE, minFilter = gl.NEAREST, magFilter = gl.NEAREST } = params;
-    width = width || data.width || 0;
-    height = height || data.height || 0;
-    const texture = gl.createTexture();
-    if (texture === null) {
-        throw new Error('gl.createTexture() === null');
-    }
-    let target;
-    let dataArray;
-    if (Array.isArray(data)) {
-        dataArray = data;
-        data = dataArray[0];
-    }
-    target = dataArray || length > 1 ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_2D;
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(target, texture);
-    gl.texParameteri(target, gl.TEXTURE_WRAP_S, wrapS);
-    gl.texParameteri(target, gl.TEXTURE_WRAP_T, wrapT);
-    gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, minFilter);
-    gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, magFilter);
-    if (!channels) {
-        if (data && data.length) {
-            channels = data.length / (width * height);
-        }
-        else {
-            channels = 4;
-        }
-    }
-    channels = clamp(channels, 1, 4);
-    const { type, format, internalFormat } = getTextureFormat(gl, channels, storage, data, gammaCorrection);
-    if (dataArray) {
-        gl.texStorage3D(target, 1, internalFormat, width, height, dataArray.length);
-        for (let i = 0; i < dataArray.length; i++) {
-            const layerWidth = dataArray[i].width || width;
-            const layerHeight = dataArray[i].height || height;
-            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, Array.isArray(flipY) ? flipY[i] : flipY);
-            gl.texSubImage3D(target, 0, 0, 0, i, layerWidth, layerHeight, 1, format, type, dataArray[i]);
-        }
-    }
-    else if (length > 1) {
-        gl.texStorage3D(target, 1, internalFormat, width, height, length);
-    }
-    else {
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
-        gl.texStorage2D(target, 1, internalFormat, width, height);
-        if (data) {
-            gl.texSubImage2D(target, 0, 0, 0, width, height, format, type, data);
-        }
-    }
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    return {
-        target,
-        texture
-    };
-}
 function makeDepthTarget(gl, width, height) {
     const texture = gl.createRenderbuffer();
     const target = gl.RENDERBUFFER;
-    if (texture === null) {
+    if (texture === null)
         throw new Error('gl.createRenderbuffer() === null');
-    }
     gl.bindRenderbuffer(target, texture);
     gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, width, height);
     gl.bindRenderbuffer(target, null);
@@ -49523,6 +49466,61 @@ function getTextureFormat(gl, channels, storage, data, gammaCorrection) {
         internalFormat,
         type
     };
+}
+class Texture$1 {
+    constructor(gl, params) {
+        let { width = null, height = null, data = null, length = 1, channels = null, storage = null, flipY = false, gammaCorrection = false, wrapS = gl.CLAMP_TO_EDGE, wrapT = gl.CLAMP_TO_EDGE, minFilter = gl.NEAREST, magFilter = gl.NEAREST } = params;
+        width = width || data.width || 0;
+        height = height || data.height || 0;
+        const texture = gl.createTexture();
+        if (texture === null)
+            throw new Error('gl.createTexture() === null');
+        let target;
+        let dataArray;
+        if (Array.isArray(data)) {
+            dataArray = data;
+            data = dataArray[0];
+        }
+        target = dataArray || length > 1 ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_2D;
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(target, texture);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_S, wrapS);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_T, wrapT);
+        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, minFilter);
+        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, magFilter);
+        if (!channels) {
+            if (data && data.length) {
+                channels = data.length / (width * height);
+            }
+            else {
+                channels = 4;
+            }
+        }
+        channels = clamp(channels, 1, 4);
+        const { type, format, internalFormat } = getTextureFormat(gl, channels, storage, data, gammaCorrection);
+        if (dataArray) {
+            gl.texStorage3D(target, 1, internalFormat, width, height, dataArray.length);
+            for (let i = 0; i < dataArray.length; i++) {
+                const layerWidth = dataArray[i].width || width;
+                const layerHeight = dataArray[i].height || height;
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, Array.isArray(flipY) ? flipY[i] : flipY);
+                gl.texSubImage3D(target, 0, 0, 0, i, layerWidth, layerHeight, 1, format, type, dataArray[i]);
+            }
+        }
+        else if (length > 1) {
+            gl.texStorage3D(target, 1, internalFormat, width, height, length);
+        }
+        else {
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
+            gl.texStorage2D(target, 1, internalFormat, width, height);
+            if (data) {
+                gl.texSubImage2D(target, 0, 0, 0, width, height, format, type, data);
+            }
+        }
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        this.target = target;
+        this.texture = texture;
+    }
 }
 
 function getTexturesFromMaterials(meshes, textureNames) {
@@ -49606,11 +49604,13 @@ function makeMaterialBuffer(gl, materials) {
                     normalMapIndex: maps.normalMap.indices
                 }
                 : {};
-            const _pbrMap = pbrMapTextureArray !== null ? {
-                pbrMapSize: pbrMapTextureArray.relativeSizes,
-                roughnessMapIndex: pbrMap.indices.roughnessMap,
-                metalnessMapIndex: pbrMap.indices.metalnessMap
-            } : {};
+            const _pbrMap = pbrMapTextureArray !== null
+                ? {
+                    pbrMapSize: pbrMapTextureArray.relativeSizes,
+                    roughnessMapIndex: pbrMap.indices.roughnessMap,
+                    metalnessMapIndex: pbrMap.indices.metalnessMap
+                }
+                : {};
             return {
                 ..._diffuseMap,
                 ..._normalMap,
@@ -49655,7 +49655,7 @@ function makeTextureArray(gl, textures, gammaCorrection = false) {
     const images = textures.map((t) => t.image);
     const flipY = textures.map((t) => t.flipY);
     const { maxSize, relativeSizes } = maxImageSize(images);
-    const texture = makeTexture(gl, {
+    const texture = new Texture$1(gl, {
         width: maxSize.width,
         height: maxSize.height,
         gammaCorrection,
@@ -51554,7 +51554,7 @@ function makeRayTracePass(gl, { bounces, decomposedScene, fullscreenQuad, materi
         renderPass.setUniform('pixelSize', 1 / width, 1 / height);
     }
     function setNoise(noiseImage) {
-        renderPass.setTexture('noiseTex', makeTexture(gl, {
+        renderPass.setTexture('noiseTex', new Texture$1(gl, {
             data: noiseImage,
             wrapS: gl.REPEAT,
             wrapT: gl.REPEAT,
@@ -51641,7 +51641,7 @@ function makeRenderPassFromScene({ bounces, decomposedScene, fullscreenQuad, gl,
     renderPass.setTexture('uvBuffer', makeDataTexture(gl, geometry.getAttribute('uv').array, 2));
     renderPass.setTexture('bvhBuffer', makeDataTexture(gl, flattenedBvh.buffer, 4));
     const envImage = generateEnvMapFromSceneComponents(directionalLights, ambientLights, environmentLights);
-    const envImageTextureObject = makeTexture(gl, {
+    const envImageTextureObject = new Texture$1(gl, {
         data: envImage.data,
         storage: 'halfFloat',
         minFilter: OES_texture_float_linear ? gl.LINEAR : gl.NEAREST,
@@ -51655,7 +51655,7 @@ function makeRenderPassFromScene({ bounces, decomposedScene, fullscreenQuad, gl,
         const backgroundImage = generateBackgroundMapFromSceneBackground(background);
         if (backgroundImage === undefined)
             throw new Error('backgroundImage === undefined');
-        backgroundImageTextureObject = makeTexture(gl, {
+        backgroundImageTextureObject = new Texture$1(gl, {
             data: backgroundImage.data,
             storage: 'halfFloat',
             minFilter: OES_texture_float_linear ? gl.LINEAR : gl.NEAREST,
@@ -51669,7 +51669,7 @@ function makeRenderPassFromScene({ bounces, decomposedScene, fullscreenQuad, gl,
     }
     renderPass.setTexture('backgroundMap', backgroundImageTextureObject);
     const distribution = envMapDistribution(envImage);
-    renderPass.setTexture('envMapDistribution', makeTexture(gl, {
+    renderPass.setTexture('envMapDistribution', new Texture$1(gl, {
         data: distribution.data,
         storage: 'halfFloat',
         width: distribution.width,
@@ -51690,7 +51690,7 @@ function textureDimensionsFromArray(count) {
 }
 function makeDataTexture(gl, dataArray, channels) {
     const textureDim = textureDimensionsFromArray(dataArray.length / channels);
-    return makeTexture(gl, {
+    return new Texture$1(gl, {
         data: padArray(dataArray, channels * textureDim.size),
         width: textureDim.columns,
         height: textureDim.rows
@@ -52268,7 +52268,7 @@ class RenderingPipeline {
     initFrameBuffers(width, height) {
         const makeHdrBuffer = () => makeFramebuffer(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
             color: {
-                0: makeTexture(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
+                0: new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
                     width,
                     height,
                     storage: 'float',
@@ -52279,7 +52279,7 @@ class RenderingPipeline {
         });
         const makeReprojectBuffer = () => makeFramebuffer(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
             color: {
-                0: makeTexture(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
+                0: new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
                     width,
                     height,
                     storage: 'float',
@@ -52292,14 +52292,14 @@ class RenderingPipeline {
         __classPrivateFieldSet(this, _RenderingPipeline_hdrBackBuffer, makeHdrBuffer());
         __classPrivateFieldSet(this, _RenderingPipeline_reprojectBuffer, makeReprojectBuffer());
         __classPrivateFieldSet(this, _RenderingPipeline_reprojectBackBuffer, makeReprojectBuffer());
-        const normalBuffer = makeTexture(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'halfFloat' });
-        const faceNormalBuffer = makeTexture(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'halfFloat' });
-        const colorBuffer = makeTexture(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'byte', channels: 3 });
-        const matProps = makeTexture(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'byte', channels: 2 });
+        const normalBuffer = new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'halfFloat' });
+        const faceNormalBuffer = new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'halfFloat' });
+        const colorBuffer = new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'byte', channels: 3 });
+        const matProps = new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'byte', channels: 2 });
         const depthTarget = makeDepthTarget(__classPrivateFieldGet(this, _RenderingPipeline_gl), width, height);
         const makeGBuffer = () => makeFramebuffer(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
             color: {
-                [__classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).outputLocs.position]: makeTexture(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'float' }),
+                [__classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).outputLocs.position]: new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'float' }),
                 [__classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).outputLocs.normal]: normalBuffer,
                 [__classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).outputLocs.faceNormal]: faceNormalBuffer,
                 [__classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).outputLocs.color]: colorBuffer,

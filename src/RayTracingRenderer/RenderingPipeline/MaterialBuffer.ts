@@ -3,7 +3,7 @@ import { ThinMaterial, ThickMaterial, ShadowCatcherMaterial } from '../../consta
 import materialBufferChunk from './glsl/chunks/materialBuffer.glsl.js'
 import { makeUniformBuffer } from '../UniformBuffer'
 import { makeRenderPass } from '../RenderPass'
-import { makeTexture } from './Texture'
+import { Texture } from './Texture'
 import { getTexturesFromMaterials, mergeTexturesFromMaterials } from '../texturesFromMaterials'
 
 // @ts-ignore
@@ -51,11 +51,14 @@ function makeMaterialBuffer(gl: WebGL2RenderingContext, materials) {
               normalMapIndex: maps.normalMap.indices
             }
           : {}
-      const _pbrMap = pbrMapTextureArray !== null ? {
-        pbrMapSize: pbrMapTextureArray.relativeSizes,
-        roughnessMapIndex:pbrMap.indices.roughnessMap,
-        metalnessMapIndex:pbrMap.indices.metalnessMap
-       } : {}
+      const _pbrMap =
+        pbrMapTextureArray !== null
+          ? {
+              pbrMapSize: pbrMapTextureArray.relativeSizes,
+              roughnessMapIndex: pbrMap.indices.roughnessMap,
+              metalnessMapIndex: pbrMap.indices.metalnessMap
+            }
+          : {}
       return {
         ..._diffuseMap,
         ..._normalMap,
@@ -114,7 +117,7 @@ function makeTextureArray(gl: WebGL2RenderingContext, textures, gammaCorrection 
   const { maxSize, relativeSizes } = maxImageSize(images)
 
   // create GL Array Texture from individual textures
-  const texture = makeTexture(gl, {
+  const texture = new Texture(gl, {
     width: maxSize.width,
     height: maxSize.height,
     gammaCorrection,

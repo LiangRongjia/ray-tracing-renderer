@@ -10,7 +10,7 @@ import { ReprojectPass } from './ReprojectPass'
 import { ToneMapPass } from './ToneMapPass'
 import { clamp, numberArraysEqual } from '../util'
 import { TileRender } from './TileRender'
-import { makeDepthTarget, makeTexture } from './Texture'
+import { makeDepthTarget, Texture } from './Texture'
 import noiseBase64 from './texture/noise.js'
 import { PerspectiveCamera, Vector2 } from 'three'
 
@@ -233,7 +233,7 @@ class RenderingPipeline {
     const makeHdrBuffer = () =>
       makeFramebuffer(this.#gl, {
         color: {
-          0: makeTexture(this.#gl, {
+          0: new Texture(this.#gl, {
             width,
             height,
             storage: 'float',
@@ -246,7 +246,7 @@ class RenderingPipeline {
     const makeReprojectBuffer = () =>
       makeFramebuffer(this.#gl, {
         color: {
-          0: makeTexture(this.#gl, {
+          0: new Texture(this.#gl, {
             width,
             height,
             storage: 'float',
@@ -262,17 +262,17 @@ class RenderingPipeline {
     this.#reprojectBuffer = makeReprojectBuffer()
     this.#reprojectBackBuffer = makeReprojectBuffer()
 
-    const normalBuffer = makeTexture(this.#gl, { width, height, storage: 'halfFloat' })
-    const faceNormalBuffer = makeTexture(this.#gl, { width, height, storage: 'halfFloat' })
-    const colorBuffer = makeTexture(this.#gl, { width, height, storage: 'byte', channels: 3 })
-    const matProps = makeTexture(this.#gl, { width, height, storage: 'byte', channels: 2 })
+    const normalBuffer = new Texture(this.#gl, { width, height, storage: 'halfFloat' })
+    const faceNormalBuffer = new Texture(this.#gl, { width, height, storage: 'halfFloat' })
+    const colorBuffer = new Texture(this.#gl, { width, height, storage: 'byte', channels: 3 })
+    const matProps = new Texture(this.#gl, { width, height, storage: 'byte', channels: 2 })
     const depthTarget = makeDepthTarget(this.#gl, width, height)
 
     const makeGBuffer = () =>
       makeFramebuffer(this.#gl, {
         color: {
           // @ts-ignore
-          [this.#gBufferPass.outputLocs.position]: makeTexture(this.#gl, { width, height, storage: 'float' }),
+          [this.#gBufferPass.outputLocs.position]: new Texture(this.#gl, { width, height, storage: 'float' }),
           // @ts-ignore
           [this.#gBufferPass.outputLocs.normal]: normalBuffer,
           // @ts-ignore
