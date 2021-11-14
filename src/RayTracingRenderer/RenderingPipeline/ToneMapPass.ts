@@ -55,4 +55,12 @@ function makeToneMapPass(gl: WebGL2RenderingContext, params) {
   }
 }
 
-export { makeToneMapPass }
+class ToneMapPass {
+  draw: (params: any) => void
+
+  constructor(gl: WebGL2RenderingContext, params: any) {
+    this.draw = makeToneMapPass(gl, params).draw
+  }
+}
+
+export { ToneMapPass }

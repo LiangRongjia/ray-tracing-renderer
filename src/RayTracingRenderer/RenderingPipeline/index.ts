@@ -7,7 +7,7 @@ import { mergeMeshesToGeometry } from './mergeMeshesToGeometry'
 import { makeRayTracePass } from './RayTracePass/index.js'
 import { RenderSize } from './RenderSize.js'
 import { ReprojectPass } from './ReprojectPass'
-import { makeToneMapPass } from './ToneMapPass'
+import { ToneMapPass } from './ToneMapPass'
 import { clamp, numberArraysEqual } from '../util'
 import { TileRender } from './TileRender'
 import { makeDepthTarget, makeTexture } from './Texture'
@@ -196,7 +196,7 @@ class RenderingPipeline {
 
     this.#reprojectPass = new ReprojectPass(gl, { fullscreenQuad: this.#fullscreenQuad, maxReprojectedSamples })
 
-    this.#toneMapPass = makeToneMapPass(gl, { fullscreenQuad: this.#fullscreenQuad, toneMappingParams })
+    this.#toneMapPass = new ToneMapPass(gl, { fullscreenQuad: this.#fullscreenQuad, toneMappingParams })
 
     // this.#gBufferPass = makeGBufferPass(gl, { materialBuffer: this.#materialBuffer, mergedMesh: this.#mergedMesh })
     this.#gBufferPass = new GBufferPass({ gl, materialBuffer: this.#materialBuffer, mergedMesh: this.#mergedMesh })

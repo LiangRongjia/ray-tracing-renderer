@@ -52194,6 +52194,11 @@ function makeToneMapPass(gl, params) {
         draw
     };
 }
+class ToneMapPass {
+    constructor(gl, params) {
+        this.draw = makeToneMapPass(gl, params).draw;
+    }
+}
 
 function makeTileRender(gl) {
     const desiredMsPerTile = 21;
@@ -52347,7 +52352,7 @@ class RenderingPipeline {
             optionalExtensions
         }));
         __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, new ReprojectPass(gl, { fullscreenQuad: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenQuad), maxReprojectedSamples }));
-        __classPrivateFieldSet(this, _RenderingPipeline_toneMapPass, makeToneMapPass(gl, { fullscreenQuad: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenQuad), toneMappingParams }));
+        __classPrivateFieldSet(this, _RenderingPipeline_toneMapPass, new ToneMapPass(gl, { fullscreenQuad: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenQuad), toneMappingParams }));
         __classPrivateFieldSet(this, _RenderingPipeline_gBufferPass, new GBufferPass({ gl, materialBuffer: __classPrivateFieldGet(this, _RenderingPipeline_materialBuffer), mergedMesh: __classPrivateFieldGet(this, _RenderingPipeline_mergedMesh) }));
         __classPrivateFieldSet(this, _RenderingPipeline_ready, false);
         __classPrivateFieldSet(this, _RenderingPipeline_noiseImage, new Image());
