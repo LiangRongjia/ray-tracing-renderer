@@ -17,57 +17,59 @@ const pixelsPerFrameEstimate = (gl: WebGL2RenderingContext) => {
 }
 
 class RenderSize {
-  #fullWidth: number = NaN
-  #fullHeight: number = NaN
-  #renderWidth: number = NaN
-  #renderHeight: number = NaN
-  #pixelsPerFrame: number
+  fullWidth: number = NaN
+  fullHeight: number = NaN
+  renderWidth: number = NaN
+  renderHeight: number = NaN
+  pixelsPerFrame: number = NaN
   scale = new Vector2(1, 1)
 
-  get width() {
-    return this.#renderWidth
-  }
-
-  get height() {
-    return this.#renderHeight
-  }
-
-  constructor(gl: WebGL2RenderingContext) {
-    this.#pixelsPerFrame = pixelsPerFrameEstimate(gl)
-  }
-
-  private calcDimensions() {
-    const aspectRatio = this.#fullWidth / this.#fullHeight
-    if (this.#pixelsPerFrame === undefined) {
-      return
-    }
-    this.#renderWidth = Math.round(clamp(Math.sqrt(this.#pixelsPerFrame * aspectRatio), 1, this.#fullWidth))
-    this.#renderHeight = Math.round(clamp(this.#renderWidth / aspectRatio, 1, this.#fullHeight))
-    this.scale.set(this.#renderWidth / this.#fullWidth, this.#renderHeight / this.#fullHeight)
-  }
-
   setSize(w: number, h: number) {
-    this.#fullWidth = w
-    this.#fullHeight = h
-    this.calcDimensions()
+    return RenderSize.setSize(this, w, h)
   }
 
   adjustSize(elapsedFrameMs: number) {
-    if (!elapsedFrameMs) {
-      return
-    }
+    return RenderSize.adjustSize(this, elapsedFrameMs)
+  }
 
+  static createWithGl(gl: WebGL2RenderingContext) {
+    const renderSize = new RenderSize()
+    renderSize.pixelsPerFrame = pixelsPerFrameEstimate(gl)
+    return renderSize
+  }
+
+  static clone(renderSize: RenderSize) {
+    const newRenderSizeData = new RenderSize()
+    // @ts-ignore
+    Object.keys(renderSize).forEach((key: keyof RenderSize) => (newRenderSizeData[key] = renderSize[key]))
+    return newRenderSizeData
+  }
+
+  static calcDimensions(renderSize: RenderSize) {
+    const data = RenderSize.clone(renderSize)
+    const aspectRatio = data.fullWidth / data.fullHeight
+    data.renderWidth = Math.round(clamp(Math.sqrt(data.pixelsPerFrame * aspectRatio), 1, data.fullWidth))
+    data.renderHeight = Math.round(clamp(data.renderWidth / aspectRatio, 1, data.fullHeight))
+    data.scale.set(data.renderWidth / data.fullWidth, data.renderHeight / data.fullHeight)
+    return data
+  }
+
+  static setSize(renderSize: RenderSize, w: number, h: number) {
+    const newRenderSize = RenderSize.clone(renderSize)
+    newRenderSize.fullWidth = w
+    newRenderSize.fullHeight = h
+    return RenderSize.calcDimensions(newRenderSize)
+  }
+
+  static adjustSize(renderSize: RenderSize, elapsedFrameMs: number) {
+    const data = RenderSize.clone(renderSize)
+    if (!elapsedFrameMs) return null
     // tweak to find balance. higher = faster convergence, lower = less fluctuations to microstutters
     const strength = 600
-
     const error = desiredMsPerFrame - elapsedFrameMs
-
-    if (this.#pixelsPerFrame === undefined) {
-      return
-    }
-    this.#pixelsPerFrame += strength * error
-    this.#pixelsPerFrame = clamp(this.#pixelsPerFrame, 8192, this.#fullWidth * this.#fullHeight)
-    this.calcDimensions()
+    data.pixelsPerFrame += strength * error
+    data.pixelsPerFrame = clamp(data.pixelsPerFrame, 8192, data.fullWidth * data.fullHeight)
+    return RenderSize.calcDimensions(data)
   }
 }
 

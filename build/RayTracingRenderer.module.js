@@ -51702,7 +51702,6 @@ function padArray(typedArray, length) {
     return newArray;
 }
 
-var _RenderSize_fullWidth, _RenderSize_fullHeight, _RenderSize_renderWidth, _RenderSize_renderHeight, _RenderSize_pixelsPerFrame;
 const desiredMsPerFrame = 20;
 const pixelsPerFrameEstimate = (gl) => {
     const maxRenderbufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
@@ -51718,50 +51717,55 @@ const pixelsPerFrameEstimate = (gl) => {
     return NaN;
 };
 class RenderSize {
-    constructor(gl) {
-        _RenderSize_fullWidth.set(this, NaN);
-        _RenderSize_fullHeight.set(this, NaN);
-        _RenderSize_renderWidth.set(this, NaN);
-        _RenderSize_renderHeight.set(this, NaN);
-        _RenderSize_pixelsPerFrame.set(this, void 0);
+    constructor() {
+        this.fullWidth = NaN;
+        this.fullHeight = NaN;
+        this.renderWidth = NaN;
+        this.renderHeight = NaN;
+        this.pixelsPerFrame = NaN;
         this.scale = new Vector2(1, 1);
-        __classPrivateFieldSet(this, _RenderSize_pixelsPerFrame, pixelsPerFrameEstimate(gl));
-    }
-    get width() {
-        return __classPrivateFieldGet(this, _RenderSize_renderWidth);
-    }
-    get height() {
-        return __classPrivateFieldGet(this, _RenderSize_renderHeight);
-    }
-    calcDimensions() {
-        const aspectRatio = __classPrivateFieldGet(this, _RenderSize_fullWidth) / __classPrivateFieldGet(this, _RenderSize_fullHeight);
-        if (__classPrivateFieldGet(this, _RenderSize_pixelsPerFrame) === undefined) {
-            return;
-        }
-        __classPrivateFieldSet(this, _RenderSize_renderWidth, Math.round(clamp(Math.sqrt(__classPrivateFieldGet(this, _RenderSize_pixelsPerFrame) * aspectRatio), 1, __classPrivateFieldGet(this, _RenderSize_fullWidth))));
-        __classPrivateFieldSet(this, _RenderSize_renderHeight, Math.round(clamp(__classPrivateFieldGet(this, _RenderSize_renderWidth) / aspectRatio, 1, __classPrivateFieldGet(this, _RenderSize_fullHeight))));
-        this.scale.set(__classPrivateFieldGet(this, _RenderSize_renderWidth) / __classPrivateFieldGet(this, _RenderSize_fullWidth), __classPrivateFieldGet(this, _RenderSize_renderHeight) / __classPrivateFieldGet(this, _RenderSize_fullHeight));
     }
     setSize(w, h) {
-        __classPrivateFieldSet(this, _RenderSize_fullWidth, w);
-        __classPrivateFieldSet(this, _RenderSize_fullHeight, h);
-        this.calcDimensions();
+        return RenderSize.setSize(this, w, h);
     }
     adjustSize(elapsedFrameMs) {
-        if (!elapsedFrameMs) {
-            return;
-        }
+        return RenderSize.adjustSize(this, elapsedFrameMs);
+    }
+    static createWithGl(gl) {
+        const renderSize = new RenderSize();
+        renderSize.pixelsPerFrame = pixelsPerFrameEstimate(gl);
+        return renderSize;
+    }
+    static clone(renderSize) {
+        const newRenderSizeData = new RenderSize();
+        Object.keys(renderSize).forEach((key) => (newRenderSizeData[key] = renderSize[key]));
+        return newRenderSizeData;
+    }
+    static calcDimensions(renderSize) {
+        const data = RenderSize.clone(renderSize);
+        const aspectRatio = data.fullWidth / data.fullHeight;
+        data.renderWidth = Math.round(clamp(Math.sqrt(data.pixelsPerFrame * aspectRatio), 1, data.fullWidth));
+        data.renderHeight = Math.round(clamp(data.renderWidth / aspectRatio, 1, data.fullHeight));
+        data.scale.set(data.renderWidth / data.fullWidth, data.renderHeight / data.fullHeight);
+        return data;
+    }
+    static setSize(renderSize, w, h) {
+        const newRenderSize = RenderSize.clone(renderSize);
+        newRenderSize.fullWidth = w;
+        newRenderSize.fullHeight = h;
+        return RenderSize.calcDimensions(newRenderSize);
+    }
+    static adjustSize(renderSize, elapsedFrameMs) {
+        const data = RenderSize.clone(renderSize);
+        if (!elapsedFrameMs)
+            return null;
         const strength = 600;
         const error = desiredMsPerFrame - elapsedFrameMs;
-        if (__classPrivateFieldGet(this, _RenderSize_pixelsPerFrame) === undefined) {
-            return;
-        }
-        __classPrivateFieldSet(this, _RenderSize_pixelsPerFrame, __classPrivateFieldGet(this, _RenderSize_pixelsPerFrame) + strength * error);
-        __classPrivateFieldSet(this, _RenderSize_pixelsPerFrame, clamp(__classPrivateFieldGet(this, _RenderSize_pixelsPerFrame), 8192, __classPrivateFieldGet(this, _RenderSize_fullWidth) * __classPrivateFieldGet(this, _RenderSize_fullHeight)));
-        this.calcDimensions();
+        data.pixelsPerFrame += strength * error;
+        data.pixelsPerFrame = clamp(data.pixelsPerFrame, 8192, data.fullWidth * data.fullHeight);
+        return RenderSize.calcDimensions(data);
     }
 }
-_RenderSize_fullWidth = new WeakMap(), _RenderSize_fullHeight = new WeakMap(), _RenderSize_renderWidth = new WeakMap(), _RenderSize_renderHeight = new WeakMap(), _RenderSize_pixelsPerFrame = new WeakMap();
 
 // @ts-check
 
@@ -52213,7 +52217,7 @@ class RenderingPipeline {
         _RenderingPipeline_gl.set(this, void 0);
         __classPrivateFieldSet(this, _RenderingPipeline_gl, gl);
         __classPrivateFieldSet(this, _RenderingPipeline_tileRender, new TileRender(gl));
-        __classPrivateFieldSet(this, _RenderingPipeline_previewSize, new RenderSize(gl));
+        __classPrivateFieldSet(this, _RenderingPipeline_previewSize, RenderSize.createWithGl(gl));
         __classPrivateFieldSet(this, _RenderingPipeline_decomposedScene, decomposeScene(scene));
         __classPrivateFieldSet(this, _RenderingPipeline_mergedMesh, mergeMeshesToGeometry(__classPrivateFieldGet(this, _RenderingPipeline_decomposedScene).meshes));
         __classPrivateFieldSet(this, _RenderingPipeline_materialBuffer, makeMaterialBuffer(gl, __classPrivateFieldGet(this, _RenderingPipeline_mergedMesh).materials));
@@ -52331,7 +52335,7 @@ class RenderingPipeline {
         __classPrivateFieldSet(this, _RenderingPipeline_screenWidth, w);
         __classPrivateFieldSet(this, _RenderingPipeline_screenHeight, h);
         __classPrivateFieldGet(this, _RenderingPipeline_tileRender).setSize(w, h);
-        __classPrivateFieldGet(this, _RenderingPipeline_previewSize).setSize(w, h);
+        __classPrivateFieldSet(this, _RenderingPipeline_previewSize, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).setSize(w, h));
         this.initFrameBuffers(w, h);
         __classPrivateFieldSet(this, _RenderingPipeline_firstFrame, true);
     }
@@ -52423,14 +52427,14 @@ class RenderingPipeline {
             this.swapBuffers();
         }
         if (__classPrivateFieldGet(this, _RenderingPipeline_numPreviewsRendered) >= previewFramesBeforeBenchmark) {
-            __classPrivateFieldGet(this, _RenderingPipeline_previewSize).adjustSize(__classPrivateFieldGet(this, _RenderingPipeline_elapsedFrameTime));
+            __classPrivateFieldSet(this, _RenderingPipeline_previewSize, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).adjustSize(__classPrivateFieldGet(this, _RenderingPipeline_elapsedFrameTime)) || __classPrivateFieldGet(this, _RenderingPipeline_previewSize));
         }
-        this.updateSeed(__classPrivateFieldGet(this, _RenderingPipeline_previewSize).width, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).height, false);
+        this.updateSeed(__classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderWidth, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderHeight, false);
         this.renderGBuffer();
         __classPrivateFieldGet(this, _RenderingPipeline_rayTracePass).bindTextures();
-        this.newSampleToBuffer(__classPrivateFieldGet(this, _RenderingPipeline_hdrBuffer), __classPrivateFieldGet(this, _RenderingPipeline_previewSize).width, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).height);
+        this.newSampleToBuffer(__classPrivateFieldGet(this, _RenderingPipeline_hdrBuffer), __classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderWidth, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderHeight);
         __classPrivateFieldGet(this, _RenderingPipeline_reprojectBuffer).bind();
-        __classPrivateFieldGet(this, _RenderingPipeline_gl).viewport(0, 0, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).width, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).height);
+        __classPrivateFieldGet(this, _RenderingPipeline_gl).viewport(0, 0, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderWidth, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderHeight);
         __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).draw({
             blendAmount: 1.0,
             light: __classPrivateFieldGet(this, _RenderingPipeline_hdrBuffer).color[0],

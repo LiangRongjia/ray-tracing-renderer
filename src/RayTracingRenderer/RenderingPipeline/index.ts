@@ -69,13 +69,7 @@ class RenderingPipeline {
     reset: () => void
     setSize: (w: number, h: number) => void
   }
-  #previewSize: {
-    adjustSize: (elapsedFrameMs: number) => void
-    setSize: (w: number, h: number) => void
-    scale: Vector2
-    readonly width: number
-    readonly height: number
-  }
+  #previewSize: RenderSize
   #decomposedScene: any
   #mergedMesh: any
   #materialBuffer:
@@ -175,7 +169,7 @@ class RenderingPipeline {
     // used to sample only a portion of the scene to the HDR Buffer to prevent the GPU from locking up from excessive computation
     this.#tileRender = new TileRender(gl)
 
-    this.#previewSize = new RenderSize(gl)
+    this.#previewSize = RenderSize.createWithGl(gl)
 
     this.#decomposedScene = decomposeScene(scene)
 
@@ -329,7 +323,7 @@ class RenderingPipeline {
     this.#screenHeight = h
 
     this.#tileRender.setSize(w, h)
-    this.#previewSize.setSize(w, h)
+    this.#previewSize = this.#previewSize.setSize(w, h)
     this.initFrameBuffers(w, h)
     this.#firstFrame = true
   }
@@ -448,18 +442,18 @@ class RenderingPipeline {
     }
 
     if (this.#numPreviewsRendered >= previewFramesBeforeBenchmark) {
-      this.#previewSize.adjustSize(this.#elapsedFrameTime)
+      this.#previewSize = this.#previewSize.adjustSize(this.#elapsedFrameTime) || this.#previewSize
     }
 
-    this.updateSeed(this.#previewSize.width, this.#previewSize.height, false)
+    this.updateSeed(this.#previewSize.renderWidth, this.#previewSize.renderHeight, false)
 
     this.renderGBuffer()
 
     this.#rayTracePass.bindTextures()
-    this.newSampleToBuffer(this.#hdrBuffer, this.#previewSize.width, this.#previewSize.height)
+    this.newSampleToBuffer(this.#hdrBuffer, this.#previewSize.renderWidth, this.#previewSize.renderHeight)
 
     this.#reprojectBuffer.bind()
-    this.#gl.viewport(0, 0, this.#previewSize.width, this.#previewSize.height)
+    this.#gl.viewport(0, 0, this.#previewSize.renderWidth, this.#previewSize.renderHeight)
     this.#reprojectPass.draw({
       blendAmount: 1.0,
       light: this.#hdrBuffer.color[0],
@@ -570,14 +564,10 @@ class RenderingPipeline {
     }
 
     this.setCameras(camera, this.#lastCamera)
-
     this.updateSeed(this.#screenWidth, this.#screenHeight, true)
-
     this.renderGBuffer()
-
     this.#rayTracePass.bindTextures()
     this.addSampleToBuffer(this.#hdrBuffer, this.#screenWidth, this.#screenHeight)
-
     this.#reprojectBuffer.bind()
     this.#gl.viewport(0, 0, this.#screenWidth, this.#screenHeight)
     this.#reprojectPass.draw({
@@ -592,7 +582,6 @@ class RenderingPipeline {
       previousPosition: this.#gBufferBack.color[this.#gBufferPass.outputLocs.position]
     })
     this.#reprojectBuffer.unbind()
-
     this.toneMapToScreen(this.#reprojectBuffer.color[0], this.#fullscreenScale)
   }
 }
