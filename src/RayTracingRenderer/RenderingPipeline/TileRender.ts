@@ -1,4 +1,3 @@
-// @ts-check
 import { clamp } from '../util'
 
 // TileRender is based on the concept of a compute shader's work group.
@@ -128,4 +127,24 @@ function pixelsPerTileEstimate(gl: WebGL2RenderingContext) {
   return undefined
 }
 
-export { makeTileRender }
+class TileRender {
+  nextTile: (elapsedFrameMs: number) => {
+    x: number
+    y: number
+    tileWidth: number
+    tileHeight: number
+    isFirstTile: boolean
+    isLastTile: boolean
+  }
+  reset: () => void
+  setSize: (w: number, h: number) => void
+
+  constructor(gl: WebGL2RenderingContext) {
+    const tileRender = makeTileRender(gl)
+    this.nextTile = tileRender.nextTile
+    this.reset = tileRender.reset
+    this.setSize = tileRender.setSize
+  }
+}
+
+export { TileRender }

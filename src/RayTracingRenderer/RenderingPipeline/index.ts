@@ -9,7 +9,7 @@ import { RenderSize } from './RenderSize.js'
 import { ReprojectPass } from './ReprojectPass'
 import { makeToneMapPass } from './ToneMapPass'
 import { clamp, numberArraysEqual } from '../util'
-import { makeTileRender } from './TileRender'
+import { TileRender } from './TileRender'
 import { makeDepthTarget, makeTexture } from './Texture'
 import noiseBase64 from './texture/noise.js'
 import { PerspectiveCamera, Vector2 } from 'three'
@@ -173,7 +173,7 @@ class RenderingPipeline {
   }: PipelineClassProps) {
     this.#gl = gl
     // used to sample only a portion of the scene to the HDR Buffer to prevent the GPU from locking up from excessive computation
-    this.#tileRender = makeTileRender(gl)
+    this.#tileRender = new TileRender(gl)
 
     this.#previewSize = new RenderSize(gl)
 
