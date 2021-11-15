@@ -52487,12 +52487,10 @@ class RenderingPipeline {
         lastCamera.copy(camera);
     }
     drawPreview() {
-        if (__classPrivateFieldGet(this, _RenderingPipeline_sampleCount) > 0) {
+        if (__classPrivateFieldGet(this, _RenderingPipeline_sampleCount) > 0)
             this.swapBuffers();
-        }
-        if (__classPrivateFieldGet(this, _RenderingPipeline_numPreviewsRendered) >= previewFramesBeforeBenchmark) {
+        if (__classPrivateFieldGet(this, _RenderingPipeline_numPreviewsRendered) >= previewFramesBeforeBenchmark)
             __classPrivateFieldSet(this, _RenderingPipeline_previewSize, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).adjustSize(__classPrivateFieldGet(this, _RenderingPipeline_elapsedFrameTime)) || __classPrivateFieldGet(this, _RenderingPipeline_previewSize));
-        }
         this.updateSeed(__classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderWidth, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderHeight, false);
         this.renderGBuffer();
         __classPrivateFieldGet(this, _RenderingPipeline_rayTracePass).bindTextures();
@@ -52555,9 +52553,8 @@ class RenderingPipeline {
     }
     draw(camera) {
         var _a;
-        if (!__classPrivateFieldGet(this, _RenderingPipeline_ready)) {
+        if (!__classPrivateFieldGet(this, _RenderingPipeline_ready))
             return;
-        }
         if (this.areCamerasEqual(camera, __classPrivateFieldGet(this, _RenderingPipeline_lastCamera))) {
             this.drawTile();
             __classPrivateFieldSet(this, _RenderingPipeline_numPreviewsRendered, 0);
@@ -52724,9 +52721,8 @@ class RayTracingRenderer {
                 __classPrivateFieldGet(this, _RayTracingRenderer_restartTimer).call(this);
             }
         }
-        if (this.needsUpdate) {
+        if (this.needsUpdate)
             __classPrivateFieldGet(this, _RayTracingRenderer_initScene).call(this, scene);
-        }
         if (isNaN(__classPrivateFieldGet(this, _RayTracingRenderer_currentTime))) {
             if (!__classPrivateFieldGet(this, _RayTracingRenderer_syncWarning)) {
                 console.warn('Ray Tracing Renderer warning: For improved performance, please call renderer.sync(time) before render.render(scene, camera), with the time parameter equalling the parameter passed to the callback of requestAnimationFrame');
@@ -52734,15 +52730,17 @@ class RayTracingRenderer {
             }
             __classPrivateFieldSet(this, _RayTracingRenderer_currentTime, performance.now());
         }
-        __classPrivateFieldGet(this, _RayTracingRenderer_pipeline)?.time(__classPrivateFieldGet(this, _RayTracingRenderer_isValidTime) * __classPrivateFieldGet(this, _RayTracingRenderer_currentTime));
+        if (__classPrivateFieldGet(this, _RayTracingRenderer_pipeline) === null)
+            throw new Error('this.#pipeline === null');
+        __classPrivateFieldGet(this, _RayTracingRenderer_pipeline).time(__classPrivateFieldGet(this, _RayTracingRenderer_isValidTime) * __classPrivateFieldGet(this, _RayTracingRenderer_currentTime));
         __classPrivateFieldSet(this, _RayTracingRenderer_isValidTime, 1);
         __classPrivateFieldSet(this, _RayTracingRenderer_currentTime, NaN);
         camera.updateMatrixWorld();
         if (this.maxHardwareUsage) {
-            __classPrivateFieldGet(this, _RayTracingRenderer_pipeline)?.drawFull(camera);
+            __classPrivateFieldGet(this, _RayTracingRenderer_pipeline).drawFull(camera);
         }
         else {
-            __classPrivateFieldGet(this, _RayTracingRenderer_pipeline)?.draw(camera);
+            __classPrivateFieldGet(this, _RayTracingRenderer_pipeline).draw(camera);
         }
     }
     dispose() {
@@ -52753,13 +52751,11 @@ class RayTracingRenderer {
         const gl = document.createElement('canvas').getContext('webgl2', {
             failIfMajorPerformanceCaveat: true
         });
-        if (!gl) {
+        if (!gl)
             return false;
-        }
         const extensions = glRequiredExtensions.map((name) => gl.getExtension(name));
-        if (Object.values(extensions).some((extension) => !extension)) {
+        if (Object.values(extensions).some((extension) => !extension))
             return false;
-        }
         return true;
     }
 }

@@ -419,13 +419,10 @@ class RenderingPipeline {
   }
 
   private drawPreview() {
-    if (this.#sampleCount > 0) {
-      this.swapBuffers()
-    }
+    if (this.#sampleCount > 0) this.swapBuffers()
 
-    if (this.#numPreviewsRendered >= previewFramesBeforeBenchmark) {
+    if (this.#numPreviewsRendered >= previewFramesBeforeBenchmark)
       this.#previewSize = this.#previewSize.adjustSize(this.#elapsedFrameTime) || this.#previewSize
-    }
 
     this.updateSeed(this.#previewSize.renderWidth, this.#previewSize.renderHeight, false)
 
@@ -504,9 +501,7 @@ class RenderingPipeline {
   }
 
   draw(camera: THREE.Camera) {
-    if (!this.#ready) {
-      return
-    }
+    if (!this.#ready) return
 
     if (this.areCamerasEqual(camera, this.#lastCamera)) {
       this.drawTile()

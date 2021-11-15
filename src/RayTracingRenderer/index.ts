@@ -132,7 +132,7 @@ class RayTracingRenderer {
     return this.#pipeline?.getTotalSamplesRendered()
   }
 
-  sync(t: number): void {
+  sync(t?: number): void {
     // the first call to the callback of requestAnimationFrame does not have a time parameter
     // use performance.now() in this case
     this.#currentTime = t || performance.now()
@@ -152,9 +152,7 @@ class RayTracingRenderer {
       }
     }
 
-    if (this.needsUpdate) {
-      this.#initScene(scene)
-    }
+    if (this.needsUpdate) this.#initScene(scene)
 
     if (isNaN(this.#currentTime)) {
       if (!this.#syncWarning) {
@@ -167,7 +165,9 @@ class RayTracingRenderer {
       this.#currentTime = performance.now() // less accurate than requestAnimationFrame's time parameter
     }
 
-    this.#pipeline?.time(this.#isValidTime * this.#currentTime)
+    if (this.#pipeline === null) throw new Error('this.#pipeline === null')
+
+    this.#pipeline.time(this.#isValidTime * this.#currentTime)
 
     this.#isValidTime = 1
     this.#currentTime = NaN
@@ -176,10 +176,10 @@ class RayTracingRenderer {
 
     if (this.maxHardwareUsage) {
       // render new sample for the entire screen
-      this.#pipeline?.drawFull(camera)
+      this.#pipeline.drawFull(camera)
     } else {
       // render new sample for a tiled subset of the screen
-      this.#pipeline?.draw(camera)
+      this.#pipeline.draw(camera)
     }
   }
 
@@ -193,15 +193,11 @@ class RayTracingRenderer {
       failIfMajorPerformanceCaveat: true
     })
 
-    if (!gl) {
-      return false
-    }
+    if (!gl) return false
 
     const extensions = glRequiredExtensions.map((name) => gl.getExtension(name))
 
-    if (Object.values(extensions).some((extension) => !extension)) {
-      return false
-    }
+    if (Object.values(extensions).some((extension) => !extension)) return false
 
     return true
   }
