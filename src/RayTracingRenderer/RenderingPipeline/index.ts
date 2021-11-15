@@ -168,17 +168,11 @@ class RenderingPipeline {
     this.#gl = gl
     // used to sample only a portion of the scene to the HDR Buffer to prevent the GPU from locking up from excessive computation
     this.#tileRender = new TileRender(gl)
-
     this.#previewSize = RenderSize.createWithGl(gl)
-
     this.#decomposedScene = decomposeScene(scene)
-
     this.#mergedMesh = mergeMeshesToGeometry(this.#decomposedScene.meshes)
-
     this.#materialBuffer = makeMaterialBuffer(gl, this.#mergedMesh.materials)
-
     this.#fullscreenQuad = makeFullscreenQuad(gl)
-
     this.#rayTracePass = makeRayTracePass(gl, {
       bounces,
       decomposedScene: this.#decomposedScene,
@@ -187,48 +181,33 @@ class RenderingPipeline {
       mergedMesh: this.#mergedMesh,
       optionalExtensions
     })
-
     this.#reprojectPass = ReprojectPass.createWithGl(gl, {
       fullscreenQuad: this.#fullscreenQuad,
       maxReprojectedSamples
     })
-
     this.#toneMapPass = new ToneMapPass(gl, { fullscreenQuad: this.#fullscreenQuad, toneMappingParams })
-
-    // this.#gBufferPass = makeGBufferPass(gl, { materialBuffer: this.#materialBuffer, mergedMesh: this.#mergedMesh })
     this.#gBufferPass = new GBufferPass({ gl, materialBuffer: this.#materialBuffer, mergedMesh: this.#mergedMesh })
-
     this.#ready = false
-
     this.#noiseImage = new Image()
     this.#noiseImage.src = noiseBase64
     this.#noiseImage.onload = () => {
       this.#rayTracePass.setNoise(this.#noiseImage)
       this.#ready = true
     }
-
     this.#frameTime
     this.#elapsedFrameTime
     this.#sampleTime
-
     this.#sampleCount = 0
     this.#numPreviewsRendered = 0
-
     this.#firstFrame = true
-
     this.#sampleRenderedCallback
-
     this.#lastCamera = new PerspectiveCamera()
     this.#lastCamera.position.set(1, 1, 1)
     this.#lastCamera.updateMatrixWorld()
-
     this.#screenWidth = 0
     this.#screenHeight = 0
-
     this.#fullscreenScale = new Vector2(1, 1)
-
     this.#lastToneMappedScale = this.#fullscreenScale
-
     return this
   }
 
