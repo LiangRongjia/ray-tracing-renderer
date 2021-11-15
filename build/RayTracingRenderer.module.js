@@ -48994,24 +48994,27 @@ function getOutputLocations(outputs) {
     return locations;
 }
 
-function makeFullscreenQuad(gl) {
-    const vao = gl.createVertexArray();
-    gl.bindVertexArray(vao);
-    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]), gl.STATIC_DRAW);
-    const posLoc = 0;
-    gl.enableVertexAttribArray(posLoc);
-    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
-    gl.bindVertexArray(null);
-    const vertexShader = makeVertexShader(gl, { vertex, defines: undefined });
-    function draw() {
+class FullscreenQuad {
+    constructor(gl) {
+        const vao = gl.createVertexArray();
+        if (vao === null)
+            throw new Error('vao === null');
         gl.bindVertexArray(vao);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]), gl.STATIC_DRAW);
+        const posLoc = 0;
+        gl.enableVertexAttribArray(posLoc);
+        gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+        gl.bindVertexArray(null);
+        const vertexShader = makeVertexShader(gl, { vertex, defines: undefined });
+        this.vertexShader = vertexShader;
+        this.vao = vao;
     }
-    return {
-        draw,
-        vertexShader
-    };
+    draw(gl) {
+        gl.bindVertexArray(this.vao);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        return this;
+    }
 }
 
 // @ts-check
@@ -51633,7 +51636,7 @@ function makeRayTracePass(gl, { bounces, decomposedScene, fullscreenQuad, materi
     }
     function draw() {
         renderPass = renderPass.useProgram(gl, false);
-        fullscreenQuad.draw();
+        fullscreenQuad = fullscreenQuad.draw(gl);
     }
     samples = makeStratifiedSamplerCombined(1, samplingDimensions);
     return {
@@ -51947,7 +51950,7 @@ class ReprojectPass {
             .setTexture('previousLightTex', previousLight)
             .setTexture('previousPositionTex', previousPosition)
             .useProgram(gl);
-        this.fullscreenQuad.draw();
+        this.fullscreenQuad && (this.fullscreenQuad = this.fullscreenQuad.draw(gl));
         return this;
     }
     clone() {
@@ -52098,7 +52101,7 @@ const toneMapFunctions = {
     [ACESFilmicToneMapping]: 'acesFilmic'
 };
 function makeToneMapPass(gl, params) {
-    const { fullscreenQuad, toneMappingParams } = params;
+    let { fullscreenQuad, toneMappingParams } = params;
     const renderPassConfig = {
         gl,
         defines: {
@@ -52125,7 +52128,7 @@ function makeToneMapPass(gl, params) {
             .setTexture('positionTex', position)
             .useProgram(gl);
         lightScale.x !== 1 && lightScale.y !== 1 ? (renderPassUpscale = newRenderPass) : (renderPassNative = newRenderPass);
-        fullscreenQuad.draw();
+        fullscreenQuad = fullscreenQuad.draw(gl);
     }
     return {
         draw
@@ -52279,7 +52282,7 @@ class RenderingPipeline {
         __classPrivateFieldSet(this, _RenderingPipeline_decomposedScene, decomposeScene(scene));
         __classPrivateFieldSet(this, _RenderingPipeline_mergedMesh, mergeMeshesToGeometry(__classPrivateFieldGet(this, _RenderingPipeline_decomposedScene).meshes));
         __classPrivateFieldSet(this, _RenderingPipeline_materialBuffer, makeMaterialBuffer(gl, __classPrivateFieldGet(this, _RenderingPipeline_mergedMesh).materials));
-        __classPrivateFieldSet(this, _RenderingPipeline_fullscreenQuad, makeFullscreenQuad(gl));
+        __classPrivateFieldSet(this, _RenderingPipeline_fullscreenQuad, new FullscreenQuad(gl));
         __classPrivateFieldSet(this, _RenderingPipeline_rayTracePass, makeRayTracePass(gl, {
             bounces,
             decomposedScene: __classPrivateFieldGet(this, _RenderingPipeline_decomposedScene),

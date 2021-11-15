@@ -6,6 +6,7 @@ import { RenderPass } from '../../RenderPass'
 import { makeStratifiedSamplerCombined } from '../../StratifiedSamplerCombined'
 import { Texture } from '../Texture'
 import { clamp } from '../../util'
+import { FullscreenQuad } from '../FullscreenQuad'
 
 function makeRayTracePass(
   gl: WebGL2RenderingContext,
@@ -19,7 +20,7 @@ function makeRayTracePass(
   }: {
     bounces: number
     decomposedScene: any
-    fullscreenQuad: { draw: () => void; vertexShader: WebGLShader }
+    fullscreenQuad: FullscreenQuad
     materialBuffer:
       | {
           defines: {
@@ -160,7 +161,7 @@ function makeRayTracePass(
 
   function draw() {
     renderPass = renderPass.useProgram(gl, false)
-    fullscreenQuad.draw()
+    fullscreenQuad = fullscreenQuad.draw(gl)
   }
 
   samples = makeStratifiedSamplerCombined(1, samplingDimensions)

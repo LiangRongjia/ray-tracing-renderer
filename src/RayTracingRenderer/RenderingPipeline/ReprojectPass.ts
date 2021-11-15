@@ -2,9 +2,10 @@ import fragment from './glsl/reproject.frag.js'
 import { RenderPass } from '../RenderPass'
 import * as THREE from 'three'
 import { cloneCase } from '../../utils.js'
+import { FullscreenQuad } from './FullscreenQuad.js'
 
 class ReprojectPass {
-  fullscreenQuad: any = null
+  fullscreenQuad: FullscreenQuad | null = null
   maxReprojectedSamples: any = null
   renderPass: RenderPass | null = null
   historyCamera: THREE.Matrix4 = new THREE.Matrix4()
@@ -27,7 +28,7 @@ class ReprojectPass {
       .setTexture('previousLightTex', previousLight)
       .setTexture('previousPositionTex', previousPosition)
       .useProgram(gl)
-    this.fullscreenQuad.draw()
+    this.fullscreenQuad && (this.fullscreenQuad = this.fullscreenQuad.draw(gl))
     return this
   }
 
@@ -46,7 +47,7 @@ class ReprojectPass {
     return newReprojectPass
   }
 
-  static createWithGl(gl: WebGL2RenderingContext, params: { fullscreenQuad: any; maxReprojectedSamples: any }) {
+  static createWithGl(gl: WebGL2RenderingContext, params: { fullscreenQuad: FullscreenQuad; maxReprojectedSamples: any }) {
     const newReprojectPass = new ReprojectPass()
     newReprojectPass.fullscreenQuad = params.fullscreenQuad
     newReprojectPass.maxReprojectedSamples = params.maxReprojectedSamples

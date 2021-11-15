@@ -1,6 +1,7 @@
 import fragment from './glsl/toneMap.frag.js'
 import { RenderPass } from '../RenderPass'
 import * as THREE from 'three'
+import { FullscreenQuad } from './FullscreenQuad.js'
 
 const toneMapFunctions = {
   [THREE.LinearToneMapping]: 'linear',
@@ -12,8 +13,11 @@ const toneMapFunctions = {
 }
 
 // @ts-ignore
-function makeToneMapPass(gl: WebGL2RenderingContext, params) {
-  const { fullscreenQuad, toneMappingParams } = params
+function makeToneMapPass(
+  gl: WebGL2RenderingContext,
+  params: { fullscreenQuad: FullscreenQuad; toneMappingParams: any }
+) {
+  let { fullscreenQuad, toneMappingParams } = params
 
   const renderPassConfig = {
     gl,
@@ -50,7 +54,7 @@ function makeToneMapPass(gl: WebGL2RenderingContext, params) {
 
     lightScale.x !== 1 && lightScale.y !== 1 ? (renderPassUpscale = newRenderPass) : (renderPassNative = newRenderPass)
 
-    fullscreenQuad.draw()
+    fullscreenQuad = fullscreenQuad.draw(gl)
   }
 
   return {

@@ -1,6 +1,6 @@
 import { decomposeScene } from './decomposeScene'
 import { makeFramebuffer } from './Framebuffer'
-import { makeFullscreenQuad } from './FullscreenQuad'
+import { FullscreenQuad } from './FullscreenQuad'
 import { GBufferPass } from './GBufferPass.js'
 import { makeMaterialBuffer } from './MaterialBuffer'
 import { mergeMeshesToGeometry } from './mergeMeshesToGeometry'
@@ -108,7 +108,7 @@ class RenderingPipeline {
           | { pbrMap?: undefined; normalMap?: undefined; diffuseMap?: undefined }
       }
     | undefined
-  #fullscreenQuad: { draw: () => void; vertexShader: WebGLShader }
+  #fullscreenQuad: FullscreenQuad
   #rayTracePass: {
     bindTextures: () => void
     draw: () => void
@@ -172,7 +172,7 @@ class RenderingPipeline {
     this.#decomposedScene = decomposeScene(scene)
     this.#mergedMesh = mergeMeshesToGeometry(this.#decomposedScene.meshes)
     this.#materialBuffer = makeMaterialBuffer(gl, this.#mergedMesh.materials)
-    this.#fullscreenQuad = makeFullscreenQuad(gl)
+    this.#fullscreenQuad = new FullscreenQuad(gl)
     this.#rayTracePass = makeRayTracePass(gl, {
       bounces,
       decomposedScene: this.#decomposedScene,
