@@ -49432,18 +49432,19 @@ const createIndexArray = (length) => {
     return arr;
 };
 
-function makeDepthTarget(gl, width, height) {
-    const texture = gl.createRenderbuffer();
-    const target = gl.RENDERBUFFER;
-    if (texture === null)
-        throw new Error('gl.createRenderbuffer() === null');
-    gl.bindRenderbuffer(target, texture);
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, width, height);
-    gl.bindRenderbuffer(target, null);
-    return {
-        target,
-        texture
-    };
+class DepthTarget {
+    constructor(gl, width, height) {
+        this.target = 0;
+        const texture = gl.createRenderbuffer();
+        const target = gl.RENDERBUFFER;
+        if (texture === null)
+            throw new Error('gl.createRenderbuffer() === null');
+        gl.bindRenderbuffer(target, texture);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, width, height);
+        gl.bindRenderbuffer(target, null);
+        this.target = target;
+        this.texture = texture;
+    }
 }
 function getFormat(gl, channels) {
     const map = {
@@ -52356,7 +52357,7 @@ class RenderingPipeline {
         const faceNormalBuffer = new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'halfFloat' });
         const colorBuffer = new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'byte', channels: 3 });
         const matProps = new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'byte', channels: 2 });
-        const depthTarget = makeDepthTarget(__classPrivateFieldGet(this, _RenderingPipeline_gl), width, height);
+        const depthTarget = new DepthTarget(__classPrivateFieldGet(this, _RenderingPipeline_gl), width, height);
         const makeGBuffer = () => makeFramebuffer(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
             color: {
                 [__classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).outputLocs.position]: new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'float' }),

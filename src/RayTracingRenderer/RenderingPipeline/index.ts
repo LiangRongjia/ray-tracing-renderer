@@ -10,7 +10,7 @@ import { ReprojectPass } from './ReprojectPass'
 import { ToneMapPass } from './ToneMapPass'
 import { clamp, numberArraysEqual } from '../util'
 import { TileRender } from './TileRender'
-import { makeDepthTarget, Texture } from './Texture'
+import { DepthTarget, Texture } from './Texture'
 import noiseBase64 from './texture/noise.js'
 import { PerspectiveCamera, Vector2 } from 'three'
 
@@ -248,7 +248,7 @@ class RenderingPipeline {
     const faceNormalBuffer = new Texture(this.#gl, { width, height, storage: 'halfFloat' })
     const colorBuffer = new Texture(this.#gl, { width, height, storage: 'byte', channels: 3 })
     const matProps = new Texture(this.#gl, { width, height, storage: 'byte', channels: 2 })
-    const depthTarget = makeDepthTarget(this.#gl, width, height)
+    const depthTarget = new DepthTarget(this.#gl, width, height)
 
     const makeGBuffer = () =>
       makeFramebuffer(this.#gl, {

@@ -16,6 +16,25 @@ function makeDepthTarget(gl: WebGL2RenderingContext, width: number, height: numb
   }
 }
 
+class DepthTarget {
+  target: number = 0
+  texture: WebGLRenderbuffer
+
+  constructor(gl: WebGL2RenderingContext, width: number, height: number) {
+    const texture = gl.createRenderbuffer()
+    const target = gl.RENDERBUFFER
+
+    if (texture === null) throw new Error('gl.createRenderbuffer() === null')
+
+    gl.bindRenderbuffer(target, texture)
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, width, height)
+    gl.bindRenderbuffer(target, null)
+
+    this.target = target
+    this.texture = texture
+  }
+}
+
 function getFormat(gl: WebGL2RenderingContext, channels: 1 | 2 | 3 | 4): number {
   const map = {
     1: gl.RED,
@@ -193,4 +212,4 @@ class Texture {
   }
 }
 
-export { makeDepthTarget, Texture }
+export { makeDepthTarget, DepthTarget, Texture }
