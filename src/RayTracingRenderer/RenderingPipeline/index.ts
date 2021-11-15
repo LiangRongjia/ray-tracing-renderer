@@ -133,7 +133,7 @@ class RenderingPipeline {
     setSize: (width: any, height: any) => void
     setStrataCount: (strataCount: any) => void
   }
-  #reprojectPass: any
+  #reprojectPass: ReprojectPass
   #toneMapPass: { draw: (params: any) => void }
   #gBufferPass: any
   #ready: boolean
@@ -188,7 +188,10 @@ class RenderingPipeline {
       optionalExtensions
     })
 
-    this.#reprojectPass = new ReprojectPass(gl, { fullscreenQuad: this.#fullscreenQuad, maxReprojectedSamples })
+    this.#reprojectPass = ReprojectPass.createWithGl(gl, {
+      fullscreenQuad: this.#fullscreenQuad,
+      maxReprojectedSamples
+    })
 
     this.#toneMapPass = new ToneMapPass(gl, { fullscreenQuad: this.#fullscreenQuad, toneMappingParams })
 
@@ -349,7 +352,7 @@ class RenderingPipeline {
     const jitterY = useJitter ? (Math.random() - 0.5) / height : 0
     this.#gBufferPass.setJitter(jitterX, jitterY)
     this.#rayTracePass.setJitter(jitterX, jitterY)
-    this.#reprojectPass.setJitter(jitterX, jitterY)
+    this.#reprojectPass = this.#reprojectPass.setJitter(jitterX, jitterY)
 
     if (this.#sampleCount === 0) {
       this.#rayTracePass.setStrataCount(1)
@@ -432,7 +435,7 @@ class RenderingPipeline {
   private setCameras(camera: THREE.Camera, lastCamera: THREE.Camera) {
     this.#rayTracePass.setCamera(camera)
     this.#gBufferPass.setCamera(camera)
-    this.#reprojectPass.setPreviousCamera(lastCamera)
+    this.#reprojectPass = this.#reprojectPass.setPreviousCamera(lastCamera)
     lastCamera.copy(camera)
   }
 
@@ -454,7 +457,7 @@ class RenderingPipeline {
 
     this.#reprojectBuffer.bind()
     this.#gl.viewport(0, 0, this.#previewSize.renderWidth, this.#previewSize.renderHeight)
-    this.#reprojectPass.draw({
+    this.#reprojectPass = this.#reprojectPass.draw({
       blendAmount: 1.0,
       light: this.#hdrBuffer.color[0],
       lightScale: this.#previewSize.scale,
@@ -479,7 +482,7 @@ class RenderingPipeline {
       if (this.#sampleCount === 0) {
         // previous rendered image was a preview image
         this.clearBuffer(this.#hdrBuffer)
-        this.#reprojectPass.setPreviousCamera(this.#lastCamera)
+        this.#reprojectPass = this.#reprojectPass.setPreviousCamera(this.#lastCamera)
       } else {
         this.#sampleRenderedCallback(this.#sampleCount, this.#frameTime - this.#sampleTime || NaN)
         this.#sampleTime = this.#frameTime
@@ -501,7 +504,7 @@ class RenderingPipeline {
       if (blendAmount > 0.0) {
         this.#reprojectBuffer.bind()
         this.#gl.viewport(0, 0, this.#screenWidth, this.#screenHeight)
-        this.#reprojectPass.draw({
+        this.#reprojectPass = this.#reprojectPass.draw({
           blendAmount,
           light: this.#hdrBuffer.color[0],
           lightScale: this.#fullscreenScale,
@@ -570,7 +573,7 @@ class RenderingPipeline {
     this.addSampleToBuffer(this.#hdrBuffer, this.#screenWidth, this.#screenHeight)
     this.#reprojectBuffer.bind()
     this.#gl.viewport(0, 0, this.#screenWidth, this.#screenHeight)
-    this.#reprojectPass.draw({
+    this.#reprojectPass = this.#reprojectPass.draw({
       blendAmount: 1.0,
       light: this.#hdrBuffer.color[0],
       lightScale: this.#fullscreenScale,

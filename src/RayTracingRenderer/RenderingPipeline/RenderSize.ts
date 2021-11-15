@@ -62,8 +62,8 @@ class RenderSize {
   }
 
   static adjustSize(renderSize: RenderSize, elapsedFrameMs: number) {
-    const data = RenderSize.clone(renderSize)
     if (!elapsedFrameMs) return null
+    const data = RenderSize.clone(renderSize)
     // tweak to find balance. higher = faster convergence, lower = less fluctuations to microstutters
     const strength = 600
     const error = desiredMsPerFrame - elapsedFrameMs

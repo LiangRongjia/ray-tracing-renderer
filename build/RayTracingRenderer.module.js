@@ -51756,9 +51756,9 @@ class RenderSize {
         return RenderSize.calcDimensions(newRenderSize);
     }
     static adjustSize(renderSize, elapsedFrameMs) {
-        const data = RenderSize.clone(renderSize);
         if (!elapsedFrameMs)
             return null;
+        const data = RenderSize.clone(renderSize);
         const strength = 600;
         const error = desiredMsPerFrame - elapsedFrameMs;
         data.pixelsPerFrame += strength * error;
@@ -51881,45 +51881,63 @@ var fragment$2 = {
 `
 };
 
-var _ReprojectPass_fullscreenQuad, _ReprojectPass_maxReprojectedSamples, _ReprojectPass_renderPass, _ReprojectPass_historyCamera;
+const cloneCase = (classConstructor, target) => {
+    let newCase = new classConstructor();
+    Object.keys(target).forEach((key) => (newCase[key] = target[key]));
+    return newCase;
+};
 class ReprojectPass {
-    constructor(gl, params) {
-        _ReprojectPass_fullscreenQuad.set(this, void 0);
-        _ReprojectPass_maxReprojectedSamples.set(this, void 0);
-        _ReprojectPass_renderPass.set(this, void 0);
-        _ReprojectPass_historyCamera.set(this, void 0);
-        __classPrivateFieldSet(this, _ReprojectPass_fullscreenQuad, params.fullscreenQuad);
-        __classPrivateFieldSet(this, _ReprojectPass_maxReprojectedSamples, params.maxReprojectedSamples);
-        __classPrivateFieldSet(this, _ReprojectPass_renderPass, makeRenderPass(gl, {
-            defines: {
-                MAX_SAMPLES: __classPrivateFieldGet(this, _ReprojectPass_maxReprojectedSamples).toFixed(1)
-            },
-            vertex: __classPrivateFieldGet(this, _ReprojectPass_fullscreenQuad).vertexShader,
-            fragment: fragment$2
-        }));
-        __classPrivateFieldSet(this, _ReprojectPass_historyCamera, new Matrix4());
-    }
-    setPreviousCamera(camera) {
-        __classPrivateFieldGet(this, _ReprojectPass_historyCamera).multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setUniform('historyCamera', __classPrivateFieldGet(this, _ReprojectPass_historyCamera).elements);
+    constructor() {
+        this.fullscreenQuad = null;
+        this.maxReprojectedSamples = null;
+        this.renderPass = null;
+        this.historyCamera = new Matrix4();
     }
     setJitter(x, y) {
-        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setUniform('jitter', x, y);
+        if (this.renderPass === null)
+            throw new Error('this.renderPass === null');
+        this.renderPass.setUniform('jitter', x, y);
+        return this;
     }
     draw(params) {
+        if (this.renderPass === null)
+            throw new Error('this.renderPass === null');
         const { blendAmount, light, lightScale, position, previousLight, previousLightScale, previousPosition } = params;
-        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setUniform('blendAmount', blendAmount);
-        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setUniform('lightScale', lightScale.x, lightScale.y);
-        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setUniform('previousLightScale', previousLightScale.x, previousLightScale.y);
-        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setTexture('lightTex', light);
-        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setTexture('positionTex', position);
-        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setTexture('previousLightTex', previousLight);
-        __classPrivateFieldGet(this, _ReprojectPass_renderPass).setTexture('previousPositionTex', previousPosition);
-        __classPrivateFieldGet(this, _ReprojectPass_renderPass).useProgram();
-        __classPrivateFieldGet(this, _ReprojectPass_fullscreenQuad).draw();
+        this.renderPass.setUniform('blendAmount', blendAmount);
+        this.renderPass.setUniform('lightScale', lightScale.x, lightScale.y);
+        this.renderPass.setUniform('previousLightScale', previousLightScale.x, previousLightScale.y);
+        this.renderPass.setTexture('lightTex', light);
+        this.renderPass.setTexture('positionTex', position);
+        this.renderPass.setTexture('previousLightTex', previousLight);
+        this.renderPass.setTexture('previousPositionTex', previousPosition);
+        this.renderPass.useProgram();
+        this.fullscreenQuad.draw();
+        return this;
+    }
+    clone() {
+        return cloneCase(ReprojectPass, this);
+    }
+    setPreviousCamera(camera) {
+        const newReprojectPass = this.clone();
+        newReprojectPass.historyCamera.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+        newReprojectPass.renderPass?.setUniform('historyCamera', newReprojectPass.historyCamera.elements);
+        return newReprojectPass;
+    }
+    static createWithGl(gl, params) {
+        const newReprojectPass = new ReprojectPass();
+        newReprojectPass.fullscreenQuad = params.fullscreenQuad;
+        newReprojectPass.maxReprojectedSamples = params.maxReprojectedSamples;
+        newReprojectPass.renderPass = makeRenderPass(gl, {
+            defines: {
+                MAX_SAMPLES: newReprojectPass.maxReprojectedSamples.toFixed(1)
+            },
+            vertex: newReprojectPass.fullscreenQuad.vertexShader,
+            fragment: fragment$2
+        });
+        newReprojectPass.historyCamera = new Matrix4();
+        return newReprojectPass;
     }
 }
-_ReprojectPass_fullscreenQuad = new WeakMap(), _ReprojectPass_maxReprojectedSamples = new WeakMap(), _ReprojectPass_renderPass = new WeakMap(), _ReprojectPass_historyCamera = new WeakMap();
 
 // @ts-check
 
@@ -52230,7 +52248,10 @@ class RenderingPipeline {
             mergedMesh: __classPrivateFieldGet(this, _RenderingPipeline_mergedMesh),
             optionalExtensions
         }));
-        __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, new ReprojectPass(gl, { fullscreenQuad: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenQuad), maxReprojectedSamples }));
+        __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, ReprojectPass.createWithGl(gl, {
+            fullscreenQuad: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenQuad),
+            maxReprojectedSamples
+        }));
         __classPrivateFieldSet(this, _RenderingPipeline_toneMapPass, new ToneMapPass(gl, { fullscreenQuad: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenQuad), toneMappingParams }));
         __classPrivateFieldSet(this, _RenderingPipeline_gBufferPass, new GBufferPass({ gl, materialBuffer: __classPrivateFieldGet(this, _RenderingPipeline_materialBuffer), mergedMesh: __classPrivateFieldGet(this, _RenderingPipeline_mergedMesh) }));
         __classPrivateFieldSet(this, _RenderingPipeline_ready, false);
@@ -52354,7 +52375,7 @@ class RenderingPipeline {
         const jitterY = useJitter ? (Math.random() - 0.5) / height : 0;
         __classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).setJitter(jitterX, jitterY);
         __classPrivateFieldGet(this, _RenderingPipeline_rayTracePass).setJitter(jitterX, jitterY);
-        __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).setJitter(jitterX, jitterY);
+        __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).setJitter(jitterX, jitterY));
         if (__classPrivateFieldGet(this, _RenderingPipeline_sampleCount) === 0) {
             __classPrivateFieldGet(this, _RenderingPipeline_rayTracePass).setStrataCount(1);
         }
@@ -52419,7 +52440,7 @@ class RenderingPipeline {
     setCameras(camera, lastCamera) {
         __classPrivateFieldGet(this, _RenderingPipeline_rayTracePass).setCamera(camera);
         __classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).setCamera(camera);
-        __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).setPreviousCamera(lastCamera);
+        __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).setPreviousCamera(lastCamera));
         lastCamera.copy(camera);
     }
     drawPreview() {
@@ -52435,7 +52456,7 @@ class RenderingPipeline {
         this.newSampleToBuffer(__classPrivateFieldGet(this, _RenderingPipeline_hdrBuffer), __classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderWidth, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderHeight);
         __classPrivateFieldGet(this, _RenderingPipeline_reprojectBuffer).bind();
         __classPrivateFieldGet(this, _RenderingPipeline_gl).viewport(0, 0, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderWidth, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderHeight);
-        __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).draw({
+        __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).draw({
             blendAmount: 1.0,
             light: __classPrivateFieldGet(this, _RenderingPipeline_hdrBuffer).color[0],
             lightScale: __classPrivateFieldGet(this, _RenderingPipeline_previewSize).scale,
@@ -52443,7 +52464,7 @@ class RenderingPipeline {
             previousLight: __classPrivateFieldGet(this, _RenderingPipeline_lastToneMappedTexture),
             previousLightScale: __classPrivateFieldGet(this, _RenderingPipeline_lastToneMappedScale),
             previousPosition: __classPrivateFieldGet(this, _RenderingPipeline_gBufferBack).color[__classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).outputLocs.position]
-        });
+        }));
         __classPrivateFieldGet(this, _RenderingPipeline_reprojectBuffer).unbind();
         this.toneMapToScreen(__classPrivateFieldGet(this, _RenderingPipeline_reprojectBuffer).color[0], __classPrivateFieldGet(this, _RenderingPipeline_previewSize).scale);
         this.swapBuffers();
@@ -52454,7 +52475,7 @@ class RenderingPipeline {
         if (isFirstTile) {
             if (__classPrivateFieldGet(this, _RenderingPipeline_sampleCount) === 0) {
                 this.clearBuffer(__classPrivateFieldGet(this, _RenderingPipeline_hdrBuffer));
-                __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).setPreviousCamera(__classPrivateFieldGet(this, _RenderingPipeline_lastCamera));
+                __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).setPreviousCamera(__classPrivateFieldGet(this, _RenderingPipeline_lastCamera)));
             }
             else {
                 __classPrivateFieldGet(this, _RenderingPipeline_sampleRenderedCallback).call(this, __classPrivateFieldGet(this, _RenderingPipeline_sampleCount), __classPrivateFieldGet(this, _RenderingPipeline_frameTime) - __classPrivateFieldGet(this, _RenderingPipeline_sampleTime) || NaN);
@@ -52472,7 +52493,7 @@ class RenderingPipeline {
             if (blendAmount > 0.0) {
                 __classPrivateFieldGet(this, _RenderingPipeline_reprojectBuffer).bind();
                 __classPrivateFieldGet(this, _RenderingPipeline_gl).viewport(0, 0, __classPrivateFieldGet(this, _RenderingPipeline_screenWidth), __classPrivateFieldGet(this, _RenderingPipeline_screenHeight));
-                __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).draw({
+                __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).draw({
                     blendAmount,
                     light: __classPrivateFieldGet(this, _RenderingPipeline_hdrBuffer).color[0],
                     lightScale: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenScale),
@@ -52480,7 +52501,7 @@ class RenderingPipeline {
                     previousLight: __classPrivateFieldGet(this, _RenderingPipeline_reprojectBackBuffer).color[0],
                     previousLightScale: __classPrivateFieldGet(this, _RenderingPipeline_previewSize).scale,
                     previousPosition: __classPrivateFieldGet(this, _RenderingPipeline_gBufferBack).color[__classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).outputLocs.position]
-                });
+                }));
                 __classPrivateFieldGet(this, _RenderingPipeline_reprojectBuffer).unbind();
                 this.toneMapToScreen(__classPrivateFieldGet(this, _RenderingPipeline_reprojectBuffer).color[0], __classPrivateFieldGet(this, _RenderingPipeline_fullscreenScale));
             }
@@ -52531,7 +52552,7 @@ class RenderingPipeline {
         this.addSampleToBuffer(__classPrivateFieldGet(this, _RenderingPipeline_hdrBuffer), __classPrivateFieldGet(this, _RenderingPipeline_screenWidth), __classPrivateFieldGet(this, _RenderingPipeline_screenHeight));
         __classPrivateFieldGet(this, _RenderingPipeline_reprojectBuffer).bind();
         __classPrivateFieldGet(this, _RenderingPipeline_gl).viewport(0, 0, __classPrivateFieldGet(this, _RenderingPipeline_screenWidth), __classPrivateFieldGet(this, _RenderingPipeline_screenHeight));
-        __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).draw({
+        __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).draw({
             blendAmount: 1.0,
             light: __classPrivateFieldGet(this, _RenderingPipeline_hdrBuffer).color[0],
             lightScale: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenScale),
@@ -52539,7 +52560,7 @@ class RenderingPipeline {
             previousLight: __classPrivateFieldGet(this, _RenderingPipeline_lastToneMappedTexture),
             previousLightScale: __classPrivateFieldGet(this, _RenderingPipeline_lastToneMappedScale),
             previousPosition: __classPrivateFieldGet(this, _RenderingPipeline_gBufferBack).color[__classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).outputLocs.position]
-        });
+        }));
         __classPrivateFieldGet(this, _RenderingPipeline_reprojectBuffer).unbind();
         this.toneMapToScreen(__classPrivateFieldGet(this, _RenderingPipeline_reprojectBuffer).color[0], __classPrivateFieldGet(this, _RenderingPipeline_fullscreenScale));
     }
