@@ -49304,61 +49304,6 @@ class GBufferPass {
 }
 _GBufferPass_renderPass = new WeakMap(), _GBufferPass_gl = new WeakMap(), _GBufferPass_geometry = new WeakMap(), _GBufferPass_elementCount = new WeakMap(), _GBufferPass_vao = new WeakMap(), _GBufferPass_jitterX = new WeakMap(), _GBufferPass_jitterY = new WeakMap(), _GBufferPass_currentCamera = new WeakMap(), _GBufferPass_projView = new WeakMap();
 
-function makeUniformBuffer(gl, program, blockName) {
-    const blockIndex = gl.getUniformBlockIndex(program, blockName);
-    const blockSize = gl.getActiveUniformBlockParameter(program, blockIndex, gl.UNIFORM_BLOCK_DATA_SIZE);
-    const uniforms = getUniformBlockInfo(gl, program, blockIndex);
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.UNIFORM_BUFFER, buffer);
-    gl.bufferData(gl.UNIFORM_BUFFER, blockSize, gl.STATIC_DRAW);
-    const data = new DataView(new ArrayBuffer(blockSize));
-    function set(name, value) {
-        if (!uniforms[name]) {
-            return;
-        }
-        const { type, size, offset, stride } = uniforms[name];
-        switch (type) {
-            case gl.FLOAT:
-                setData(data, 'setFloat32', size, offset, stride, 1, value);
-                break;
-            case gl.FLOAT_VEC2:
-                setData(data, 'setFloat32', size, offset, stride, 2, value);
-                break;
-            case gl.FLOAT_VEC3:
-                setData(data, 'setFloat32', size, offset, stride, 3, value);
-                break;
-            case gl.FLOAT_VEC4:
-                setData(data, 'setFloat32', size, offset, stride, 4, value);
-                break;
-            case gl.INT:
-                setData(data, 'setInt32', size, offset, stride, 1, value);
-                break;
-            case gl.INT_VEC2:
-                setData(data, 'setInt32', size, offset, stride, 2, value);
-                break;
-            case gl.INT_VEC3:
-                setData(data, 'setInt32', size, offset, stride, 3, value);
-                break;
-            case gl.INT_VEC4:
-                setData(data, 'setInt32', size, offset, stride, 4, value);
-                break;
-            case gl.BOOL:
-                setData(data, 'setUint32', size, offset, stride, 1, value);
-                break;
-            default:
-                console.warn('UniformBuffer: Unsupported type');
-        }
-    }
-    function bind(index) {
-        gl.bindBuffer(gl.UNIFORM_BUFFER, buffer);
-        gl.bufferSubData(gl.UNIFORM_BUFFER, 0, data);
-        gl.bindBufferBase(gl.UNIFORM_BUFFER, index, buffer);
-    }
-    return {
-        set,
-        bind
-    };
-}
 function getUniformBlockInfo(gl, program, blockIndex) {
     const indices = gl.getActiveUniformBlockParameter(program, blockIndex, gl.UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES);
     const offset = gl.getActiveUniforms(program, indices, gl.UNIFORM_OFFSET);
@@ -49385,6 +49330,77 @@ function setData(dataView, setter, size, offset, stride, components, value) {
         for (let k = 0; k < components; k++) {
             dataView[setter](offset + i * stride + k * 4, value[components * i + k], true);
         }
+    }
+}
+class UniformBuffer {
+    constructor() {
+        this.blockIndex = 0;
+        this.blockSize = 0;
+        this.uniforms = {};
+        this.data = null;
+    }
+    static createFromGl(gl, program, blockName) {
+        const newUniformBuffer = new UniformBuffer();
+        newUniformBuffer.blockIndex = gl.getUniformBlockIndex(program, blockName);
+        newUniformBuffer.blockSize = gl.getActiveUniformBlockParameter(program, newUniformBuffer.blockIndex, gl.UNIFORM_BLOCK_DATA_SIZE);
+        newUniformBuffer.uniforms = getUniformBlockInfo(gl, program, newUniformBuffer.blockIndex);
+        newUniformBuffer.buffer = gl.createBuffer();
+        gl.bindBuffer(gl.UNIFORM_BUFFER, newUniformBuffer.buffer);
+        gl.bufferData(gl.UNIFORM_BUFFER, newUniformBuffer.blockSize, gl.STATIC_DRAW);
+        newUniformBuffer.data = new DataView(new ArrayBuffer(newUniformBuffer.blockSize));
+        return newUniformBuffer;
+    }
+    set(gl, name, value) {
+        if (!this.uniforms[name])
+            throw new Error(`No uniform property with name ${name}`);
+        const newUniformBuffer = this.clone();
+        if (newUniformBuffer.data === null)
+            throw new Error('newUniformBuffer.data === null');
+        const { type, size, offset, stride } = this.uniforms[name];
+        switch (type) {
+            case gl.FLOAT:
+                setData(newUniformBuffer.data, 'setFloat32', size, offset, stride, 1, value);
+                break;
+            case gl.FLOAT_VEC2:
+                setData(newUniformBuffer.data, 'setFloat32', size, offset, stride, 2, value);
+                break;
+            case gl.FLOAT_VEC3:
+                setData(newUniformBuffer.data, 'setFloat32', size, offset, stride, 3, value);
+                break;
+            case gl.FLOAT_VEC4:
+                setData(newUniformBuffer.data, 'setFloat32', size, offset, stride, 4, value);
+                break;
+            case gl.INT:
+                setData(newUniformBuffer.data, 'setInt32', size, offset, stride, 1, value);
+                break;
+            case gl.INT_VEC2:
+                setData(newUniformBuffer.data, 'setInt32', size, offset, stride, 2, value);
+                break;
+            case gl.INT_VEC3:
+                setData(newUniformBuffer.data, 'setInt32', size, offset, stride, 3, value);
+                break;
+            case gl.INT_VEC4:
+                setData(newUniformBuffer.data, 'setInt32', size, offset, stride, 4, value);
+                break;
+            case gl.BOOL:
+                setData(newUniformBuffer.data, 'setUint32', size, offset, stride, 1, value);
+                break;
+            default:
+                console.warn('UniformBuffer: Unsupported type');
+        }
+        return newUniformBuffer;
+    }
+    clone() {
+        return cloneCase(UniformBuffer, this);
+    }
+    bind(gl, index) {
+        const newUniformBuffer = this.clone();
+        if (newUniformBuffer.data === null)
+            throw new Error('this.data === null');
+        gl.bindBuffer(gl.UNIFORM_BUFFER, newUniformBuffer.buffer);
+        gl.bufferSubData(gl.UNIFORM_BUFFER, 0, newUniformBuffer.data);
+        gl.bindBufferBase(gl.UNIFORM_BUFFER, index, newUniformBuffer.buffer);
+        return newUniformBuffer;
     }
 }
 
@@ -49707,13 +49723,13 @@ function maxImageSize(images) {
     return { maxSize, relativeSizes };
 }
 function uploadToUniformBuffer(gl, program, bufferData) {
-    const materialBuffer = makeUniformBuffer(gl, program, 'Materials');
-    materialBuffer.set('Materials.colorAndMaterialType[0]', interleave({ data: [].concat(...bufferData.color.map((d) => d.toArray())), channels: 3 }, { data: bufferData.type, channels: 1 }));
-    materialBuffer.set('Materials.roughnessMetalnessNormalScale[0]', interleave({ data: bufferData.roughness, channels: 1 }, { data: bufferData.metalness, channels: 1 }, { data: [].concat(...bufferData.normalScale.map((d) => d.toArray())), channels: 2 }));
-    materialBuffer.set('Materials.diffuseNormalRoughnessMetalnessMapIndex[0]', interleave({ data: bufferData.diffuseMapIndex, channels: 1 }, { data: bufferData.normalMapIndex, channels: 1 }, { data: bufferData.roughnessMapIndex, channels: 1 }, { data: bufferData.metalnessMapIndex, channels: 1 }));
-    materialBuffer.set('Materials.diffuseNormalMapSize[0]', interleave({ data: bufferData.diffuseMapSize, channels: 2 }, { data: bufferData.normalMapSize, channels: 2 }));
-    materialBuffer.set('Materials.pbrMapSize[0]', bufferData.pbrMapSize);
-    materialBuffer.bind(0);
+    UniformBuffer.createFromGl(gl, program, 'Materials')
+        .set(gl, 'Materials.colorAndMaterialType[0]', interleave({ data: [].concat(...bufferData.color.map((d) => d.toArray())), channels: 3 }, { data: bufferData.type, channels: 1 }))
+        .set(gl, 'Materials.roughnessMetalnessNormalScale[0]', interleave({ data: bufferData.roughness, channels: 1 }, { data: bufferData.metalness, channels: 1 }, { data: [].concat(...bufferData.normalScale.map((d) => d.toArray())), channels: 2 }))
+        .set(gl, 'Materials.diffuseNormalRoughnessMetalnessMapIndex[0]', interleave({ data: bufferData.diffuseMapIndex, channels: 1 }, { data: bufferData.normalMapIndex, channels: 1 }, { data: bufferData.roughnessMapIndex, channels: 1 }, { data: bufferData.metalnessMapIndex, channels: 1 }))
+        .set(gl, 'Materials.diffuseNormalMapSize[0]', interleave({ data: bufferData.diffuseMapSize, channels: 2 }, { data: bufferData.normalMapSize, channels: 2 }))
+        .set(gl, 'Materials.pbrMapSize[0]', bufferData.pbrMapSize)
+        .bind(gl, 0);
 }
 function interleave(...arrays) {
     let maxLength = 0;

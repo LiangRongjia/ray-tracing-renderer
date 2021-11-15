@@ -1,7 +1,7 @@
 // @ts-check
 import { ThinMaterial, ThickMaterial, ShadowCatcherMaterial } from '../../constants'
 import materialBufferChunk from './glsl/chunks/materialBuffer.glsl.js'
-import { makeUniformBuffer } from '../UniformBuffer'
+import { UniformBuffer } from '../UniformBuffer'
 import { RenderPass } from '../RenderPass'
 import { Texture } from './Texture'
 import { getTexturesFromMaterials, mergeTexturesFromMaterials } from '../texturesFromMaterials'
@@ -159,46 +159,44 @@ function maxImageSize(images) {
 
 // @ts-ignore
 function uploadToUniformBuffer(gl: WebGL2RenderingContext, program: WebGLProgram, bufferData) {
-  const materialBuffer = makeUniformBuffer(gl, program, 'Materials')
-
-  materialBuffer.set(
-    'Materials.colorAndMaterialType[0]',
-    interleave(
-      // @ts-ignore
-      { data: [].concat(...bufferData.color.map((d) => d.toArray())), channels: 3 },
-      { data: bufferData.type, channels: 1 }
+  UniformBuffer.createFromGl(gl, program, 'Materials')
+    .set(
+      gl,
+      'Materials.colorAndMaterialType[0]',
+      interleave(
+        // @ts-ignore
+        { data: [].concat(...bufferData.color.map((d) => d.toArray())), channels: 3 },
+        { data: bufferData.type, channels: 1 }
+      )
     )
-  )
+    .set(
+      gl,
+      'Materials.roughnessMetalnessNormalScale[0]',
+      interleave(
+        { data: bufferData.roughness, channels: 1 },
+        { data: bufferData.metalness, channels: 1 },
 
-  materialBuffer.set(
-    'Materials.roughnessMetalnessNormalScale[0]',
-    interleave(
-      { data: bufferData.roughness, channels: 1 },
-      { data: bufferData.metalness, channels: 1 },
-
-      // @ts-ignore
-      { data: [].concat(...bufferData.normalScale.map((d) => d.toArray())), channels: 2 }
+        // @ts-ignore
+        { data: [].concat(...bufferData.normalScale.map((d) => d.toArray())), channels: 2 }
+      )
     )
-  )
-
-  materialBuffer.set(
-    'Materials.diffuseNormalRoughnessMetalnessMapIndex[0]',
-    interleave(
-      { data: bufferData.diffuseMapIndex, channels: 1 },
-      { data: bufferData.normalMapIndex, channels: 1 },
-      { data: bufferData.roughnessMapIndex, channels: 1 },
-      { data: bufferData.metalnessMapIndex, channels: 1 }
+    .set(
+      gl,
+      'Materials.diffuseNormalRoughnessMetalnessMapIndex[0]',
+      interleave(
+        { data: bufferData.diffuseMapIndex, channels: 1 },
+        { data: bufferData.normalMapIndex, channels: 1 },
+        { data: bufferData.roughnessMapIndex, channels: 1 },
+        { data: bufferData.metalnessMapIndex, channels: 1 }
+      )
     )
-  )
-
-  materialBuffer.set(
-    'Materials.diffuseNormalMapSize[0]',
-    interleave({ data: bufferData.diffuseMapSize, channels: 2 }, { data: bufferData.normalMapSize, channels: 2 })
-  )
-
-  materialBuffer.set('Materials.pbrMapSize[0]', bufferData.pbrMapSize)
-
-  materialBuffer.bind(0)
+    .set(
+      gl,
+      'Materials.diffuseNormalMapSize[0]',
+      interleave({ data: bufferData.diffuseMapSize, channels: 2 }, { data: bufferData.normalMapSize, channels: 2 })
+    )
+    .set(gl, 'Materials.pbrMapSize[0]', bufferData.pbrMapSize)
+    .bind(gl, 0)
 }
 
 // @ts-ignore
