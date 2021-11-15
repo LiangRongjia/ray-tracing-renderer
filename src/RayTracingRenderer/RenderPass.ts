@@ -1,126 +1,102 @@
+import { cloneCase } from '../utils'
 import { compileShader, createProgram, getAttributes } from './glUtil'
+import { Texture } from './RenderingPipeline/Texture'
 import { makeUniformSetter } from './UniformSetter'
 
-interface RenderPass {
-  outputLocs: {}
-  attribLocs: {}
-  bindTextures: () => void
-  program: WebGLProgram
-  setTexture: (name: any, texture: any) => void
-  setUniform: (name: string, v0: any, v1?: any, v2?: any, v3?: any) => void
-  textures: {}
-  useProgram: (autoBindTextures?: boolean) => void
+interface CreateRenderPassFromGlParams {
+  defines: any
+  vertex: WebGLShader
+  fragment: WebGLShader & { outputs: any }
 }
 
-function makeRenderPass(
-  gl: WebGL2RenderingContext,
-  params: {
-    defines: any
-    vertex: any
-    fragment: {
-      outputs: any
-    }
-  }
-): RenderPass {
-  const { fragment, vertex } = params
+class RenderPass {
+  outputLocs: any = {}
+  attribLocs: any = {}
+  program: WebGLProgram | null = null
+  textures: any = {}
+  nextTexUnit: number = 0
+  uniformSetter: any
 
-  const vertexCompiled = vertex instanceof WebGLShader ? vertex : makeVertexShader(gl, params)
-
-  const fragmentCompiled = fragment instanceof WebGLShader ? fragment : makeFragmentShader(gl, params)
-
-  const program = createProgram(gl, vertexCompiled, fragmentCompiled)
-
-  return {
-    ...makeRenderPassFromProgram(gl, program),
-    outputLocs: fragment.outputs ? getOutputLocations(fragment.outputs) : {}
-  }
-}
-
-//@ts-ignore
-function makeVertexShader(gl: WebGL2RenderingContext, { defines, vertex }) {
-  return makeShaderStage(gl, gl.VERTEX_SHADER, vertex, defines)
-}
-
-//@ts-ignore
-function makeFragmentShader(gl: WebGL2RenderingContext, { defines, fragment }) {
-  return makeShaderStage(gl, gl.FRAGMENT_SHADER, fragment, defines)
-}
-
-function makeRenderPassFromProgram(gl: WebGL2RenderingContext, program: WebGLProgram) {
-  const uniformSetter = makeUniformSetter(gl, program)
-
-  interface Texture {
-    unit: number
-    tex: WebGLTexture
-    target: number
-    texture: WebGLTexture
+  static createFromGl(gl: WebGL2RenderingContext, params: CreateRenderPassFromGlParams) {
+    const { fragment, vertex } = params
+    const vertexCompiled = vertex instanceof WebGLShader ? vertex : makeVertexShader(gl, params)
+    const fragmentCompiled = fragment instanceof WebGLShader ? fragment : makeFragmentShader(gl, params)
+    const program = createProgram(gl, vertexCompiled, fragmentCompiled)
+    const newRenderPass = createFromProgram(gl, program)
+    newRenderPass.outputLocs = fragment.outputs ? getOutputLocations(fragment.outputs) : {}
+    return newRenderPass
   }
 
-  const textures: {
-    [key: string]: {
-      unit: number
-      tex: Texture
-      target: number
-      texture: WebGLTexture
+  clone() {
+    return cloneCase(RenderPass, this)
+  }
+
+  bindTextures(gl: WebGL2RenderingContext) {
+    for (let name in this.textures) {
+      const { tex, unit } = (this.textures as any)[name]
+      gl.activeTexture(gl.TEXTURE0 + unit)
+      gl.bindTexture(tex.target, tex.texture)
     }
-  } = {}
+    return this
+  }
 
-  let nextTexUnit: number = 1
+  setTexture(name: string, texture: Texture) {
+    if (!texture) throw new Error('!texture')
 
-  //@ts-ignore
-  function setTexture(name: string, texture: Texture) {
-    if (!texture) {
-      return
-    }
+    const newRenderPass = this.clone()
 
-    //@ts-ignore
-    if (!textures[name]) {
-      const unit = nextTexUnit++
+    if (!(newRenderPass.textures as any)[name]) {
+      const unit = newRenderPass.nextTexUnit++
 
-      //@ts-ignore
-      uniformSetter.setUniform(name, unit)
-
-      //@ts-ignore
-      textures[name] = {
+      newRenderPass.uniformSetter.setUniform(name, unit)
+      ;(newRenderPass.textures as any)[name] = {
         unit,
         tex: texture
       }
     } else {
-      //@ts-ignore
-      textures[name].tex = texture
+      ;(newRenderPass.textures as any)[name].tex = texture
     }
+    return newRenderPass
   }
 
-  function bindTextures() {
-    for (let name in textures) {
-      //@ts-ignore
-      const { tex, unit } = textures[name]
-      gl.activeTexture(gl.TEXTURE0 + unit)
-      gl.bindTexture(tex.target, tex.texture)
-    }
+  setUniform(name: any, ...unit: any[]) {
+    this.uniformSetter.setUniform(name, ...unit)
+    return this
   }
 
-  function useProgram(autoBindTextures = true) {
-    gl.useProgram(program)
-    uniformSetter.upload()
+  useProgram(gl: WebGL2RenderingContext, autoBindTextures: boolean = true) {
+    gl.useProgram(this.program)
+    this.uniformSetter.upload()
     if (autoBindTextures) {
-      bindTextures()
+      return this.bindTextures(gl)
     }
-  }
-
-  return {
-    attribLocs: getAttributes(gl, program),
-    bindTextures,
-    program,
-    setTexture,
-    setUniform: uniformSetter.setUniform,
-    textures,
-    useProgram
+    return this
   }
 }
 
-//@ts-ignore
-function makeShaderStage(gl: WebGL2RenderingContext, type: number, shader, defines) {
+function makeVertexShader(gl: WebGL2RenderingContext, { defines, vertex }: { defines: any; vertex: any }) {
+  return makeShaderStage(gl, gl.VERTEX_SHADER, vertex, defines)
+}
+
+function makeFragmentShader(gl: WebGL2RenderingContext, { defines, fragment }: { defines: any; fragment: any }) {
+  return makeShaderStage(gl, gl.FRAGMENT_SHADER, fragment, defines)
+}
+
+function createFromProgram(gl: WebGL2RenderingContext, program: WebGLProgram) {
+  const uniformSetter = makeUniformSetter(gl, program)
+
+  const newRenderPass = new RenderPass()
+
+  newRenderPass.attribLocs = getAttributes(gl, program)
+  newRenderPass.program = program
+  newRenderPass.textures = {}
+  newRenderPass.nextTexUnit = 1
+  newRenderPass.uniformSetter = uniformSetter
+
+  return newRenderPass
+}
+
+function makeShaderStage(gl: WebGL2RenderingContext, type: number, shader: any, defines: any) {
   let str = '#version 300 es\nprecision mediump float;\nprecision mediump int;\n'
 
   if (defines) {
@@ -144,8 +120,7 @@ function makeShaderStage(gl: WebGL2RenderingContext, type: number, shader, defin
   return compileShader(gl, type, str)
 }
 
-//@ts-ignore
-function addDefines(defines) {
+function addDefines(defines: any) {
   let str = ''
 
   for (const name in defines) {
@@ -161,23 +136,20 @@ function addDefines(defines) {
   return str
 }
 
-//@ts-ignore
-function addOutputs(outputs) {
+function addOutputs(outputs: any) {
   let str = ''
 
   const locations = getOutputLocations(outputs)
 
   for (let name in locations) {
-    //@ts-ignore
-    const location = locations[name]
+    const location = (locations as any)[name]
     str += `layout(location = ${location}) out vec4 out_${name};\n`
   }
 
   return str
 }
 
-//@ts-ignore
-function addIncludes(includes, defines) {
+function addIncludes(includes: any, defines: any) {
   let str = ''
 
   for (let include of includes) {
@@ -195,11 +167,10 @@ function getOutputLocations(outputs: any[]) {
   let locations = {}
 
   for (let i = 0; i < outputs.length; i++) {
-    //@ts-ignore
-    locations[outputs[i]] = i
+    ;(locations as any)[outputs[i]] = i
   }
 
   return locations
 }
 
-export { makeRenderPass, makeVertexShader, makeFragmentShader, RenderPass }
+export { makeVertexShader, makeFragmentShader, RenderPass }

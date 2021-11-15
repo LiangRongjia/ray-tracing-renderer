@@ -1,13 +1,7 @@
 import fragment from './glsl/reproject.frag.js'
-import { makeRenderPass, RenderPass } from '../RenderPass'
+import { RenderPass } from '../RenderPass'
 import * as THREE from 'three'
-
-const cloneCase = <T>(classConstructor: new () => T, target: T & Object) => {
-  let newCase = new classConstructor()
-  // @ts-ignore
-  Object.keys(target).forEach((key: keyof T) => (newCase[key] = target[key]))
-  return newCase
-}
+import { cloneCase } from '../../utils.js'
 
 class ReprojectPass {
   fullscreenQuad: any = null
@@ -17,22 +11,22 @@ class ReprojectPass {
 
   setJitter(x: number, y: number) {
     if (this.renderPass === null) throw new Error('this.renderPass === null')
-    this.renderPass.setUniform('jitter', x, y)
+    this.renderPass = this.renderPass.setUniform('jitter', x, y)
     return this
   }
 
-  // @ts-ignore
-  draw(params) {
+  draw(gl: WebGL2RenderingContext, params: any) {
     if (this.renderPass === null) throw new Error('this.renderPass === null')
     const { blendAmount, light, lightScale, position, previousLight, previousLightScale, previousPosition } = params
-    this.renderPass.setUniform('blendAmount', blendAmount)
-    this.renderPass.setUniform('lightScale', lightScale.x, lightScale.y)
-    this.renderPass.setUniform('previousLightScale', previousLightScale.x, previousLightScale.y)
-    this.renderPass.setTexture('lightTex', light)
-    this.renderPass.setTexture('positionTex', position)
-    this.renderPass.setTexture('previousLightTex', previousLight)
-    this.renderPass.setTexture('previousPositionTex', previousPosition)
-    this.renderPass.useProgram()
+    this.renderPass = this.renderPass
+      .setUniform('blendAmount', blendAmount)
+      .setUniform('lightScale', lightScale.x, lightScale.y)
+      .setUniform('previousLightScale', previousLightScale.x, previousLightScale.y)
+      .setTexture('lightTex', light)
+      .setTexture('positionTex', position)
+      .setTexture('previousLightTex', previousLight)
+      .setTexture('previousPositionTex', previousPosition)
+      .useProgram(gl)
     this.fullscreenQuad.draw()
     return this
   }
@@ -43,8 +37,12 @@ class ReprojectPass {
 
   setPreviousCamera(camera: THREE.Camera) {
     const newReprojectPass = this.clone()
+    if (newReprojectPass.renderPass === null) throw new Error('this.renderPass === null')
     newReprojectPass.historyCamera.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
-    newReprojectPass.renderPass?.setUniform('historyCamera', newReprojectPass.historyCamera.elements)
+    newReprojectPass.renderPass = newReprojectPass.renderPass.setUniform(
+      'historyCamera',
+      newReprojectPass.historyCamera.elements
+    )
     return newReprojectPass
   }
 
@@ -52,7 +50,7 @@ class ReprojectPass {
     const newReprojectPass = new ReprojectPass()
     newReprojectPass.fullscreenQuad = params.fullscreenQuad
     newReprojectPass.maxReprojectedSamples = params.maxReprojectedSamples
-    newReprojectPass.renderPass = makeRenderPass(gl, {
+    newReprojectPass.renderPass = RenderPass.createFromGl(gl, {
       defines: {
         MAX_SAMPLES: newReprojectPass.maxReprojectedSamples.toFixed(1)
       },

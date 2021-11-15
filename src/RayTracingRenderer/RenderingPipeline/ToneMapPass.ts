@@ -1,5 +1,5 @@
 import fragment from './glsl/toneMap.frag.js'
-import { makeRenderPass } from '../RenderPass'
+import { RenderPass } from '../RenderPass'
 import * as THREE from 'three'
 
 const toneMapFunctions = {
@@ -27,10 +27,10 @@ function makeToneMapPass(gl: WebGL2RenderingContext, params) {
     fragment
   }
 
-  const renderPassUpscale = makeRenderPass(gl, renderPassConfig)
+  let renderPassUpscale = RenderPass.createFromGl(gl, renderPassConfig)
 
   renderPassConfig.defines.EDGE_PRESERVING_UPSCALE = false
-  const renderPassNative = makeRenderPass(gl, renderPassConfig)
+  let renderPassNative = RenderPass.createFromGl(gl, renderPassConfig)
 
   // @ts-ignore
   function draw(params) {
@@ -42,11 +42,14 @@ function makeToneMapPass(gl: WebGL2RenderingContext, params) {
       return
     }
 
-    renderPass.setUniform('lightScale', lightScale.x, lightScale.y)
-    renderPass.setTexture('lightTex', light)
-    renderPass.setTexture('positionTex', position)
+    const newRenderPass = renderPass
+      .setUniform('lightScale', lightScale.x, lightScale.y)
+      .setTexture('lightTex', light)
+      .setTexture('positionTex', position)
+      .useProgram(gl)
 
-    renderPass.useProgram()
+    lightScale.x !== 1 && lightScale.y !== 1 ? (renderPassUpscale = newRenderPass) : (renderPassNative = newRenderPass)
+
     fullscreenQuad.draw()
   }
 

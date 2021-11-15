@@ -457,7 +457,7 @@ class RenderingPipeline {
 
     this.#reprojectBuffer.bind()
     this.#gl.viewport(0, 0, this.#previewSize.renderWidth, this.#previewSize.renderHeight)
-    this.#reprojectPass = this.#reprojectPass.draw({
+    this.#reprojectPass = this.#reprojectPass.draw(this.#gl, {
       blendAmount: 1.0,
       light: this.#hdrBuffer.color[0],
       lightScale: this.#previewSize.scale,
@@ -504,7 +504,7 @@ class RenderingPipeline {
       if (blendAmount > 0.0) {
         this.#reprojectBuffer.bind()
         this.#gl.viewport(0, 0, this.#screenWidth, this.#screenHeight)
-        this.#reprojectPass = this.#reprojectPass.draw({
+        this.#reprojectPass = this.#reprojectPass.draw(this.#gl, {
           blendAmount,
           light: this.#hdrBuffer.color[0],
           lightScale: this.#fullscreenScale,
@@ -573,7 +573,7 @@ class RenderingPipeline {
     this.addSampleToBuffer(this.#hdrBuffer, this.#screenWidth, this.#screenHeight)
     this.#reprojectBuffer.bind()
     this.#gl.viewport(0, 0, this.#screenWidth, this.#screenHeight)
-    this.#reprojectPass = this.#reprojectPass.draw({
+    this.#reprojectPass = this.#reprojectPass.draw(this.#gl, {
       blendAmount: 1.0,
       light: this.#hdrBuffer.color[0],
       lightScale: this.#fullscreenScale,

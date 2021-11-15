@@ -1,4 +1,4 @@
-import { makeRenderPass, RenderPass } from '../RenderPass'
+import { RenderPass } from '../RenderPass'
 import vertex from './glsl/gBuffer.vert.js'
 import fragment from './glsl/gBuffer.frag.js'
 import { Matrix4 } from 'three'
@@ -65,15 +65,16 @@ class GBufferPass {
 
   constructor({ gl, materialBuffer, mergedMesh }: GBufferPassProps) {
     this.#gl = gl
-    this.#renderPass = makeRenderPass(gl, {
+    this.#renderPass = RenderPass.createFromGl(gl, {
       defines: materialBuffer.defines,
       vertex,
       fragment
     })
 
-    this.#renderPass.setTexture('diffuseMap', materialBuffer.textures.diffuseMap)
-    this.#renderPass.setTexture('normalMap', materialBuffer.textures.normalMap)
-    this.#renderPass.setTexture('pbrMap', materialBuffer.textures.pbrMap)
+    this.#renderPass = this.#renderPass
+      .setTexture('diffuseMap', materialBuffer.textures.diffuseMap)
+      .setTexture('normalMap', materialBuffer.textures.normalMap)
+      .setTexture('pbrMap', materialBuffer.textures.pbrMap)
 
     this.#geometry = mergedMesh.geometry
 
@@ -104,7 +105,7 @@ class GBufferPass {
     this.#projView.elements[9] += 2 * this.#jitterY
 
     this.#projView.multiply(this.#currentCamera.matrixWorldInverse)
-    this.#renderPass.setUniform('projView', this.#projView.elements)
+    this.#renderPass = this.#renderPass.setUniform('projView', this.#projView.elements)
   }
   setJitter(x: number, y: number) {
     this.#jitterX = x
@@ -116,7 +117,7 @@ class GBufferPass {
   draw() {
     this.calcCamera()
     this.#gl.bindVertexArray(this.#vao)
-    this.#renderPass.useProgram()
+    this.#renderPass = this.#renderPass.useProgram(this.#gl)
     this.#gl.enable(this.#gl.DEPTH_TEST)
     this.#gl.drawElements(this.#gl.TRIANGLES, this.#elementCount, this.#gl.UNSIGNED_INT, 0)
     this.#gl.disable(this.#gl.DEPTH_TEST)

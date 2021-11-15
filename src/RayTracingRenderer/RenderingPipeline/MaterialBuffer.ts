@@ -2,7 +2,7 @@
 import { ThinMaterial, ThickMaterial, ShadowCatcherMaterial } from '../../constants'
 import materialBufferChunk from './glsl/chunks/materialBuffer.glsl.js'
 import { makeUniformBuffer } from '../UniformBuffer'
-import { makeRenderPass } from '../RenderPass'
+import { RenderPass } from '../RenderPass'
 import { Texture } from './Texture'
 import { getTexturesFromMaterials, mergeTexturesFromMaterials } from '../texturesFromMaterials'
 
@@ -88,7 +88,7 @@ function makeMaterialBuffer(gl: WebGL2RenderingContext, materials) {
 
   // create temporary shader program including the Material uniform buffer
   // used to query the compiled structure of the uniform buffer
-  const renderPass = makeRenderPass(gl, {
+  const renderPass = RenderPass.createFromGl(gl, {
     vertex: {
       source: `void main() {}`
     },
@@ -100,9 +100,8 @@ function makeMaterialBuffer(gl: WebGL2RenderingContext, materials) {
     defines
   })
 
-  if (renderPass === undefined) {
-    return
-  }
+  if (renderPass === undefined || renderPass.program === null) return
+
   uploadToUniformBuffer(gl, renderPass.program, bufferData)
 
   return { defines, textures }

@@ -2,7 +2,7 @@ import { bvhAccel, flattenBvh } from './bvhAccel'
 import { generateEnvMapFromSceneComponents, generateBackgroundMapFromSceneBackground } from '../../envMapCreation'
 import { envMapDistribution } from '../../envMapDistribution'
 import fragment from '../glsl/rayTrace.frag.js'
-import { makeRenderPass } from '../../RenderPass'
+import { RenderPass } from '../../RenderPass'
 import { makeStratifiedSamplerCombined } from '../../StratifiedSamplerCombined'
 import { Texture } from '../Texture'
 import { clamp } from '../../util'
@@ -76,7 +76,7 @@ function makeRayTracePass(
 
   let samples: { next: any; strataCount: any; restart: any }
 
-  const renderPass = makeRenderPassFromScene({
+  let renderPass = makeRenderPassFromScene({
     bounces,
     decomposedScene,
     fullscreenQuad,
@@ -88,12 +88,12 @@ function makeRayTracePass(
   })
 
   function setSize(width: number, height: number) {
-    renderPass.setUniform('pixelSize', 1 / width, 1 / height)
+    renderPass = renderPass.setUniform('pixelSize', 1 / width, 1 / height)
   }
 
   // noiseImage is a 32-bit PNG image
   function setNoise(noiseImage: any) {
-    renderPass.setTexture(
+    renderPass = renderPass.setTexture(
       'noiseTex',
       new Texture(gl, {
         data: noiseImage,
@@ -105,13 +105,14 @@ function makeRayTracePass(
   }
 
   function setCamera(camera: { matrixWorld: { elements: any }; aspect: any; fov: number }) {
-    renderPass.setUniform('camera.transform', camera.matrixWorld.elements)
-    renderPass.setUniform('camera.aspect', camera.aspect)
-    renderPass.setUniform('camera.fov', 0.5 / Math.tan((0.5 * Math.PI * camera.fov) / 180))
+    renderPass = renderPass
+      .setUniform('camera.transform', camera.matrixWorld.elements)
+      .setUniform('camera.aspect', camera.aspect)
+      .setUniform('camera.fov', 0.5 / Math.tan((0.5 * Math.PI * camera.fov) / 180))
   }
 
   function setJitter(x: any, y: any) {
-    renderPass.setUniform('jitter', x, y)
+    renderPass = renderPass.setUniform('jitter', x, y)
   }
 
   function setGBuffers({
@@ -127,15 +128,16 @@ function makeRayTracePass(
     color: any
     matProps: any
   }) {
-    renderPass.setTexture('gPosition', position)
-    renderPass.setTexture('gNormal', normal)
-    renderPass.setTexture('gFaceNormal', faceNormal)
-    renderPass.setTexture('gColor', color)
-    renderPass.setTexture('gMatProps', matProps)
+    renderPass = renderPass
+      .setTexture('gPosition', position)
+      .setTexture('gNormal', normal)
+      .setTexture('gFaceNormal', faceNormal)
+      .setTexture('gColor', color)
+      .setTexture('gMatProps', matProps)
   }
 
   function nextSeed() {
-    renderPass.setUniform('stratifiedSamples[0]', samples.next())
+    renderPass = renderPass.setUniform('stratifiedSamples[0]', samples.next())
   }
 
   function setStrataCount(strataCount: number) {
@@ -148,16 +150,16 @@ function makeRayTracePass(
       samples.restart()
     }
 
-    renderPass.setUniform('strataSize', 1.0 / strataCount)
+    renderPass = renderPass.setUniform('strataSize', 1.0 / strataCount)
     nextSeed()
   }
 
   function bindTextures() {
-    renderPass.bindTextures()
+    renderPass = renderPass.bindTextures(gl)
   }
 
   function draw() {
-    renderPass.useProgram(false)
+    renderPass = renderPass.useProgram(gl, false)
     fullscreenQuad.draw()
   }
 
@@ -209,7 +211,7 @@ function makeRenderPassFromScene({
   const flattenedBvh = flattenBvh(bvh)
   const numTris = geometry.index.count / 3
 
-  const renderPass = makeRenderPass(gl, {
+  let renderPass = RenderPass.createFromGl(gl, {
     defines: {
       OES_texture_float_linear,
       BVH_COLUMNS: textureDimensionsFromArray(flattenedBvh.count).columnsLog,
@@ -226,17 +228,14 @@ function makeRenderPassFromScene({
     vertex: fullscreenQuad.vertexShader
   })
 
-  renderPass.setTexture('diffuseMap', materialBuffer.textures.diffuseMap)
-  renderPass.setTexture('normalMap', materialBuffer.textures.normalMap)
-  renderPass.setTexture('pbrMap', materialBuffer.textures.pbrMap)
-
-  renderPass.setTexture('positionBuffer', makeDataTexture(gl, geometry.getAttribute('position').array, 3))
-
-  renderPass.setTexture('normalBuffer', makeDataTexture(gl, geometry.getAttribute('normal').array, 3))
-
-  renderPass.setTexture('uvBuffer', makeDataTexture(gl, geometry.getAttribute('uv').array, 2))
-
-  renderPass.setTexture('bvhBuffer', makeDataTexture(gl, flattenedBvh.buffer, 4))
+  renderPass = renderPass
+    .setTexture('diffuseMap', materialBuffer.textures.diffuseMap)
+    .setTexture('normalMap', materialBuffer.textures.normalMap)
+    .setTexture('pbrMap', materialBuffer.textures.pbrMap)
+    .setTexture('positionBuffer', makeDataTexture(gl, geometry.getAttribute('position').array, 3))
+    .setTexture('normalBuffer', makeDataTexture(gl, geometry.getAttribute('normal').array, 3))
+    .setTexture('uvBuffer', makeDataTexture(gl, geometry.getAttribute('uv').array, 2))
+    .setTexture('bvhBuffer', makeDataTexture(gl, flattenedBvh.buffer, 4))
 
   const envImage = generateEnvMapFromSceneComponents(directionalLights, ambientLights, environmentLights)
   const envImageTextureObject = new Texture(gl, {
@@ -248,7 +247,7 @@ function makeRenderPassFromScene({
     height: envImage.height
   })
 
-  renderPass.setTexture('envMap', envImageTextureObject)
+  renderPass = renderPass.setTexture('envMap', envImageTextureObject)
 
   let backgroundImageTextureObject
   if (background) {
@@ -268,11 +267,11 @@ function makeRenderPassFromScene({
     backgroundImageTextureObject = envImageTextureObject
   }
 
-  renderPass.setTexture('backgroundMap', backgroundImageTextureObject)
+  renderPass = renderPass.setTexture('backgroundMap', backgroundImageTextureObject)
 
   const distribution = envMapDistribution(envImage)
 
-  renderPass.setTexture(
+  renderPass = renderPass.setTexture(
     'envMapDistribution',
     new Texture(gl, {
       data: distribution.data,

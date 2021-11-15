@@ -48686,6 +48686,12 @@ var vertex = {
 `
 };
 
+const cloneCase = (classConstructor, target) => {
+    let newCase = new classConstructor();
+    Object.keys(target).forEach((key) => (newCase[key] = target[key]));
+    return newCase;
+};
+
 function compileShader(gl, type, source) {
     const shader = gl.createShader(type);
     if (shader === null) {
@@ -48856,15 +48862,63 @@ function glNameMatrix(rows, columns) {
     };
 }
 
-function makeRenderPass(gl, params) {
-    const { fragment, vertex } = params;
-    const vertexCompiled = vertex instanceof WebGLShader ? vertex : makeVertexShader(gl, params);
-    const fragmentCompiled = fragment instanceof WebGLShader ? fragment : makeFragmentShader(gl, params);
-    const program = createProgram(gl, vertexCompiled, fragmentCompiled);
-    return {
-        ...makeRenderPassFromProgram(gl, program),
-        outputLocs: fragment.outputs ? getOutputLocations(fragment.outputs) : {}
-    };
+class RenderPass {
+    constructor() {
+        this.outputLocs = {};
+        this.attribLocs = {};
+        this.program = null;
+        this.textures = {};
+        this.nextTexUnit = 0;
+    }
+    static createFromGl(gl, params) {
+        const { fragment, vertex } = params;
+        const vertexCompiled = vertex instanceof WebGLShader ? vertex : makeVertexShader(gl, params);
+        const fragmentCompiled = fragment instanceof WebGLShader ? fragment : makeFragmentShader(gl, params);
+        const program = createProgram(gl, vertexCompiled, fragmentCompiled);
+        const newRenderPass = createFromProgram(gl, program);
+        newRenderPass.outputLocs = fragment.outputs ? getOutputLocations(fragment.outputs) : {};
+        return newRenderPass;
+    }
+    clone() {
+        return cloneCase(RenderPass, this);
+    }
+    bindTextures(gl) {
+        for (let name in this.textures) {
+            const { tex, unit } = this.textures[name];
+            gl.activeTexture(gl.TEXTURE0 + unit);
+            gl.bindTexture(tex.target, tex.texture);
+        }
+        return this;
+    }
+    setTexture(name, texture) {
+        if (!texture)
+            throw new Error('!texture');
+        const newRenderPass = this.clone();
+        if (!newRenderPass.textures[name]) {
+            const unit = newRenderPass.nextTexUnit++;
+            newRenderPass.uniformSetter.setUniform(name, unit);
+            newRenderPass.textures[name] = {
+                unit,
+                tex: texture
+            };
+        }
+        else {
+            newRenderPass.textures[name].tex = texture;
+        }
+        return newRenderPass;
+    }
+    setUniform(name, ...unit) {
+        this.uniformSetter.setUniform(name, ...unit);
+        return this;
+    }
+    useProgram(gl, autoBindTextures = true) {
+        gl.useProgram(this.program);
+        this.uniformSetter.upload();
+        if (autoBindTextures) {
+            return this.bindTextures(gl);
+        }
+        return this;
+    }
 }
 function makeVertexShader(gl, { defines, vertex }) {
     return makeShaderStage(gl, gl.VERTEX_SHADER, vertex, defines);
@@ -48872,49 +48926,15 @@ function makeVertexShader(gl, { defines, vertex }) {
 function makeFragmentShader(gl, { defines, fragment }) {
     return makeShaderStage(gl, gl.FRAGMENT_SHADER, fragment, defines);
 }
-function makeRenderPassFromProgram(gl, program) {
+function createFromProgram(gl, program) {
     const uniformSetter = makeUniformSetter(gl, program);
-    const textures = {};
-    let nextTexUnit = 1;
-    function setTexture(name, texture) {
-        if (!texture) {
-            return;
-        }
-        if (!textures[name]) {
-            const unit = nextTexUnit++;
-            uniformSetter.setUniform(name, unit);
-            textures[name] = {
-                unit,
-                tex: texture
-            };
-        }
-        else {
-            textures[name].tex = texture;
-        }
-    }
-    function bindTextures() {
-        for (let name in textures) {
-            const { tex, unit } = textures[name];
-            gl.activeTexture(gl.TEXTURE0 + unit);
-            gl.bindTexture(tex.target, tex.texture);
-        }
-    }
-    function useProgram(autoBindTextures = true) {
-        gl.useProgram(program);
-        uniformSetter.upload();
-        if (autoBindTextures) {
-            bindTextures();
-        }
-    }
-    return {
-        attribLocs: getAttributes(gl, program),
-        bindTextures,
-        program,
-        setTexture,
-        setUniform: uniformSetter.setUniform,
-        textures,
-        useProgram
-    };
+    const newRenderPass = new RenderPass();
+    newRenderPass.attribLocs = getAttributes(gl, program);
+    newRenderPass.program = program;
+    newRenderPass.textures = {};
+    newRenderPass.nextTexUnit = 1;
+    newRenderPass.uniformSetter = uniformSetter;
+    return newRenderPass;
 }
 function makeShaderStage(gl, type, shader, defines) {
     let str = '#version 300 es\nprecision mediump float;\nprecision mediump int;\n';
@@ -49228,14 +49248,15 @@ class GBufferPass {
         _GBufferPass_currentCamera.set(this, null);
         _GBufferPass_projView.set(this, void 0);
         __classPrivateFieldSet(this, _GBufferPass_gl, gl);
-        __classPrivateFieldSet(this, _GBufferPass_renderPass, makeRenderPass(gl, {
+        __classPrivateFieldSet(this, _GBufferPass_renderPass, RenderPass.createFromGl(gl, {
             defines: materialBuffer.defines,
             vertex: vertex$1,
             fragment
         }));
-        __classPrivateFieldGet(this, _GBufferPass_renderPass).setTexture('diffuseMap', materialBuffer.textures.diffuseMap);
-        __classPrivateFieldGet(this, _GBufferPass_renderPass).setTexture('normalMap', materialBuffer.textures.normalMap);
-        __classPrivateFieldGet(this, _GBufferPass_renderPass).setTexture('pbrMap', materialBuffer.textures.pbrMap);
+        __classPrivateFieldSet(this, _GBufferPass_renderPass, __classPrivateFieldGet(this, _GBufferPass_renderPass)
+            .setTexture('diffuseMap', materialBuffer.textures.diffuseMap)
+            .setTexture('normalMap', materialBuffer.textures.normalMap)
+            .setTexture('pbrMap', materialBuffer.textures.pbrMap));
         __classPrivateFieldSet(this, _GBufferPass_geometry, mergedMesh.geometry);
         __classPrivateFieldSet(this, _GBufferPass_elementCount, __classPrivateFieldGet(this, _GBufferPass_geometry).getIndex().count);
         const _vao = gl.createVertexArray();
@@ -49263,7 +49284,7 @@ class GBufferPass {
         __classPrivateFieldGet(this, _GBufferPass_projView).elements[8] += 2 * __classPrivateFieldGet(this, _GBufferPass_jitterX);
         __classPrivateFieldGet(this, _GBufferPass_projView).elements[9] += 2 * __classPrivateFieldGet(this, _GBufferPass_jitterY);
         __classPrivateFieldGet(this, _GBufferPass_projView).multiply(__classPrivateFieldGet(this, _GBufferPass_currentCamera).matrixWorldInverse);
-        __classPrivateFieldGet(this, _GBufferPass_renderPass).setUniform('projView', __classPrivateFieldGet(this, _GBufferPass_projView).elements);
+        __classPrivateFieldSet(this, _GBufferPass_renderPass, __classPrivateFieldGet(this, _GBufferPass_renderPass).setUniform('projView', __classPrivateFieldGet(this, _GBufferPass_projView).elements));
     }
     setJitter(x, y) {
         __classPrivateFieldSet(this, _GBufferPass_jitterX, x);
@@ -49275,7 +49296,7 @@ class GBufferPass {
     draw() {
         this.calcCamera();
         __classPrivateFieldGet(this, _GBufferPass_gl).bindVertexArray(__classPrivateFieldGet(this, _GBufferPass_vao));
-        __classPrivateFieldGet(this, _GBufferPass_renderPass).useProgram();
+        __classPrivateFieldSet(this, _GBufferPass_renderPass, __classPrivateFieldGet(this, _GBufferPass_renderPass).useProgram(__classPrivateFieldGet(this, _GBufferPass_gl)));
         __classPrivateFieldGet(this, _GBufferPass_gl).enable(__classPrivateFieldGet(this, _GBufferPass_gl).DEPTH_TEST);
         __classPrivateFieldGet(this, _GBufferPass_gl).drawElements(__classPrivateFieldGet(this, _GBufferPass_gl).TRIANGLES, __classPrivateFieldGet(this, _GBufferPass_elementCount), __classPrivateFieldGet(this, _GBufferPass_gl).UNSIGNED_INT, 0);
         __classPrivateFieldGet(this, _GBufferPass_gl).disable(__classPrivateFieldGet(this, _GBufferPass_gl).DEPTH_TEST);
@@ -49635,7 +49656,7 @@ function makeMaterialBuffer(gl, materials) {
         NUM_DIFFUSE_NORMAL_MAPS: Math.max(maps.map.textures.length, maps.normalMap.textures.length),
         NUM_PBR_MAPS: pbrMap.textures.length
     };
-    const renderPass = makeRenderPass(gl, {
+    const renderPass = RenderPass.createFromGl(gl, {
         vertex: {
             source: `void main() {}`
         },
@@ -49645,9 +49666,8 @@ function makeMaterialBuffer(gl, materials) {
         },
         defines
     });
-    if (renderPass === undefined) {
+    if (renderPass === undefined || renderPass.program === null)
         return;
-    }
     uploadToUniformBuffer(gl, renderPass.program, bufferData);
     return { defines, textures };
 }
@@ -51540,7 +51560,7 @@ function makeRayTracePass(gl, { bounces, decomposedScene, fullscreenQuad, materi
         }
     }
     let samples;
-    const renderPass = makeRenderPassFromScene({
+    let renderPass = makeRenderPassFromScene({
         bounces,
         decomposedScene,
         fullscreenQuad,
@@ -51551,10 +51571,10 @@ function makeRayTracePass(gl, { bounces, decomposedScene, fullscreenQuad, materi
         samplingDimensions
     });
     function setSize(width, height) {
-        renderPass.setUniform('pixelSize', 1 / width, 1 / height);
+        renderPass = renderPass.setUniform('pixelSize', 1 / width, 1 / height);
     }
     function setNoise(noiseImage) {
-        renderPass.setTexture('noiseTex', new Texture$1(gl, {
+        renderPass = renderPass.setTexture('noiseTex', new Texture$1(gl, {
             data: noiseImage,
             wrapS: gl.REPEAT,
             wrapT: gl.REPEAT,
@@ -51562,22 +51582,24 @@ function makeRayTracePass(gl, { bounces, decomposedScene, fullscreenQuad, materi
         }));
     }
     function setCamera(camera) {
-        renderPass.setUniform('camera.transform', camera.matrixWorld.elements);
-        renderPass.setUniform('camera.aspect', camera.aspect);
-        renderPass.setUniform('camera.fov', 0.5 / Math.tan((0.5 * Math.PI * camera.fov) / 180));
+        renderPass = renderPass
+            .setUniform('camera.transform', camera.matrixWorld.elements)
+            .setUniform('camera.aspect', camera.aspect)
+            .setUniform('camera.fov', 0.5 / Math.tan((0.5 * Math.PI * camera.fov) / 180));
     }
     function setJitter(x, y) {
-        renderPass.setUniform('jitter', x, y);
+        renderPass = renderPass.setUniform('jitter', x, y);
     }
     function setGBuffers({ position, normal, faceNormal, color, matProps }) {
-        renderPass.setTexture('gPosition', position);
-        renderPass.setTexture('gNormal', normal);
-        renderPass.setTexture('gFaceNormal', faceNormal);
-        renderPass.setTexture('gColor', color);
-        renderPass.setTexture('gMatProps', matProps);
+        renderPass = renderPass
+            .setTexture('gPosition', position)
+            .setTexture('gNormal', normal)
+            .setTexture('gFaceNormal', faceNormal)
+            .setTexture('gColor', color)
+            .setTexture('gMatProps', matProps);
     }
     function nextSeed() {
-        renderPass.setUniform('stratifiedSamples[0]', samples.next());
+        renderPass = renderPass.setUniform('stratifiedSamples[0]', samples.next());
     }
     function setStrataCount(strataCount) {
         if (strataCount > 1 && strataCount !== samples.strataCount) {
@@ -51586,14 +51608,14 @@ function makeRayTracePass(gl, { bounces, decomposedScene, fullscreenQuad, materi
         else {
             samples.restart();
         }
-        renderPass.setUniform('strataSize', 1.0 / strataCount);
+        renderPass = renderPass.setUniform('strataSize', 1.0 / strataCount);
         nextSeed();
     }
     function bindTextures() {
-        renderPass.bindTextures();
+        renderPass = renderPass.bindTextures(gl);
     }
     function draw() {
-        renderPass.useProgram(false);
+        renderPass = renderPass.useProgram(gl, false);
         fullscreenQuad.draw();
     }
     samples = makeStratifiedSamplerCombined(1, samplingDimensions);
@@ -51617,7 +51639,7 @@ function makeRenderPassFromScene({ bounces, decomposedScene, fullscreenQuad, gl,
     const bvh = bvhAccel(geometry);
     const flattenedBvh = flattenBvh(bvh);
     const numTris = geometry.index.count / 3;
-    const renderPass = makeRenderPass(gl, {
+    let renderPass = RenderPass.createFromGl(gl, {
         defines: {
             OES_texture_float_linear,
             BVH_COLUMNS: textureDimensionsFromArray(flattenedBvh.count).columnsLog,
@@ -51633,13 +51655,14 @@ function makeRenderPassFromScene({ bounces, decomposedScene, fullscreenQuad, gl,
         fragment: fragment$1,
         vertex: fullscreenQuad.vertexShader
     });
-    renderPass.setTexture('diffuseMap', materialBuffer.textures.diffuseMap);
-    renderPass.setTexture('normalMap', materialBuffer.textures.normalMap);
-    renderPass.setTexture('pbrMap', materialBuffer.textures.pbrMap);
-    renderPass.setTexture('positionBuffer', makeDataTexture(gl, geometry.getAttribute('position').array, 3));
-    renderPass.setTexture('normalBuffer', makeDataTexture(gl, geometry.getAttribute('normal').array, 3));
-    renderPass.setTexture('uvBuffer', makeDataTexture(gl, geometry.getAttribute('uv').array, 2));
-    renderPass.setTexture('bvhBuffer', makeDataTexture(gl, flattenedBvh.buffer, 4));
+    renderPass = renderPass
+        .setTexture('diffuseMap', materialBuffer.textures.diffuseMap)
+        .setTexture('normalMap', materialBuffer.textures.normalMap)
+        .setTexture('pbrMap', materialBuffer.textures.pbrMap)
+        .setTexture('positionBuffer', makeDataTexture(gl, geometry.getAttribute('position').array, 3))
+        .setTexture('normalBuffer', makeDataTexture(gl, geometry.getAttribute('normal').array, 3))
+        .setTexture('uvBuffer', makeDataTexture(gl, geometry.getAttribute('uv').array, 2))
+        .setTexture('bvhBuffer', makeDataTexture(gl, flattenedBvh.buffer, 4));
     const envImage = generateEnvMapFromSceneComponents(directionalLights, ambientLights, environmentLights);
     const envImageTextureObject = new Texture$1(gl, {
         data: envImage.data,
@@ -51649,7 +51672,7 @@ function makeRenderPassFromScene({ bounces, decomposedScene, fullscreenQuad, gl,
         width: envImage.width,
         height: envImage.height
     });
-    renderPass.setTexture('envMap', envImageTextureObject);
+    renderPass = renderPass.setTexture('envMap', envImageTextureObject);
     let backgroundImageTextureObject;
     if (background) {
         const backgroundImage = generateBackgroundMapFromSceneBackground(background);
@@ -51667,9 +51690,9 @@ function makeRenderPassFromScene({ bounces, decomposedScene, fullscreenQuad, gl,
     else {
         backgroundImageTextureObject = envImageTextureObject;
     }
-    renderPass.setTexture('backgroundMap', backgroundImageTextureObject);
+    renderPass = renderPass.setTexture('backgroundMap', backgroundImageTextureObject);
     const distribution = envMapDistribution(envImage);
-    renderPass.setTexture('envMapDistribution', new Texture$1(gl, {
+    renderPass = renderPass.setTexture('envMapDistribution', new Texture$1(gl, {
         data: distribution.data,
         storage: 'halfFloat',
         width: distribution.width,
@@ -51881,11 +51904,6 @@ var fragment$2 = {
 `
 };
 
-const cloneCase = (classConstructor, target) => {
-    let newCase = new classConstructor();
-    Object.keys(target).forEach((key) => (newCase[key] = target[key]));
-    return newCase;
-};
 class ReprojectPass {
     constructor() {
         this.fullscreenQuad = null;
@@ -51896,21 +51914,22 @@ class ReprojectPass {
     setJitter(x, y) {
         if (this.renderPass === null)
             throw new Error('this.renderPass === null');
-        this.renderPass.setUniform('jitter', x, y);
+        this.renderPass = this.renderPass.setUniform('jitter', x, y);
         return this;
     }
-    draw(params) {
+    draw(gl, params) {
         if (this.renderPass === null)
             throw new Error('this.renderPass === null');
         const { blendAmount, light, lightScale, position, previousLight, previousLightScale, previousPosition } = params;
-        this.renderPass.setUniform('blendAmount', blendAmount);
-        this.renderPass.setUniform('lightScale', lightScale.x, lightScale.y);
-        this.renderPass.setUniform('previousLightScale', previousLightScale.x, previousLightScale.y);
-        this.renderPass.setTexture('lightTex', light);
-        this.renderPass.setTexture('positionTex', position);
-        this.renderPass.setTexture('previousLightTex', previousLight);
-        this.renderPass.setTexture('previousPositionTex', previousPosition);
-        this.renderPass.useProgram();
+        this.renderPass = this.renderPass
+            .setUniform('blendAmount', blendAmount)
+            .setUniform('lightScale', lightScale.x, lightScale.y)
+            .setUniform('previousLightScale', previousLightScale.x, previousLightScale.y)
+            .setTexture('lightTex', light)
+            .setTexture('positionTex', position)
+            .setTexture('previousLightTex', previousLight)
+            .setTexture('previousPositionTex', previousPosition)
+            .useProgram(gl);
         this.fullscreenQuad.draw();
         return this;
     }
@@ -51919,15 +51938,17 @@ class ReprojectPass {
     }
     setPreviousCamera(camera) {
         const newReprojectPass = this.clone();
+        if (newReprojectPass.renderPass === null)
+            throw new Error('this.renderPass === null');
         newReprojectPass.historyCamera.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-        newReprojectPass.renderPass?.setUniform('historyCamera', newReprojectPass.historyCamera.elements);
+        newReprojectPass.renderPass = newReprojectPass.renderPass.setUniform('historyCamera', newReprojectPass.historyCamera.elements);
         return newReprojectPass;
     }
     static createWithGl(gl, params) {
         const newReprojectPass = new ReprojectPass();
         newReprojectPass.fullscreenQuad = params.fullscreenQuad;
         newReprojectPass.maxReprojectedSamples = params.maxReprojectedSamples;
-        newReprojectPass.renderPass = makeRenderPass(gl, {
+        newReprojectPass.renderPass = RenderPass.createFromGl(gl, {
             defines: {
                 MAX_SAMPLES: newReprojectPass.maxReprojectedSamples.toFixed(1)
             },
@@ -52072,19 +52093,21 @@ function makeToneMapPass(gl, params) {
         vertex: fullscreenQuad.vertexShader,
         fragment: fragment$3
     };
-    const renderPassUpscale = makeRenderPass(gl, renderPassConfig);
+    let renderPassUpscale = RenderPass.createFromGl(gl, renderPassConfig);
     renderPassConfig.defines.EDGE_PRESERVING_UPSCALE = false;
-    const renderPassNative = makeRenderPass(gl, renderPassConfig);
+    let renderPassNative = RenderPass.createFromGl(gl, renderPassConfig);
     function draw(params) {
         const { light, lightScale, position } = params;
         const renderPass = lightScale.x !== 1 && lightScale.y !== 1 ? renderPassUpscale : renderPassNative;
         if (!renderPass) {
             return;
         }
-        renderPass.setUniform('lightScale', lightScale.x, lightScale.y);
-        renderPass.setTexture('lightTex', light);
-        renderPass.setTexture('positionTex', position);
-        renderPass.useProgram();
+        const newRenderPass = renderPass
+            .setUniform('lightScale', lightScale.x, lightScale.y)
+            .setTexture('lightTex', light)
+            .setTexture('positionTex', position)
+            .useProgram(gl);
+        lightScale.x !== 1 && lightScale.y !== 1 ? (renderPassUpscale = newRenderPass) : (renderPassNative = newRenderPass);
         fullscreenQuad.draw();
     }
     return {
@@ -52456,7 +52479,7 @@ class RenderingPipeline {
         this.newSampleToBuffer(__classPrivateFieldGet(this, _RenderingPipeline_hdrBuffer), __classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderWidth, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderHeight);
         __classPrivateFieldGet(this, _RenderingPipeline_reprojectBuffer).bind();
         __classPrivateFieldGet(this, _RenderingPipeline_gl).viewport(0, 0, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderWidth, __classPrivateFieldGet(this, _RenderingPipeline_previewSize).renderHeight);
-        __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).draw({
+        __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).draw(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
             blendAmount: 1.0,
             light: __classPrivateFieldGet(this, _RenderingPipeline_hdrBuffer).color[0],
             lightScale: __classPrivateFieldGet(this, _RenderingPipeline_previewSize).scale,
@@ -52493,7 +52516,7 @@ class RenderingPipeline {
             if (blendAmount > 0.0) {
                 __classPrivateFieldGet(this, _RenderingPipeline_reprojectBuffer).bind();
                 __classPrivateFieldGet(this, _RenderingPipeline_gl).viewport(0, 0, __classPrivateFieldGet(this, _RenderingPipeline_screenWidth), __classPrivateFieldGet(this, _RenderingPipeline_screenHeight));
-                __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).draw({
+                __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).draw(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
                     blendAmount,
                     light: __classPrivateFieldGet(this, _RenderingPipeline_hdrBuffer).color[0],
                     lightScale: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenScale),
@@ -52552,7 +52575,7 @@ class RenderingPipeline {
         this.addSampleToBuffer(__classPrivateFieldGet(this, _RenderingPipeline_hdrBuffer), __classPrivateFieldGet(this, _RenderingPipeline_screenWidth), __classPrivateFieldGet(this, _RenderingPipeline_screenHeight));
         __classPrivateFieldGet(this, _RenderingPipeline_reprojectBuffer).bind();
         __classPrivateFieldGet(this, _RenderingPipeline_gl).viewport(0, 0, __classPrivateFieldGet(this, _RenderingPipeline_screenWidth), __classPrivateFieldGet(this, _RenderingPipeline_screenHeight));
-        __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).draw({
+        __classPrivateFieldSet(this, _RenderingPipeline_reprojectPass, __classPrivateFieldGet(this, _RenderingPipeline_reprojectPass).draw(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
             blendAmount: 1.0,
             light: __classPrivateFieldGet(this, _RenderingPipeline_hdrBuffer).color[0],
             lightScale: __classPrivateFieldGet(this, _RenderingPipeline_fullscreenScale),
