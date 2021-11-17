@@ -2,29 +2,25 @@
 // http://www.pbr-book.org/3ed-2018/Monte_Carlo_Integration/2D_Sampling_with_Multidimensional_Transformations.html#Piecewise-Constant2DDistributions
 
 interface TextureArray {
-  set: (x: number, y: number, channel: number, val: number) => void
-  get: (x: number, y: number, channel: number) => number
   width: number
   height: number
   channels: number
   array: Float32Array
 }
 
-const makeTextureArray: (width: number, height: number, channels: number) => TextureArray = (
-  width,
-  height,
-  channels
-) => {
+function makeTextureArray(width: number, height: number, channels: number): TextureArray {
   const array = new Float32Array(channels * width * height)
+  return { width, height, channels, array }
+}
 
-  return {
-    set: (x, y, channel, val) => (array[channels * (y * width + x) + channel] = val),
-    get: (x, y, channel) => array[channels * (y * width + x) + channel],
-    width,
-    height,
-    channels,
-    array
-  }
+function set(textureArray: TextureArray, x: number, y: number, channel: number, val: number) {
+  const { array, width, channels } = textureArray
+  array[channels * (y * width + x) + channel] = val
+}
+
+function get(textureArray: TextureArray, x: number, y: number, channel: number) {
+  const { array, width, channels } = textureArray
+  return array[channels * (y * width + x) + channel]
 }
 
 function envMapDistribution(image: { width: any; height: any; data: any }) {
@@ -46,26 +42,26 @@ function envMapDistribution(image: { width: any; height: any; data: any }) {
       let b = data[i + 2]
       let luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
       luminance *= sinTheta
-      cdf.set(x + 2, y, 0, cdf.get(x + 1, y, 0) + luminance / image.width)
-      cdf.set(x + 1, y, 1, luminance)
+      set(cdf, x + 2, y, 0, get(cdf, x + 1, y, 0) + luminance / image.width)
+      set(cdf, x + 1, y, 1, luminance)
     }
 
-    const rowIntegral = cdf.get(cdfImage.width - 1, y, 0)
+    const rowIntegral = get(cdf, cdfImage.width - 1, y, 0)
 
     for (let x = 1; x < cdf.width; x++) {
-      cdf.set(x, y, 0, cdf.get(x, y, 0) / rowIntegral)
-      cdf.set(x, y, 1, cdf.get(x, y, 1) / rowIntegral)
+      set(cdf, x, y, 0, get(cdf, x, y, 0) / rowIntegral)
+      set(cdf, x, y, 1, get(cdf, x, y, 1) / rowIntegral)
     }
 
-    cdf.set(0, y + 1, 0, cdf.get(0, y, 0) + rowIntegral / image.height)
-    cdf.set(0, y, 1, rowIntegral)
+    set(cdf, 0, y + 1, 0, get(cdf, 0, y, 0) + rowIntegral / image.height)
+    set(cdf, 0, y, 1, rowIntegral)
   }
 
-  const integral = cdf.get(0, cdf.height - 1, 0)
+  const integral = get(cdf, 0, cdf.height - 1, 0)
 
   for (let y = 0; y < cdf.height; y++) {
-    cdf.set(0, y, 0, cdf.get(0, y, 0) / integral)
-    cdf.set(0, y, 1, cdf.get(0, y, 1) / integral)
+    set(cdf, 0, y, 0, get(cdf, 0, y, 0) / integral)
+    set(cdf, 0, y, 1, get(cdf, 0, y, 1) / integral)
   }
 
   return {
