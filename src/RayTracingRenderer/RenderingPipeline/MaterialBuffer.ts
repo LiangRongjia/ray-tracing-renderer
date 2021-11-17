@@ -3,7 +3,7 @@ import { ThinMaterial, ThickMaterial, ShadowCatcherMaterial } from '../../consta
 import materialBufferChunk from './glsl/chunks/materialBuffer.glsl.js'
 import { UniformBuffer } from '../UniformBuffer'
 import { RenderPass } from '../RenderPass'
-import { Texture } from './Texture'
+import { TextureAPI } from './Texture'
 import { getTexturesFromMaterials, mergeTexturesFromMaterials } from '../texturesFromMaterials'
 
 // @ts-ignore
@@ -116,7 +116,7 @@ function makeTextureArray(gl: WebGL2RenderingContext, textures, gammaCorrection 
   const { maxSize, relativeSizes } = maxImageSize(images)
 
   // create GL Array Texture from individual textures
-  const texture = new Texture(gl, {
+  const texture = TextureAPI.new(gl, {
     width: maxSize.width,
     height: maxSize.height,
     gammaCorrection,

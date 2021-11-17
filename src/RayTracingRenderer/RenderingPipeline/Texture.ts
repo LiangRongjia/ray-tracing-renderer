@@ -1,6 +1,12 @@
 import { clamp } from '../util'
 
-function makeDepthTarget(gl: WebGL2RenderingContext, width: number, height: number) {
+type Channels = 1 | 2 | 3 | 4
+
+function makeDepthTarget(
+  gl: WebGL2RenderingContext,
+  width: number,
+  height: number
+): { target: number; texture: WebGLRenderbuffer } {
   const texture = gl.createRenderbuffer()
   const target = gl.RENDERBUFFER
 
@@ -16,46 +22,17 @@ function makeDepthTarget(gl: WebGL2RenderingContext, width: number, height: numb
   }
 }
 
-class DepthTarget {
-  target: number = 0
-  texture: WebGLRenderbuffer
-
-  constructor(gl: WebGL2RenderingContext, width: number, height: number) {
-    const texture = gl.createRenderbuffer()
-    const target = gl.RENDERBUFFER
-
-    if (texture === null) throw new Error('gl.createRenderbuffer() === null')
-
-    gl.bindRenderbuffer(target, texture)
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, width, height)
-    gl.bindRenderbuffer(target, null)
-
-    this.target = target
-    this.texture = texture
-  }
-}
-
-function getFormat(gl: WebGL2RenderingContext, channels: 1 | 2 | 3 | 4): number {
-  const map = {
-    1: gl.RED,
-    2: gl.RG,
-    3: gl.RGB,
-    4: gl.RGBA
-  }
-  return map[channels]
+function getFormat(gl: WebGL2RenderingContext, channels: Channels): number {
+  return [gl.RED, gl.RG, gl.RGB, gl.RGBA][channels - 1]
 }
 
 function getTextureFormat(
   gl: WebGL2RenderingContext,
-  channels: 1 | 2 | 3 | 4,
+  channels: Channels,
   storage: 'byte' | 'float' | 'halfFloat' | 'snorm',
-  // @ts-ignore
-  data,
+  data: any,
   gammaCorrection: boolean
-) {
-  let type: number = NaN
-  let internalFormat: number = NaN
-
+): { format: number; internalFormat: number; type: number } {
   const isByteArray =
     data instanceof Uint8Array ||
     data instanceof HTMLImageElement ||
@@ -64,56 +41,48 @@ function getTextureFormat(
 
   const isFloatArray = data instanceof Float32Array
 
+  const format = getFormat(gl, channels)
+
   if (storage === 'byte' || (!storage && isByteArray)) {
-    internalFormat = {
-      1: gl.R8,
-      2: gl.RG8,
-      3: gammaCorrection ? gl.SRGB8 : gl.RGB8,
-      4: gammaCorrection ? gl.SRGB8_ALPHA8 : gl.RGBA8
-    }[channels]
-
-    type = gl.UNSIGNED_BYTE
+    const internalFormat = [
+      gl.R8,
+      gl.RG8,
+      gammaCorrection ? gl.SRGB8 : gl.RGB8,
+      gammaCorrection ? gl.SRGB8_ALPHA8 : gl.RGBA8
+    ][channels - 1]
+    const type = gl.UNSIGNED_BYTE
+    return { format, internalFormat, type }
   } else if (storage === 'float' || (!storage && isFloatArray)) {
-    internalFormat = {
-      1: gl.R32F,
-      2: gl.RG32F,
-      3: gl.RGB32F,
-      4: gl.RGBA32F
-    }[channels]
-
-    type = gl.FLOAT
+    const internalFormat = [gl.R32F, gl.RG32F, gl.RGB32F, gl.RGBA32F][channels - 1]
+    const type = gl.FLOAT
+    return { format, internalFormat, type }
   } else if (storage === 'halfFloat') {
-    internalFormat = {
-      1: gl.R16F,
-      2: gl.RG16F,
-      3: gl.RGB16F,
-      4: gl.RGBA16F
-    }[channels]
-
-    type = gl.FLOAT
+    const internalFormat = [gl.R16F, gl.RG16F, gl.RGB16F, gl.RGBA16F][channels - 1]
+    const type = gl.FLOAT
+    return { format, internalFormat, type }
   } else if (storage === 'snorm') {
-    internalFormat = {
-      1: gl.R8_SNORM,
-      2: gl.RG8_SNORM,
-      3: gl.RGB8_SNORM,
-      4: gl.RGBA8_SNORM
-    }[channels]
-
-    type = gl.UNSIGNED_BYTE
-  }
-
-  return {
-    format: getFormat(gl, channels),
-    internalFormat,
-    type
+    const internalFormat = [gl.R8_SNORM, gl.RG8_SNORM, gl.RGB8_SNORM, gl.RGBA8_SNORM][channels - 1]
+    const type = gl.UNSIGNED_BYTE
+    return { format, internalFormat, type }
+  } else {
+    throw new Error(`storage is not in 'byte' | 'float' | 'halfFloat' | 'snorm'`)
   }
 }
 
-class Texture {
+/** ray-tracing-renderer 定义的 Texture 数据类型 */
+type Texture = {
   target: number
   texture: WebGLTexture
+}
 
-  constructor(gl: WebGL2RenderingContext, params: any) {
+/** ray-tracing-renderer 定义的 Texture 配套 API */
+interface TextureAPI {
+  /** 创建一个 Texture */
+  new: (gl: WebGL2RenderingContext, params: any) => Texture
+}
+
+const TextureAPI: TextureAPI = {
+  new: (gl, params) => {
     let {
       width = null,
       height = null,
@@ -207,9 +176,32 @@ class Texture {
     // return state to default
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
 
-    this.target = target
-    this.texture = texture
+    return { target, texture }
   }
 }
 
-export { makeDepthTarget, DepthTarget, Texture }
+type DepthTarget = {
+  target: number
+  texture: WebGLRenderbuffer
+}
+
+interface DepthTargetAPI {
+  new: (gl: WebGL2RenderingContext, width: number, height: number) => DepthTarget
+}
+
+const DepthTargetAPI: DepthTargetAPI = {
+  new: (gl: WebGL2RenderingContext, width: number, height: number) => {
+    const target = gl.RENDERBUFFER
+    const texture = gl.createRenderbuffer()
+
+    if (texture === null) throw new Error('gl.createRenderbuffer() === null')
+
+    gl.bindRenderbuffer(target, texture)
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, width, height)
+    gl.bindRenderbuffer(target, null)
+
+    return { target, texture }
+  }
+}
+
+export { makeDepthTarget, DepthTarget, DepthTargetAPI, Texture, TextureAPI }

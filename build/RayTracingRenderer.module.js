@@ -49435,81 +49435,47 @@ const createIndexArray = (length) => {
     return arr;
 };
 
-class DepthTarget {
-    constructor(gl, width, height) {
-        this.target = 0;
-        const texture = gl.createRenderbuffer();
-        const target = gl.RENDERBUFFER;
-        if (texture === null)
-            throw new Error('gl.createRenderbuffer() === null');
-        gl.bindRenderbuffer(target, texture);
-        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, width, height);
-        gl.bindRenderbuffer(target, null);
-        this.target = target;
-        this.texture = texture;
-    }
-}
 function getFormat(gl, channels) {
-    const map = {
-        1: gl.RED,
-        2: gl.RG,
-        3: gl.RGB,
-        4: gl.RGBA
-    };
-    return map[channels];
+    return [gl.RED, gl.RG, gl.RGB, gl.RGBA][channels - 1];
 }
 function getTextureFormat(gl, channels, storage, data, gammaCorrection) {
-    let type = NaN;
-    let internalFormat = NaN;
     const isByteArray = data instanceof Uint8Array ||
         data instanceof HTMLImageElement ||
         data instanceof HTMLCanvasElement ||
         data instanceof ImageData;
     const isFloatArray = data instanceof Float32Array;
+    const format = getFormat(gl, channels);
     if (storage === 'byte' || (!storage && isByteArray)) {
-        internalFormat = {
-            1: gl.R8,
-            2: gl.RG8,
-            3: gammaCorrection ? gl.SRGB8 : gl.RGB8,
-            4: gammaCorrection ? gl.SRGB8_ALPHA8 : gl.RGBA8
-        }[channels];
-        type = gl.UNSIGNED_BYTE;
+        const internalFormat = [
+            gl.R8,
+            gl.RG8,
+            gammaCorrection ? gl.SRGB8 : gl.RGB8,
+            gammaCorrection ? gl.SRGB8_ALPHA8 : gl.RGBA8
+        ][channels - 1];
+        const type = gl.UNSIGNED_BYTE;
+        return { format, internalFormat, type };
     }
     else if (storage === 'float' || (!storage && isFloatArray)) {
-        internalFormat = {
-            1: gl.R32F,
-            2: gl.RG32F,
-            3: gl.RGB32F,
-            4: gl.RGBA32F
-        }[channels];
-        type = gl.FLOAT;
+        const internalFormat = [gl.R32F, gl.RG32F, gl.RGB32F, gl.RGBA32F][channels - 1];
+        const type = gl.FLOAT;
+        return { format, internalFormat, type };
     }
     else if (storage === 'halfFloat') {
-        internalFormat = {
-            1: gl.R16F,
-            2: gl.RG16F,
-            3: gl.RGB16F,
-            4: gl.RGBA16F
-        }[channels];
-        type = gl.FLOAT;
+        const internalFormat = [gl.R16F, gl.RG16F, gl.RGB16F, gl.RGBA16F][channels - 1];
+        const type = gl.FLOAT;
+        return { format, internalFormat, type };
     }
     else if (storage === 'snorm') {
-        internalFormat = {
-            1: gl.R8_SNORM,
-            2: gl.RG8_SNORM,
-            3: gl.RGB8_SNORM,
-            4: gl.RGBA8_SNORM
-        }[channels];
-        type = gl.UNSIGNED_BYTE;
+        const internalFormat = [gl.R8_SNORM, gl.RG8_SNORM, gl.RGB8_SNORM, gl.RGBA8_SNORM][channels - 1];
+        const type = gl.UNSIGNED_BYTE;
+        return { format, internalFormat, type };
     }
-    return {
-        format: getFormat(gl, channels),
-        internalFormat,
-        type
-    };
+    else {
+        throw new Error(`storage is not in 'byte' | 'float' | 'halfFloat' | 'snorm'`);
+    }
 }
-class Texture$1 {
-    constructor(gl, params) {
+const TextureAPI = {
+    new: (gl, params) => {
         let { width = null, height = null, data = null, length = 1, channels = null, storage = null, flipY = false, gammaCorrection = false, wrapS = gl.CLAMP_TO_EDGE, wrapT = gl.CLAMP_TO_EDGE, minFilter = gl.NEAREST, magFilter = gl.NEAREST } = params;
         width = width || data.width || 0;
         height = height || data.height || 0;
@@ -49559,10 +49525,21 @@ class Texture$1 {
             }
         }
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        this.target = target;
-        this.texture = texture;
+        return { target, texture };
     }
-}
+};
+const DepthTargetAPI = {
+    new: (gl, width, height) => {
+        const target = gl.RENDERBUFFER;
+        const texture = gl.createRenderbuffer();
+        if (texture === null)
+            throw new Error('gl.createRenderbuffer() === null');
+        gl.bindRenderbuffer(target, texture);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, width, height);
+        gl.bindRenderbuffer(target, null);
+        return { target, texture };
+    }
+};
 
 function getTexturesFromMaterials(meshes, textureNames) {
     let textureMap = {};
@@ -49695,7 +49672,7 @@ function makeTextureArray(gl, textures, gammaCorrection = false) {
     const images = textures.map((t) => t.image);
     const flipY = textures.map((t) => t.flipY);
     const { maxSize, relativeSizes } = maxImageSize(images);
-    const texture = new Texture$1(gl, {
+    const texture = TextureAPI.new(gl, {
         width: maxSize.width,
         height: maxSize.height,
         gammaCorrection,
@@ -51594,7 +51571,7 @@ function makeRayTracePass(gl, { bounces, decomposedScene, fullscreenQuad, materi
         renderPass = renderPass.setUniform('pixelSize', 1 / width, 1 / height);
     }
     function setNoise(noiseImage) {
-        renderPass = renderPass.setTexture('noiseTex', new Texture$1(gl, {
+        renderPass = renderPass.setTexture('noiseTex', TextureAPI.new(gl, {
             data: noiseImage,
             wrapS: gl.REPEAT,
             wrapT: gl.REPEAT,
@@ -51684,7 +51661,7 @@ function makeRenderPassFromScene({ bounces, decomposedScene, fullscreenQuad, gl,
         .setTexture('uvBuffer', makeDataTexture(gl, geometry.getAttribute('uv').array, 2))
         .setTexture('bvhBuffer', makeDataTexture(gl, flattenedBvh.buffer, 4));
     const envImage = generateEnvMapFromSceneComponents(directionalLights, ambientLights, environmentLights);
-    const envImageTextureObject = new Texture$1(gl, {
+    const envImageTextureObject = TextureAPI.new(gl, {
         data: envImage.data,
         storage: 'halfFloat',
         minFilter: OES_texture_float_linear ? gl.LINEAR : gl.NEAREST,
@@ -51698,7 +51675,7 @@ function makeRenderPassFromScene({ bounces, decomposedScene, fullscreenQuad, gl,
         const backgroundImage = generateBackgroundMapFromSceneBackground(background);
         if (backgroundImage === undefined)
             throw new Error('backgroundImage === undefined');
-        backgroundImageTextureObject = new Texture$1(gl, {
+        backgroundImageTextureObject = TextureAPI.new(gl, {
             data: backgroundImage.data,
             storage: 'halfFloat',
             minFilter: OES_texture_float_linear ? gl.LINEAR : gl.NEAREST,
@@ -51712,7 +51689,7 @@ function makeRenderPassFromScene({ bounces, decomposedScene, fullscreenQuad, gl,
     }
     renderPass = renderPass.setTexture('backgroundMap', backgroundImageTextureObject);
     const distribution = envMapDistribution(envImage);
-    renderPass = renderPass.setTexture('envMapDistribution', new Texture$1(gl, {
+    renderPass = renderPass.setTexture('envMapDistribution', TextureAPI.new(gl, {
         data: distribution.data,
         storage: 'halfFloat',
         width: distribution.width,
@@ -51733,7 +51710,7 @@ function textureDimensionsFromArray(count) {
 }
 function makeDataTexture(gl, dataArray, channels) {
     const textureDim = textureDimensionsFromArray(dataArray.length / channels);
-    return new Texture$1(gl, {
+    return TextureAPI.new(gl, {
         data: padArray(dataArray, channels * textureDim.size),
         width: textureDim.columns,
         height: textureDim.rows
@@ -52332,7 +52309,7 @@ class RenderingPipeline {
     initFrameBuffers(width, height) {
         const makeHdrBuffer = () => makeFramebuffer(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
             color: {
-                0: new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
+                0: TextureAPI.new(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
                     width,
                     height,
                     storage: 'float',
@@ -52343,7 +52320,7 @@ class RenderingPipeline {
         });
         const makeReprojectBuffer = () => makeFramebuffer(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
             color: {
-                0: new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
+                0: TextureAPI.new(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
                     width,
                     height,
                     storage: 'float',
@@ -52356,14 +52333,14 @@ class RenderingPipeline {
         __classPrivateFieldSet(this, _RenderingPipeline_hdrBackBuffer, makeHdrBuffer());
         __classPrivateFieldSet(this, _RenderingPipeline_reprojectBuffer, makeReprojectBuffer());
         __classPrivateFieldSet(this, _RenderingPipeline_reprojectBackBuffer, makeReprojectBuffer());
-        const normalBuffer = new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'halfFloat' });
-        const faceNormalBuffer = new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'halfFloat' });
-        const colorBuffer = new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'byte', channels: 3 });
-        const matProps = new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'byte', channels: 2 });
-        const depthTarget = new DepthTarget(__classPrivateFieldGet(this, _RenderingPipeline_gl), width, height);
+        const normalBuffer = TextureAPI.new(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'halfFloat' });
+        const faceNormalBuffer = TextureAPI.new(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'halfFloat' });
+        const colorBuffer = TextureAPI.new(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'byte', channels: 3 });
+        const matProps = TextureAPI.new(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'byte', channels: 2 });
+        const depthTarget = DepthTargetAPI.new(__classPrivateFieldGet(this, _RenderingPipeline_gl), width, height);
         const makeGBuffer = () => makeFramebuffer(__classPrivateFieldGet(this, _RenderingPipeline_gl), {
             color: {
-                [__classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).outputLocs.position]: new Texture$1(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'float' }),
+                [__classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).outputLocs.position]: TextureAPI.new(__classPrivateFieldGet(this, _RenderingPipeline_gl), { width, height, storage: 'float' }),
                 [__classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).outputLocs.normal]: normalBuffer,
                 [__classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).outputLocs.faceNormal]: faceNormalBuffer,
                 [__classPrivateFieldGet(this, _RenderingPipeline_gBufferPass).outputLocs.color]: colorBuffer,
