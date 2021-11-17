@@ -204,4 +204,4 @@ const DepthTargetAPI: DepthTargetAPI = {
   }
 }
 
-export { makeDepthTarget, DepthTarget, DepthTargetAPI, Texture, TextureAPI }
+export { makeDepthTarget, DepthTarget, DepthTargetAPI, Texture, TextureAPI, Channels }

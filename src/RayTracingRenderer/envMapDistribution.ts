@@ -1,6 +1,32 @@
 // Create a piecewise 2D cumulative distribution function of light intensity from an env map
 // http://www.pbr-book.org/3ed-2018/Monte_Carlo_Integration/2D_Sampling_with_Multidimensional_Transformations.html#Piecewise-Constant2DDistributions
 
+interface TextureArray {
+  set: (x: number, y: number, channel: number, val: number) => void
+  get: (x: number, y: number, channel: number) => number
+  width: number
+  height: number
+  channels: number
+  array: Float32Array
+}
+
+const makeTextureArray: (width: number, height: number, channels: number) => TextureArray = (
+  width,
+  height,
+  channels
+) => {
+  const array = new Float32Array(channels * width * height)
+
+  return {
+    set: (x, y, channel, val) => (array[channels * (y * width + x) + channel] = val),
+    get: (x, y, channel) => array[channels * (y * width + x) + channel],
+    width,
+    height,
+    channels,
+    array
+  }
+}
+
 function envMapDistribution(image: { width: any; height: any; data: any }) {
   const data = image.data
 
@@ -45,23 +71,6 @@ function envMapDistribution(image: { width: any; height: any; data: any }) {
   return {
     ...cdfImage,
     data: cdf.array
-  }
-}
-
-function makeTextureArray(width: number, height: number, channels: number) {
-  const array = new Float32Array(channels * width * height)
-
-  return {
-    set(x: number, y: number, channel: number, val: number) {
-      array[channels * (y * width + x) + channel] = val
-    },
-    get(x: number, y: number, channel: number) {
-      return array[channels * (y * width + x) + channel]
-    },
-    width,
-    height,
-    channels,
-    array
   }
 }
 

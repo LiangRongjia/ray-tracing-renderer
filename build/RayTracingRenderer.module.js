@@ -50274,6 +50274,17 @@ function equirectangularToSpherical(x, y, width, height, target) {
     return target;
 }
 
+const makeTextureArray$1 = (width, height, channels) => {
+    const array = new Float32Array(channels * width * height);
+    return {
+        set: (x, y, channel, val) => (array[channels * (y * width + x) + channel] = val),
+        get: (x, y, channel) => array[channels * (y * width + x) + channel],
+        width,
+        height,
+        channels,
+        array
+    };
+};
 function envMapDistribution(image) {
     const data = image.data;
     const cdfImage = {
@@ -50309,21 +50320,6 @@ function envMapDistribution(image) {
     return {
         ...cdfImage,
         data: cdf.array
-    };
-}
-function makeTextureArray$1(width, height, channels) {
-    const array = new Float32Array(channels * width * height);
-    return {
-        set(x, y, channel, val) {
-            array[channels * (y * width + x) + channel] = val;
-        },
-        get(x, y, channel) {
-            return array[channels * (y * width + x) + channel];
-        },
-        width,
-        height,
-        channels,
-        array
     };
 }
 
