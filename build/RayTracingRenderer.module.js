@@ -50274,17 +50274,18 @@ function equirectangularToSpherical(x, y, width, height, target) {
     return target;
 }
 
-const makeTextureArray$1 = (width, height, channels) => {
+function makeTextureArray$1(width, height, channels) {
     const array = new Float32Array(channels * width * height);
-    return {
-        set: (x, y, channel, val) => (array[channels * (y * width + x) + channel] = val),
-        get: (x, y, channel) => array[channels * (y * width + x) + channel],
-        width,
-        height,
-        channels,
-        array
-    };
-};
+    return { width, height, channels, array };
+}
+function set(textureArray, x, y, channel, val) {
+    const { array, width, channels } = textureArray;
+    array[channels * (y * width + x) + channel] = val;
+}
+function get(textureArray, x, y, channel) {
+    const { array, width, channels } = textureArray;
+    return array[channels * (y * width + x) + channel];
+}
 function envMapDistribution(image) {
     const data = image.data;
     const cdfImage = {
@@ -50301,21 +50302,21 @@ function envMapDistribution(image) {
             let b = data[i + 2];
             let luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
             luminance *= sinTheta;
-            cdf.set(x + 2, y, 0, cdf.get(x + 1, y, 0) + luminance / image.width);
-            cdf.set(x + 1, y, 1, luminance);
+            set(cdf, x + 2, y, 0, get(cdf, x + 1, y, 0) + luminance / image.width);
+            set(cdf, x + 1, y, 1, luminance);
         }
-        const rowIntegral = cdf.get(cdfImage.width - 1, y, 0);
+        const rowIntegral = get(cdf, cdfImage.width - 1, y, 0);
         for (let x = 1; x < cdf.width; x++) {
-            cdf.set(x, y, 0, cdf.get(x, y, 0) / rowIntegral);
-            cdf.set(x, y, 1, cdf.get(x, y, 1) / rowIntegral);
+            set(cdf, x, y, 0, get(cdf, x, y, 0) / rowIntegral);
+            set(cdf, x, y, 1, get(cdf, x, y, 1) / rowIntegral);
         }
-        cdf.set(0, y + 1, 0, cdf.get(0, y, 0) + rowIntegral / image.height);
-        cdf.set(0, y, 1, rowIntegral);
+        set(cdf, 0, y + 1, 0, get(cdf, 0, y, 0) + rowIntegral / image.height);
+        set(cdf, 0, y, 1, rowIntegral);
     }
-    const integral = cdf.get(0, cdf.height - 1, 0);
+    const integral = get(cdf, 0, cdf.height - 1, 0);
     for (let y = 0; y < cdf.height; y++) {
-        cdf.set(0, y, 0, cdf.get(0, y, 0) / integral);
-        cdf.set(0, y, 1, cdf.get(0, y, 1) / integral);
+        set(cdf, 0, y, 0, get(cdf, 0, y, 0) / integral);
+        set(cdf, 0, y, 1, get(cdf, 0, y, 1) / integral);
     }
     return {
         ...cdfImage,
@@ -52580,7 +52581,7 @@ class RenderingPipeline {
 }
 _RenderingPipeline_tileRender = new WeakMap(), _RenderingPipeline_previewSize = new WeakMap(), _RenderingPipeline_decomposedScene = new WeakMap(), _RenderingPipeline_mergedMesh = new WeakMap(), _RenderingPipeline_materialBuffer = new WeakMap(), _RenderingPipeline_fullscreenQuad = new WeakMap(), _RenderingPipeline_rayTracePass = new WeakMap(), _RenderingPipeline_reprojectPass = new WeakMap(), _RenderingPipeline_toneMapPass = new WeakMap(), _RenderingPipeline_gBufferPass = new WeakMap(), _RenderingPipeline_ready = new WeakMap(), _RenderingPipeline_noiseImage = new WeakMap(), _RenderingPipeline_frameTime = new WeakMap(), _RenderingPipeline_elapsedFrameTime = new WeakMap(), _RenderingPipeline_sampleTime = new WeakMap(), _RenderingPipeline_sampleCount = new WeakMap(), _RenderingPipeline_numPreviewsRendered = new WeakMap(), _RenderingPipeline_firstFrame = new WeakMap(), _RenderingPipeline_sampleRenderedCallback = new WeakMap(), _RenderingPipeline_lastCamera = new WeakMap(), _RenderingPipeline_screenWidth = new WeakMap(), _RenderingPipeline_screenHeight = new WeakMap(), _RenderingPipeline_fullscreenScale = new WeakMap(), _RenderingPipeline_lastToneMappedScale = new WeakMap(), _RenderingPipeline_hdrBuffer = new WeakMap(), _RenderingPipeline_hdrBackBuffer = new WeakMap(), _RenderingPipeline_reprojectBuffer = new WeakMap(), _RenderingPipeline_reprojectBackBuffer = new WeakMap(), _RenderingPipeline_gBuffer = new WeakMap(), _RenderingPipeline_gBufferBack = new WeakMap(), _RenderingPipeline_lastToneMappedTexture = new WeakMap(), _RenderingPipeline_gl = new WeakMap();
 
-var _RayTracingRenderer_canvas, _RayTracingRenderer_gl, _RayTracingRenderer_size, _RayTracingRenderer_pipeline, _RayTracingRenderer_pixelRatio, _RayTracingRenderer_isValidTime, _RayTracingRenderer_currentTime, _RayTracingRenderer_syncWarning, _RayTracingRenderer_lastFocus, _RayTracingRenderer_optionalExtensions, _RayTracingRenderer_restartTimer, _RayTracingRenderer_initScene;
+var _RayTracingRenderer_canvas, _RayTracingRenderer_gl, _RayTracingRenderer_size, _RayTracingRenderer_pipeline, _RayTracingRenderer_pixelRatio, _RayTracingRenderer_isValidTime, _RayTracingRenderer_currentTime, _RayTracingRenderer_syncWarning, _RayTracingRenderer_optionalExtensions, _RayTracingRenderer_restartTimer, _RayTracingRenderer_initScene;
 const glRequiredExtensions = [
     'EXT_color_buffer_float',
     'EXT_float_blend'
@@ -52598,7 +52599,6 @@ class RayTracingRenderer {
         _RayTracingRenderer_isValidTime.set(this, 1);
         _RayTracingRenderer_currentTime.set(this, NaN);
         _RayTracingRenderer_syncWarning.set(this, false);
-        _RayTracingRenderer_lastFocus.set(this, false);
         _RayTracingRenderer_optionalExtensions.set(this, undefined);
         _RayTracingRenderer_restartTimer.set(this, () => {
             __classPrivateFieldSet(this, _RayTracingRenderer_isValidTime, NaN);
@@ -52683,17 +52683,6 @@ class RayTracingRenderer {
         __classPrivateFieldSet(this, _RayTracingRenderer_currentTime, t || performance.now());
     }
     render(scene, camera) {
-        if (!this.renderWhenOffFocus) {
-            const hasFocus = document.hasFocus();
-            if (!hasFocus) {
-                __classPrivateFieldSet(this, _RayTracingRenderer_lastFocus, hasFocus);
-                return;
-            }
-            if (hasFocus && !__classPrivateFieldGet(this, _RayTracingRenderer_lastFocus)) {
-                __classPrivateFieldSet(this, _RayTracingRenderer_lastFocus, hasFocus);
-                __classPrivateFieldGet(this, _RayTracingRenderer_restartTimer).call(this);
-            }
-        }
         if (this.needsUpdate)
             __classPrivateFieldGet(this, _RayTracingRenderer_initScene).call(this, scene);
         if (isNaN(__classPrivateFieldGet(this, _RayTracingRenderer_currentTime))) {
@@ -52732,6 +52721,7 @@ class RayTracingRenderer {
         return true;
     }
 }
-_RayTracingRenderer_canvas = new WeakMap(), _RayTracingRenderer_gl = new WeakMap(), _RayTracingRenderer_size = new WeakMap(), _RayTracingRenderer_pipeline = new WeakMap(), _RayTracingRenderer_pixelRatio = new WeakMap(), _RayTracingRenderer_isValidTime = new WeakMap(), _RayTracingRenderer_currentTime = new WeakMap(), _RayTracingRenderer_syncWarning = new WeakMap(), _RayTracingRenderer_lastFocus = new WeakMap(), _RayTracingRenderer_optionalExtensions = new WeakMap(), _RayTracingRenderer_restartTimer = new WeakMap(), _RayTracingRenderer_initScene = new WeakMap();
+_RayTracingRenderer_canvas = new WeakMap(), _RayTracingRenderer_gl = new WeakMap(), _RayTracingRenderer_size = new WeakMap(), _RayTracingRenderer_pipeline = new WeakMap(), _RayTracingRenderer_pixelRatio = new WeakMap(), _RayTracingRenderer_isValidTime = new WeakMap(), _RayTracingRenderer_currentTime = new WeakMap(), _RayTracingRenderer_syncWarning = new WeakMap(), _RayTracingRenderer_optionalExtensions = new WeakMap(), _RayTracingRenderer_restartTimer = new WeakMap(), _RayTracingRenderer_initScene = new WeakMap();
 
 export { EnvironmentLight, LensCamera, RayTracingMaterial, RayTracingRenderer, SoftDirectionalLight, constants };
+//# sourceMappingURL=RayTracingRenderer.module.js.map

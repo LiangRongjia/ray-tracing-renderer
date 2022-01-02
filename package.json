@@ -5,7 +5,7 @@
   "main": "build/RayTracingRenderer.js",
   "module": "build/RayTracingRenderer.module.js",
   "scripts": {
-    "build": "./node_modules/.bin/rollup -c",
+    "build": "./node_modules/.bin/rollup -c --sourcemap",
     "dev": "./node_modules/.bin/rollup -cw --environment DEV & ./node_modules/.bin/http-server",
     "test": "./node_modules/jest/bin/jest.js",
     "lint": "./node_modules/.bin/eslint src/ test/",

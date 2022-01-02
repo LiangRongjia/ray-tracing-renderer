@@ -8,10 +8,7 @@ const buildEsm = {
     format: 'esm',
     name: 'RayTracingRenderer'
   },
-  plugins: [
-    typescript({ useTsconfigDeclarationDir: true }),
-    resolve()
-  ]
+  plugins: [typescript({ useTsconfigDeclarationDir: true }), resolve()]
 }
 
 const bundle = [buildEsm]
